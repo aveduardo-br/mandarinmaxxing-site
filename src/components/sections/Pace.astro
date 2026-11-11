@@ -1,0 +1,103 @@
+---
+// Section 05 — Paper node 3F-0. Face images are placeholders until the original pixel-art faces exist.
+import Section from '../Section.astro';
+
+const paces = [
+  { name: 'Light', items: '1–4 items per lesson', tone: 'light', face: 'face 1' },
+  { name: 'Standard', items: '5–7 items per lesson', extra: 'default', tone: 'standard', face: 'face 2' },
+  { name: 'Intensive', items: '8–10 items per lesson', tone: 'intensive', face: 'face 3' },
+];
+---
+
+<Section id="pace" num="05" title="Pace and audio">
+  <p class="prose">
+    In the first conversation you pick your HSK 3.0 level, a pace, and whether you want audio. If you've studied
+    before, you can start further in after seeing the lesson plan.
+  </p>
+
+  <div class="paces">
+    {
+      paces.map((p) => (
+        <div class={`pace ${p.tone}`}>
+          <div class="face label" aria-hidden="true">
+            {p.face}
+          </div>
+          <div class="txt">
+            <span class="name pixel">{p.name}</span>
+            <span class="items">
+              {p.items}
+              {p.extra && (
+                <>
+                  <br />
+                  {p.extra}
+                </>
+              )}
+            </span>
+          </div>
+        </div>
+      ))
+    }
+  </div>
+
+  <p class="prose">
+    Audio is optional, but recommended. Hearing the chunks in a conversation is the point of the dialogues. ElevenLabs
+    is the first suggestion for two-voice dialogues, and you can connect another compatible provider. Without audio, the
+    dialogue appears in the chat in hanzi, without pinyin, followed by the questions.
+  </p>
+  <p class="prose">
+    Hanzi you can actually see. Where the chat supports it, the vocabulary table shows characters at 2.5× the base
+    size. The system font works fine. If you want strokes closer to careful handwriting, the skill suggests Kaiti SC
+    Bold on Mac or AR PL KaitiM GB on Windows.
+  </p>
+</Section>
+
+<style>
+  .paces {
+    display: flex;
+    gap: 24px;
+    padding-block: 16px;
+  }
+  .pace {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+  .pace.light {
+    color: var(--text);
+  }
+  .pace.standard {
+    color: var(--accent-light);
+  }
+  .pace.intensive {
+    color: var(--accent);
+  }
+  .face {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: #141414;
+    border: 1px dashed currentColor;
+    font-size: 9px;
+    line-height: 12px;
+  }
+  .txt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-align: center;
+  }
+  .name {
+    font-size: 20px;
+    line-height: 26px;
+  }
+  .items {
+    font-size: 15px;
+    line-height: 22px;
+    opacity: 0.7;
+  }
+</style>

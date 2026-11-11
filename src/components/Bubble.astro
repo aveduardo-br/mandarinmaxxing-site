@@ -1,0 +1,16 @@
+---
+// Chat bubble with the 8×10 tail at the bottom corner. from="ai" (left) or "user" (right).
+interface Props {
+  from: 'ai' | 'user';
+  class?: string;
+}
+const { from, class: cls } = Astro.props;
+const fill = from === 'ai' ? '#1C1C1C' : '#262626';
+---
+
+<div class:list={['bubble', from, cls]}>
+  <slot />
+  <svg class="tail" viewBox="0 0 8 10" aria-hidden="true">
+    <path d={from === 'ai' ? 'M8 0 L8 10 L0 10 Z' : 'M0 0 L0 10 L8 10 Z'} fill={fill}></path>
+  </svg>
+</div>

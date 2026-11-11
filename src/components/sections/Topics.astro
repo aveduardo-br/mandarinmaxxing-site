@@ -1,0 +1,259 @@
+---
+// Section 02 — Paper node 1V-0. Static state: topic 08 open.
+// Interaction (accordion on hover/click) comes in step 4.
+import Section from '../Section.astro';
+import { topics, levelNames, type Topic } from '../../data/topics';
+
+const OPEN = '08';
+const groups: Topic[][] = [];
+for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
+---
+
+<Section id="topics" num="02" title="Topics, not chapters">
+  <p class="prose">
+    HSK 3.0 is the official vocabulary list for each level of the Chinese proficiency test. mandarinmaxxing uses it as
+    the reference for what to learn. What changes is the order.
+  </p>
+  <p class="prose">
+    A prep book teaches words in the order its chapters introduce them. mandarinmaxxing groups the words of your level
+    by the situation you'll use them in, like getting around town or ordering food. When a word from another level
+    makes a useful chunk, it comes in too, marked as an extra.
+  </p>
+  <p class="prose">Neither order is the right one. This is an option for people who'd rather study by topic.</p>
+
+  <div class="list">
+    {
+      groups.map((g) => (
+        <div class="group">
+          {g.map((t) =>
+            t.num === OPEN && t.words && t.counts ? (
+              <div class="open">
+                <div class="open-head pixel">
+                  <span>--&gt;</span>
+                  <span>{t.num}</span>
+                  <span>{t.name}</span>
+                </div>
+                <div class="words">
+                  {t.words.map((w) => (
+                    <div class={`word ${w.level}`}>
+                      <span class="hanzi">{w.hanzi}</span>
+                      <span class="en">{w.en}</span>
+                    </div>
+                  ))}
+                  {t.more && (
+                    <div class="word more">
+                      <span class="hanzi">…</span>
+                      <span class="en">+{t.more} more</span>
+                    </div>
+                  )}
+                </div>
+                <div class="levels">
+                  <div class="bar-row">
+                    <div class="squares" aria-hidden="true">
+                      {Array.from({ length: t.counts.base }, () => (
+                        <i class="sq base" />
+                      ))}
+                      {Array.from({ length: t.counts.below }, () => (
+                        <i class="sq below" />
+                      ))}
+                      {Array.from({ length: t.counts.above }, () => (
+                        <i class="sq above" />
+                      ))}
+                    </div>
+                    <div class="legend pixel">
+                      <span class="base">
+                        <i class="sq" />
+                        {levelNames.base} · {t.counts.base}
+                      </span>
+                      <span class="below">
+                        <i class="sq" />
+                        {levelNames.below} · {t.counts.below}
+                      </span>
+                      <span class="above">
+                        <i class="sq" />
+                        {levelNames.above} · {t.counts.above}
+                      </span>
+                    </div>
+                  </div>
+                  <p class="note">Extras from a level below or above come in when they make a useful chunk with the rest.</p>
+                </div>
+              </div>
+            ) : (
+              <div class="row">
+                <span class="num pixel">{t.num}</span>
+                <span class="name pixel">{t.name}</span>
+                <span class="preview hanzi">{t.preview}</span>
+              </div>
+            ),
+          )}
+        </div>
+      ))
+    }
+  </div>
+</Section>
+
+<style>
+  .list {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    padding-block: 24px;
+  }
+  .group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .row {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    padding-block: 8px;
+  }
+  .num {
+    width: 20px;
+    flex-shrink: 0;
+    font-size: 12px;
+    line-height: 20px;
+    color: var(--muted-2);
+  }
+  .name {
+    flex: 1;
+    min-width: 0;
+    font-size: 16px;
+    line-height: 20px;
+    color: var(--text-dim);
+  }
+  .preview {
+    flex-shrink: 0;
+    width: 128px;
+    padding-right: 4px;
+    text-align: right;
+    white-space: pre;
+    font-size: 16px;
+    line-height: 20px;
+    color: #3a3a3a;
+  }
+
+  .open {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding-top: 24px;
+    padding-bottom: 28px;
+  }
+  .open-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    font-size: 24px;
+    line-height: 32px;
+    color: var(--text);
+  }
+
+  .words {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 24px;
+    row-gap: 16px;
+    max-width: 555px;
+    padding-left: 56px;
+  }
+  .word {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .word .hanzi {
+    font-size: 32px;
+    line-height: 38px;
+    color: var(--text);
+  }
+  .word .en {
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--muted);
+    text-align: center;
+  }
+  .word.below .hanzi,
+  .word.below .en {
+    color: var(--accent-light);
+  }
+  .word.above .hanzi,
+  .word.above .en {
+    color: var(--accent);
+  }
+  .word.more .hanzi {
+    color: #3a3a3a;
+  }
+  .word.more .en {
+    color: var(--muted-2);
+  }
+
+  .levels {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-left: 56px;
+    padding-top: 4px;
+  }
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .squares {
+    display: flex;
+    gap: 2px;
+  }
+  .sq {
+    display: block;
+    width: 6px;
+    height: 6px;
+    flex-shrink: 0;
+  }
+  .squares .base {
+    background: var(--text);
+    opacity: 0.8;
+  }
+  .squares .below {
+    background: var(--accent-light);
+  }
+  .squares .above {
+    background: var(--accent);
+  }
+  .legend {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 12px;
+    line-height: 16px;
+    white-space: pre;
+  }
+  .legend > span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .legend .base {
+    color: var(--text);
+    opacity: 0.8;
+  }
+  .legend .below {
+    color: var(--accent-light);
+  }
+  .legend .above {
+    color: var(--accent);
+  }
+  .legend .sq {
+    background: currentColor;
+  }
+  .note {
+    max-width: 440px;
+    font-size: 13px;
+    line-height: 19px;
+    color: var(--muted);
+  }
+</style>

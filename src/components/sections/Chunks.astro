@@ -1,0 +1,99 @@
+---
+// Section 03 — Paper node 2C-0. Static slot; spinning comes in step 4.
+import Section from '../Section.astro';
+
+const left = ['我走路去', '我坐出租车去', '我坐地铁去', '我骑自行车去', '我开车去'];
+const right = ['医院', '学校', '公司', '机场', '超市'];
+// distance from the middle row → class
+const tier = (i: number) => ['far', 'near', 'mid', 'near', 'far'][i];
+---
+
+<Section id="chunks" num="03" title="Chunks">
+  <p class="prose">
+    Grouping is only half of it. Every lesson also teaches chunks: short phrases and sentence patterns you can lift out
+    and reuse in other situations.
+  </p>
+  <p class="prose">
+    You see how the words work together, try them in your own translations, then meet them again in a dialogue. Words
+    and chunks from earlier lessons come back in new contexts when they fit.
+  </p>
+
+  <div class="slot" aria-label="我坐地铁去公司 — I take the subway to the office">
+    <div class="tag left pixel">I take the subway to</div>
+    <div class="col left" aria-hidden="true">
+      {left.map((s, i) => <span class={tier(i)}>{s}</span>)}
+    </div>
+    <div class="col right" aria-hidden="true">
+      {right.map((s, i) => <span class={tier(i)}>{s}</span>)}
+    </div>
+    <div class="tag right pixel">the office</div>
+  </div>
+</Section>
+
+<style>
+  .slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding-block: 32px;
+  }
+  .tag {
+    flex: 1 1 0;
+    font-size: 14px;
+    line-height: 18px;
+    white-space: pre;
+  }
+  .tag.left {
+    color: var(--text-dim);
+  }
+  .tag.right {
+    color: var(--accent);
+    text-align: right;
+  }
+
+  .col {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .col.left {
+    align-items: flex-end;
+    color: var(--text);
+  }
+  .col.right {
+    align-items: flex-start;
+    color: var(--accent);
+  }
+  .col span {
+    font-family: var(--f-pixel);
+    font-weight: 500;
+    white-space: pre;
+  }
+  .col .far {
+    font-size: 24px;
+    line-height: 32px;
+  }
+  .col .near {
+    font-size: 36px;
+    line-height: 44px;
+  }
+  .col .mid {
+    font-family: var(--f-brush);
+    font-weight: 700;
+    font-size: 56px;
+    line-height: 64px;
+  }
+  .col.left .far {
+    opacity: 0.07;
+  }
+  .col.left .near {
+    opacity: 0.18;
+  }
+  .col.right .far {
+    opacity: 0.1;
+  }
+  .col.right .near {
+    opacity: 0.25;
+  }
+</style>

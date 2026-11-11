@@ -1,0 +1,91 @@
+---
+// Section 07 — Paper node 4C-0. Design not reviewed yet by Eduarda (built as-is, marked for review).
+const items = [
+  {
+    id: 'faq-why',
+    q: 'Why did you make this?',
+    a: [
+      "I made it for myself first. I'd taken classes with teachers, and the usual HSK pace felt a bit slow for me. If you have more time in your day to study, a faster plan built around topics might suit you too.",
+      "So I wrote my own course, in Portuguese: 67 lessons covering HSK 3.0 levels 1 and 2, each one built around a situation. A friend who was also studying, and having a hard time, tried it and ended up preferring it. That's when I turned it into a skill anyone can use.",
+      "For now, it's just Mandarin.",
+    ],
+  },
+  {
+    id: 'faq-where',
+    q: 'Where does it work?',
+    a: ['Claude on the web and desktop, Claude Code and Codex. How things look can vary from one chat app to another.'],
+  },
+  {
+    id: 'faq-new-chat',
+    q: 'How do I pick up in a new chat?',
+    a: [
+      "Save your lesson plan as a Markdown file. In a new chat, attach it and say which lesson you're on. You can also ask for a numbered review or more exercises on something that was hard.",
+    ],
+  },
+  {
+    id: 'faq-pronunciation',
+    q: 'Does it check my pronunciation?',
+    a: ['No. The skill covers vocabulary, writing and listening. Tones and pronunciation are best practiced with a teacher.'],
+  },
+  {
+    id: 'faq-free',
+    q: 'Is it free? Is it official?',
+    a: [
+      'The skill is free. If you connect an audio provider, it may have its own plans. mandarinmaxxing is an independent project that uses the HSK 3.0 list as a reference.',
+    ],
+  },
+];
+---
+
+<section id="faq" class="faq" data-section>
+  <p class="kicker">FAQ</p>
+  <h2 class="title pixel">Questions</h2>
+  {
+    items.map((it) => (
+      <div id={it.id} class="item">
+        <h3 class="q pixel">{it.q}</h3>
+        {it.a.map((p) => (
+          <p class="prose">{p}</p>
+        ))}
+      </div>
+    ))
+  }
+</section>
+
+<style>
+  .faq {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-top: 48px;
+    border-top: 2px solid var(--text);
+  }
+  .kicker {
+    font-size: 13px;
+    line-height: 28px;
+    color: var(--muted);
+  }
+  .title {
+    font-size: 28px;
+    line-height: 34px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-block: 16px;
+    border-top: 1px solid var(--outline);
+    scroll-margin-top: 48px;
+  }
+  .item:last-child {
+    border-bottom: 1px solid var(--outline);
+  }
+  .q {
+    font-size: 17px;
+    line-height: 28px;
+    font-weight: 500;
+    color: var(--text);
+  }
+</style>

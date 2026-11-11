@@ -108,6 +108,8 @@ import { sections, faq, SKILL_REPO } from '../data/site';
   };
 
   // Active = last target whose top has crossed 40% of the viewport.
+  const sectionEls = [...document.querySelectorAll<HTMLElement>('[data-section]')];
+  let currentSection: HTMLElement | null = null;
   const update = () => {
     const line = window.innerHeight * 0.4;
     let active: string | null = null;
@@ -115,6 +117,18 @@ import { sections, faq, SKILL_REPO } from '../data/site';
       if (el.getBoundingClientRect().top <= line) active = el.id;
     }
     setActive(active);
+
+    // Section titles light up while their section is on screen
+    let sec: HTMLElement | null = null;
+    for (const el of sectionEls) {
+      if (el.getBoundingClientRect().top <= line) sec = el;
+    }
+    if (sec && sec.getBoundingClientRect().bottom < line * 0.5) sec = null;
+    if (sec !== currentSection) {
+      currentSection?.classList.remove('is-active');
+      sec?.classList.add('is-active');
+      currentSection = sec;
+    }
   };
 
   let ticking = false;

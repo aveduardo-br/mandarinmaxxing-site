@@ -1,0 +1,32 @@
+---
+// Footer — Paper node 4W-0. License still a placeholder.
+import { SKILL_REPO, SKILL_RELEASES } from '../data/site';
+---
+
+<footer class="footer">
+  <p>Made by Eduarda. Lessons taught by Claude.</p>
+  <p>
+    <a href={SKILL_REPO} target="_blank" rel="noopener">GitHub</a> · <a
+      href={SKILL_RELEASES}
+      target="_blank"
+      rel="noopener">Releases</a
+    > · [license]
+  </p>
+</footer>
+
+<style>
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 32px 48px;
+    border-top: 1px solid var(--outline);
+    font-size: 14px;
+    line-height: 18px;
+    color: var(--text-dim);
+  }
+  a:hover {
+    color: var(--text);
+  }
+</style>

@@ -1,33 +1,76 @@
 ---
-// Wrapper for numbered sections: anchor id + pixel title.
-// TODO (step 2): pixel numeral SVGs exported from Paper (nodes 8IA-0 … 8IZ-0).
+// Numbered section: pixel numeral + Zpix title. Title turns orange while the section is active
+// (the side nav script toggles .is-active), matching section 01's state in Paper.
+import { numerals } from '../data/numerals';
+
 interface Props {
   id: string;
   num: string;
   title: string;
 }
 const { id, num, title } = Astro.props;
+const n = numerals[num];
 ---
 
-<section id={id} class="section">
-  <h2 class="title pixel"><span class="num">{num}</span> {title}</h2>
+<section id={id} class="section" data-section>
+  <h2 class="title-row">
+    {
+      n && (
+        <span class="numeral" aria-hidden="true">
+          <svg viewBox={n.viewBox} preserveAspectRatio="none" style={`width:${n.w}px;height:${n.h}px`}>
+            {n.paths.map((p) => (
+              <path d={p.d} transform={p.t} fill="#B53902" />
+            ))}
+          </svg>
+        </span>
+      )
+    }
+    <span class="title pixel">{title}</span>
+  </h2>
   <slot />
 </section>
 
 <style>
   .section {
-    padding-top: var(--section-gap);
-    scroll-margin-top: 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    scroll-margin-top: 48px;
+  }
+
+  .title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 500;
+  }
+
+  .numeral {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 30px;
+    height: 26px;
+    filter: grayscale(100%) brightness(147%);
+    transition: filter 0.25s ease;
+  }
+  .numeral svg {
+    display: block;
+    overflow: visible;
   }
 
   .title {
-    font-size: 24px;
-    line-height: 36px;
+    font-size: 28px;
+    line-height: 34px;
     color: var(--muted);
-    margin-bottom: 20px;
+    transition: color 0.25s ease;
   }
 
-  .num {
-    color: var(--muted-2);
+  .section:global(.is-active) .numeral {
+    filter: none;
+  }
+  .section:global(.is-active) .title {
+    color: var(--accent);
   }
 </style>

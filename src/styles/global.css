@@ -75,3 +75,77 @@ p {
     scroll-behavior: auto;
   }
 }
+
+/* Body copy in sections (Paper: Geist 17/28, #E0E0E0 at 80%) */
+.prose {
+  font-size: 17px;
+  line-height: 28px;
+  color: var(--text-soft);
+  opacity: 0.8;
+}
+
+/* Bento / chat building blocks shared by several sections */
+.bubble {
+  position: relative;
+  padding: 10px 14px;
+  border-radius: 14px;
+}
+.bubble.ai {
+  align-self: flex-start;
+  background: var(--bubble-ai);
+  border-bottom-left-radius: 0;
+}
+.bubble.user {
+  align-self: flex-end;
+  background: var(--bubble-user);
+  border-bottom-right-radius: 0;
+  padding-block: 8px;
+}
+.bubble .tail {
+  position: absolute;
+  bottom: 0;
+  width: 8px;
+  height: 10px;
+}
+.bubble.ai .tail {
+  left: -8px;
+}
+.bubble.user .tail {
+  right: -8px;
+}
+
+/* Box with a label cut into its top (and optionally bottom) border */
+.fieldset {
+  display: flex;
+  flex-direction: column;
+}
+.fieldset .edge {
+  display: flex;
+  align-items: flex-start;
+  height: 18px;
+}
+.fieldset .edge > .line {
+  flex-grow: 1;
+  height: 10px;
+  border: 0 solid var(--outline);
+}
+.fieldset .edge.top > .line {
+  align-self: flex-end;
+  border-top-width: 1px;
+}
+.fieldset .edge.bottom > .line {
+  border-bottom-width: 1px;
+}
+.fieldset .edge > .line:first-child {
+  border-left-width: 1px;
+}
+.fieldset .edge > .line:last-child {
+  border-right-width: 1px;
+}
+.fieldset .edge > .cap {
+  padding-inline: 8px;
+  white-space: nowrap;
+}
+.fieldset .body {
+  border-inline: 1px solid var(--outline);
+}
