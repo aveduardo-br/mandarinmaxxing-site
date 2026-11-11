@@ -1,10 +1,10 @@
 ---
-// Section 02 — Paper node 1V-0. Static state: topic 08 open.
-// Interaction (accordion on hover/click) comes in step 4.
+// Section 02 — Paper node 1V-0.
+// Three states per topic: closed, hover (arrow slides in, row turns white, preview hanzi light up)
+// and open (accordion, like 08 in Paper). One topic open at a time; all start closed.
 import Section from '../Section.astro';
 import { topics, levelNames, type Topic } from '../../data/topics';
 
-const OPEN = '08';
 const groups: Topic[][] = [];
 for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
 ---
@@ -21,71 +21,70 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
   </p>
   <p class="prose">Neither order is the right one. This is an option for people who'd rather study by topic.</p>
 
-  <div class="list">
+  <div class="list" data-topics>
     {
       groups.map((g) => (
         <div class="group">
-          {g.map((t) =>
-            t.num === OPEN && t.words && t.counts ? (
-              <div class="open">
-                <div class="open-head pixel">
-                  <span>--&gt;</span>
-                  <span>{t.num}</span>
-                  <span>{t.name}</span>
-                </div>
-                <div class="words">
-                  {t.words.map((w) => (
-                    <div class={`word ${w.level}`}>
-                      <span class="hanzi">{w.hanzi}</span>
-                      <span class="en">{w.en}</span>
-                    </div>
-                  ))}
-                  {t.more && (
-                    <div class="word more">
-                      <span class="hanzi">…</span>
-                      <span class="en">+{t.more} more</span>
+          {g.map((t) => (
+            <div class="topic" data-topic>
+              <button class="row" type="button" aria-expanded="false" aria-controls={`topic-${t.num}`}>
+                <span class="arrow pixel" aria-hidden="true">--&gt;</span>
+                <span class="num pixel">{t.num}</span>
+                <span class="name pixel">{t.name}</span>
+                <span class="preview hanzi" aria-hidden="true">{t.preview}</span>
+              </button>
+              <div class="panel" id={`topic-${t.num}`} role="region" aria-label={t.name}>
+                <div class="panel-inner">
+                  <div class="words">
+                    {t.words?.map((w) => (
+                      <div class={`word ${w.level}`}>
+                        <span class="hanzi">{w.hanzi}</span>
+                        <span class="en">{w.en}</span>
+                      </div>
+                    ))}
+                    {t.more && (
+                      <div class="word more">
+                        <span class="hanzi">…</span>
+                        <span class="en">+{t.more} more</span>
+                      </div>
+                    )}
+                  </div>
+                  {t.counts && (
+                    <div class="levels">
+                      <div class="bar-row">
+                        <div class="squares" aria-hidden="true">
+                          {Array.from({ length: t.counts.base }, () => (
+                            <i class="sq base" />
+                          ))}
+                          {Array.from({ length: t.counts.below }, () => (
+                            <i class="sq below" />
+                          ))}
+                          {Array.from({ length: t.counts.above }, () => (
+                            <i class="sq above" />
+                          ))}
+                        </div>
+                        <div class="legend pixel">
+                          <span class="base">
+                            <i class="sq" />
+                            {levelNames.base} · {t.counts.base}
+                          </span>
+                          <span class="below">
+                            <i class="sq" />
+                            {levelNames.below} · {t.counts.below}
+                          </span>
+                          <span class="above">
+                            <i class="sq" />
+                            {levelNames.above} · {t.counts.above}
+                          </span>
+                        </div>
+                      </div>
+                      <p class="note">Extras from a level below or above come in when they make a useful chunk with the rest.</p>
                     </div>
                   )}
                 </div>
-                <div class="levels">
-                  <div class="bar-row">
-                    <div class="squares" aria-hidden="true">
-                      {Array.from({ length: t.counts.base }, () => (
-                        <i class="sq base" />
-                      ))}
-                      {Array.from({ length: t.counts.below }, () => (
-                        <i class="sq below" />
-                      ))}
-                      {Array.from({ length: t.counts.above }, () => (
-                        <i class="sq above" />
-                      ))}
-                    </div>
-                    <div class="legend pixel">
-                      <span class="base">
-                        <i class="sq" />
-                        {levelNames.base} · {t.counts.base}
-                      </span>
-                      <span class="below">
-                        <i class="sq" />
-                        {levelNames.below} · {t.counts.below}
-                      </span>
-                      <span class="above">
-                        <i class="sq" />
-                        {levelNames.above} · {t.counts.above}
-                      </span>
-                    </div>
-                  </div>
-                  <p class="note">Extras from a level below or above come in when they make a useful chunk with the rest.</p>
-                </div>
               </div>
-            ) : (
-              <div class="row">
-                <span class="num pixel">{t.num}</span>
-                <span class="name pixel">{t.name}</span>
-                <span class="preview hanzi">{t.preview}</span>
-              </div>
-            ),
-          )}
+            </div>
+          ))}
         </div>
       ))
     }
@@ -104,15 +103,35 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
     flex-direction: column;
   }
 
+  /* ---------- row: closed / hover / open ---------- */
   .row {
     display: flex;
     align-items: baseline;
-    gap: 14px;
-    padding-block: 8px;
+    width: 100%;
+    padding: 8px 0;
+    border: 0;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    color: inherit;
+  }
+  .arrow {
+    display: inline-block;
+    overflow: hidden;
+    white-space: pre;
+    max-width: 0;
+    margin-right: 0;
+    font-size: 12px;
+    line-height: 20px;
+    color: var(--text);
+    transition:
+      max-width 0.18s ease,
+      margin-right 0.18s ease;
   }
   .num {
     width: 20px;
     flex-shrink: 0;
+    margin-right: 14px;
     font-size: 12px;
     line-height: 20px;
     color: var(--muted-2);
@@ -120,7 +139,7 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
   .name {
     flex: 1;
     min-width: 0;
-    font-size: 12px; /* Paper 16 → 12 */
+    font-size: 12px;
     line-height: 20px;
     color: var(--text-dim);
   }
@@ -134,21 +153,63 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
     line-height: 20px;
     color: #3a3a3a;
   }
-
-  .open {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    padding-top: 24px;
-    padding-bottom: 28px;
+  .num,
+  .name,
+  .preview {
+    transition: color 0.15s ease;
   }
-  .open-head {
-    display: flex;
-    align-items: baseline;
-    gap: 14px;
+
+  /* hover (and keyboard focus): arrow slides in, everything turns white */
+  .row:hover .arrow,
+  .row:focus-visible .arrow,
+  .topic.open .arrow {
+    max-width: 3em;
+    margin-right: 14px;
+  }
+  .row:hover :is(.num, .name, .preview),
+  .row:focus-visible :is(.num, .name, .preview),
+  .topic.open :is(.num, .name) {
+    color: var(--text);
+  }
+  .row:focus-visible {
+    outline: none;
+  }
+
+  /* open: header grows to 24px like 08 in Paper, preview hides */
+  .topic.open .row {
+    padding: 24px 0 0;
+  }
+  .topic.open :is(.arrow, .num, .name) {
     font-size: 24px;
     line-height: 32px;
-    color: var(--text);
+  }
+  .topic.open .num {
+    width: auto;
+  }
+  .topic.open .preview {
+    display: none;
+  }
+
+  /* ---------- panel (accordion) ---------- */
+  .panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.28s ease;
+  }
+  .panel-inner {
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding-left: 56px;
+  }
+  .topic.open .panel {
+    grid-template-rows: 1fr;
+  }
+  .topic.open .panel-inner {
+    padding-top: 20px;
+    padding-bottom: 28px;
   }
 
   .words {
@@ -156,8 +217,7 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
     flex-wrap: wrap;
     column-gap: 24px;
     row-gap: 16px;
-    max-width: 555px;
-    padding-left: 56px;
+    max-width: 499px;
   }
   .word {
     display: flex;
@@ -195,7 +255,6 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
     display: flex;
     flex-direction: column;
     gap: 12px;
-    padding-left: 56px;
     padding-top: 4px;
   }
   .bar-row {
@@ -256,4 +315,30 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
     line-height: 19px;
     color: var(--muted);
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    .arrow,
+    .panel {
+      transition: none;
+    }
+  }
 </style>
+
+<script>
+  // Accordion: click a topic to open it, click again to close. One open at a time.
+  const items = [...document.querySelectorAll<HTMLElement>('[data-topic]')];
+  for (const item of items) {
+    const btn = item.querySelector<HTMLButtonElement>('.row')!;
+    btn.addEventListener('click', () => {
+      const willOpen = !item.classList.contains('open');
+      for (const other of items) {
+        other.classList.remove('open');
+        other.querySelector('.row')!.setAttribute('aria-expanded', 'false');
+      }
+      if (willOpen) {
+        item.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+      }
+    });
+  }
+</script>

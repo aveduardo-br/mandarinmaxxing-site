@@ -11,14 +11,17 @@ export type Topic = {
   counts?: { base: number; below: number; above: number };
 };
 
+// Placeholder: until the full lists exist, a topic opens with just its three preview words.
+const w = (pairs: [string, string][]): Word[] => pairs.map(([hanzi, en]) => ({ hanzi, en, level: 'base' }));
+
 export const topics: Topic[] = [
-  { num: '01', name: 'Travel and transport', preview: '航班 签证 行李' },
-  { num: '02', name: 'Work and careers', preview: '面试 工资 同事' },
-  { num: '03', name: 'Health and the body', preview: '感冒 发烧 过敏' },
-  { num: '04', name: 'School and learning', preview: '考试 专业 毕业' },
-  { num: '05', name: 'Weather and nature', preview: '温度 季节 森林' },
-  { num: '06', name: 'Shopping and money', preview: '打折 价格 付款' },
-  { num: '07', name: 'Friends and family', preview: '亲戚 邻居 聚会' },
+  { num: '01', name: 'Travel and transport', preview: '航班 签证 行李', words: w([['航班','flight'],['签证','visa'],['行李','luggage']]) },
+  { num: '02', name: 'Work and careers', preview: '面试 工资 同事', words: w([['面试','interview'],['工资','salary'],['同事','coworker']]) },
+  { num: '03', name: 'Health and the body', preview: '感冒 发烧 过敏', words: w([['感冒','cold'],['发烧','fever'],['过敏','allergy']]) },
+  { num: '04', name: 'School and learning', preview: '考试 专业 毕业', words: w([['考试','exam'],['专业','major'],['毕业','graduate']]) },
+  { num: '05', name: 'Weather and nature', preview: '温度 季节 森林', words: w([['温度','temperature'],['季节','season'],['森林','forest']]) },
+  { num: '06', name: 'Shopping and money', preview: '打折 价格 付款', words: w([['打折','discount'],['价格','price'],['付款','pay']]) },
+  { num: '07', name: 'Friends and family', preview: '亲戚 邻居 聚会', words: w([['亲戚','relative'],['邻居','neighbor'],['聚会','get-together']]) },
   {
     num: '08',
     name: 'Eating out',
@@ -37,8 +40,8 @@ export const topics: Topic[] = [
     more: 11,
     counts: { base: 14, below: 3, above: 3 },
   },
-  { num: '09', name: 'Technology and media', preview: '网站 密码 下载' },
-  { num: '10', name: 'Culture and festivals', preview: '春节 传统 京剧' },
+  { num: '09', name: 'Technology and media', preview: '网站 密码 下载', words: w([['网站','website'],['密码','password'],['下载','download']]) },
+  { num: '10', name: 'Culture and festivals', preview: '春节 传统 京剧', words: w([['春节','Spring Festival'],['传统','tradition'],['京剧','Peking opera']]) },
 ];
 
 // Example level for the open lesson (HSK 4 = base, extras from HSK 3 and HSK 5)
