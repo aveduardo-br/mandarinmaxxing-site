@@ -36,14 +36,14 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
               <div class="panel" id={`topic-${t.num}`} role="region" aria-label={t.name}>
                 <div class="panel-inner">
                   <div class="words">
-                    {t.words?.map((w) => (
-                      <div class={`word ${w.level}`}>
+                    {t.words?.map((w, i) => (
+                      <div class={`word ${w.level}`} style={`--i:${i}`}>
                         <span class="hanzi">{w.hanzi}</span>
                         <span class="en">{w.en}</span>
                       </div>
                     ))}
                     {t.more && (
-                      <div class="word more">
+                      <div class="word more" style={`--i:${t.words?.length ?? 0}`}>
                         <span class="hanzi">…</span>
                         <span class="en">+{t.more} more</span>
                       </div>
@@ -53,14 +53,12 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
                     <div class="levels">
                       <div class="bar-row">
                         <div class="squares" aria-hidden="true">
-                          {Array.from({ length: t.counts.base }, () => (
-                            <i class="sq base" />
-                          ))}
-                          {Array.from({ length: t.counts.below }, () => (
-                            <i class="sq below" />
-                          ))}
-                          {Array.from({ length: t.counts.above }, () => (
-                            <i class="sq above" />
+                          {[
+                            ...Array.from({ length: t.counts.base }, () => 'base'),
+                            ...Array.from({ length: t.counts.below }, () => 'below'),
+                            ...Array.from({ length: t.counts.above }, () => 'above'),
+                          ].map((lvl, i) => (
+                            <i class={`sq ${lvl}`} style={`--i:${i}`} />
                           ))}
                         </div>
                         <div class="legend pixel">
@@ -158,6 +156,11 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
   .preview {
     transition: color 0.15s ease;
   }
+  .arrow,
+  .num,
+  .name {
+    transform-origin: left center;
+  }
 
   /* hover (and keyboard focus): arrow slides in, everything turns white */
   .row:hover .arrow,
@@ -175,10 +178,7 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
     outline: none;
   }
 
-  /* open: header grows to 24px like 08 in Paper, preview hides */
-  .topic.open .row {
-    padding: 24px 0 0;
-  }
+  /* open: header grows to 24px like 08 in Paper (animated in place by the script), preview hides */
   .topic.open :is(.arrow, .num, .name) {
     font-size: 24px;
     line-height: 32px;
@@ -207,9 +207,37 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
   .topic.open .panel {
     grid-template-rows: 1fr;
   }
-  .topic.open .panel-inner {
-    padding-top: 20px;
-    padding-bottom: 28px;
+  .panel-inner > :first-child {
+    margin-top: 20px;
+  }
+  .panel-inner > :last-child {
+    margin-bottom: 28px;
+  }
+
+  /* contents come in one by one; on close they reset at once */
+  .word,
+  .legend,
+  .note {
+    opacity: 0;
+    translate: 0 6px;
+  }
+  .topic.open .word,
+  .topic.open .legend,
+  .topic.open .note {
+    opacity: 1;
+    translate: 0 0;
+    transition:
+      opacity 0.3s ease,
+      translate 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .topic.open .word {
+    transition-delay: calc(120ms + var(--i) * 45ms);
+  }
+  .topic.open .legend {
+    transition-delay: 620ms;
+  }
+  .topic.open .note {
+    transition-delay: 720ms;
   }
 
   .words {
@@ -273,14 +301,20 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
     height: 6px;
     flex-shrink: 0;
   }
-  .squares .base {
-    background: var(--text);
-    opacity: 0.8;
+  .squares .sq {
+    background: #262626;
   }
-  .squares .below {
+  .topic.open .squares .sq {
+    transition: background-color 0.12s ease;
+    transition-delay: calc(560ms + var(--i) * 35ms);
+  }
+  .topic.open .squares .base {
+    background: rgba(242, 242, 242, 0.8);
+  }
+  .topic.open .squares .below {
     background: var(--accent-light);
   }
-  .squares .above {
+  .topic.open .squares .above {
     background: var(--accent);
   }
   .legend {
@@ -318,7 +352,8 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
 
   @media (prefers-reduced-motion: reduce) {
     .arrow,
-    .panel {
+    .panel,
+    .topic.open :is(.word, .legend, .note, .squares .sq) {
       transition: none;
     }
   }
@@ -326,19 +361,48 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
 
 <script>
   // Accordion: click a topic to open it, click again to close. One open at a time.
+  // The header grows from 12px to 24px in place (FLIP + easeOutBack overshoot), no jump.
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const DURATION = 380;
+  const C1 = 1.70158;
+  const C3 = C1 + 1;
+  const easeOutBack = (t: number) => 1 + C3 * Math.pow(t - 1, 3) + C1 * Math.pow(t - 1, 2);
+
   const items = [...document.querySelectorAll<HTMLElement>('[data-topic]')];
-  for (const item of items) {
+
+  function setOpen(item: HTMLElement, open: boolean) {
     const btn = item.querySelector<HTMLButtonElement>('.row')!;
-    btn.addEventListener('click', () => {
+    if (item.classList.contains('open') === open) return;
+    const parts = [...btn.querySelectorAll<HTMLElement>('.arrow, .num, .name')];
+    parts.forEach((p) => (p.style.transform = ''));
+    const before = parts.map((p) => p.getBoundingClientRect());
+    item.classList.toggle('open', open);
+    btn.setAttribute('aria-expanded', String(open));
+    if (reduce) return;
+    const after = parts.map((p) => p.getBoundingClientRect());
+    const t0 = performance.now();
+    const frame = (now: number) => {
+      const t = Math.min(1, (now - t0) / DURATION);
+      const k = 1 - easeOutBack(t); // 1 → 0, overshooting past 0 at the end
+      parts.forEach((p, i) => {
+        const b = before[i], a = after[i];
+        if (!a.height) return;
+        const s = 1 + (b.height / a.height - 1) * k;
+        const dx = (b.left - a.left) * k;
+        const dy = (b.top + b.height / 2 - (a.top + a.height / 2)) * k;
+        p.style.transform = `translate(${dx.toFixed(2)}px, ${dy.toFixed(2)}px) scale(${s.toFixed(4)})`;
+      });
+      if (t < 1) requestAnimationFrame(frame);
+      else parts.forEach((p) => (p.style.transform = ''));
+    };
+    requestAnimationFrame(frame);
+  }
+
+  for (const item of items) {
+    item.querySelector('.row')!.addEventListener('click', () => {
       const willOpen = !item.classList.contains('open');
-      for (const other of items) {
-        other.classList.remove('open');
-        other.querySelector('.row')!.setAttribute('aria-expanded', 'false');
-      }
-      if (willOpen) {
-        item.classList.add('open');
-        btn.setAttribute('aria-expanded', 'true');
-      }
+      for (const other of items) if (other !== item) setOpen(other, false);
+      setOpen(item, willOpen);
     });
   }
 </script>
