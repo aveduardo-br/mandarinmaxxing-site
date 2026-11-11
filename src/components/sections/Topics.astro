@@ -1,6 +1,6 @@
 ---
 // Section 02 — Paper node 1V-0.
-// Three states per topic: closed, hover (arrow slides in, row turns bone, preview hanzi light up)
+// Three states per topic: closed, hover (arrow slides in, row turns white, preview hanzi light up)
 // and open (accordion, like 08 in Paper). One topic open at a time; all start closed.
 import Section from '../Section.astro';
 import { topics, levelNames, type Topic } from '../../data/topics';
@@ -130,7 +130,7 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
     margin-right: 0;
     font-size: 12px;
     line-height: 20px;
-    color: var(--bone);
+    color: var(--text);
     transition:
       max-width 0.18s ease,
       margin-right 0.18s ease;
@@ -171,16 +171,20 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
     transform-origin: left center;
   }
 
-  /* hover (and keyboard focus): arrow slides in, everything turns bone */
+  /* hover (and keyboard focus): arrow slides in, title turns white, preview hanzi turn bone */
   .row:hover .arrow,
   .row:focus-visible .arrow,
   .topic.open .arrow {
     max-width: 3em;
     margin-right: 14px;
   }
-  .row:hover :is(.num, .name, .preview),
-  .row:focus-visible :is(.num, .name, .preview),
+  .row:hover :is(.num, .name),
+  .row:focus-visible :is(.num, .name),
   .topic.open :is(.num, .name) {
+    color: var(--text);
+  }
+  .row:hover .preview,
+  .row:focus-visible .preview {
     color: var(--bone);
   }
   .row:focus-visible {
