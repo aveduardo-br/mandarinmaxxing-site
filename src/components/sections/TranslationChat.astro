@@ -121,15 +121,18 @@ const exercises: Exercise[] = [
     cursor: pointer;
     white-space: nowrap;
   }
-  .tr .tr-next:hover {
+  .tr .tr-next:not([disabled]):hover {
     color: #f8b68c;
   }
   .tr .tr-next:focus-visible {
     outline: 1px dashed var(--accent-light);
     outline-offset: 2px;
   }
+  /* once clicked (or on the old exercise above) it greys out and can't be pressed again */
   .tr .tr-next[disabled] {
+    color: var(--muted-2);
     cursor: default;
+    transition: color 0.3s ease;
   }
 
   /* messages pop in with the site's overshoot, scaling from the corner where the tail is */
