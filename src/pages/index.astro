@@ -1,15 +1,12 @@
 ---
 import Base from '../layouts/Base.astro';
 import Section from '../components/Section.astro';
+import Hero from '../components/Hero.astro';
 import { sections, faq } from '../data/site';
 ---
 
 <Base>
-  <!-- Hero: step 3 (port prototypes/rising-hanzi-hero.html) -->
-  <header class="hero-placeholder">
-    <p class="pixel">mandarinmaxxing</p>
-    <p class="label">Scaffold · hero coming soon</p>
-  </header>
+  <Hero />
 
   <!-- Static sections: step 2 (copy from Paper) -->
   {sections.map((s) => (
@@ -30,20 +27,6 @@ import { sections, faq } from '../data/site';
 </Base>
 
 <style>
-  .hero-placeholder {
-    min-height: 100vh;
-    display: grid;
-    place-content: center;
-    text-align: center;
-    gap: 12px;
-  }
-
-  .hero-placeholder .pixel {
-    font-size: 48px;
-    line-height: 48px;
-    color: var(--text);
-  }
-
   .placeholder {
     min-height: 40vh;
   }

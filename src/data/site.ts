@@ -1,7 +1,8 @@
 // Shared site data. Version and links should be checked against the skill repo before publishing.
 export const SKILL_REPO = 'https://github.com/aveduardo-br/mandarinmaxxing';
 export const SKILL_RELEASES = `${SKILL_REPO}/releases`;
-export const SKILL_VERSION = 'v0.1.13';
+export const SKILL_ZIP = `${SKILL_REPO}/releases/latest/download/mandarinmaxxing-claude.zip`;
+export const SKILL_VERSION = 'v0.2.0';
 
 export const sections = [
   { id: 'what-it-is', num: '01', title: 'What it is' },

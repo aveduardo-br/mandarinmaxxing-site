@@ -1,0 +1,470 @@
+---
+// Hero — Paper node C-0. Art ported from prototypes/rising-hanzi-hero.html.
+// Glyph data (SVG paths, deduplicated) lives in public/hero-art.json and is fetched at runtime.
+import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
+
+const commands = {
+  'claude-code': 'npx skills add aveduardo-br/mandarinmaxxing --skill mandarinmaxxing -a claude-code',
+  codex: 'npx skills add aveduardo-br/mandarinmaxxing --skill mandarinmaxxing -a codex',
+};
+---
+
+<header class="hero">
+  <div class="stage" id="hero-stage">
+    <canvas aria-hidden="true"></canvas>
+    <svg
+      viewBox="0 0 742 243"
+      role="img"
+      aria-label="mandarinmaxxing: the word MANDARIN drawn in Chinese characters above the pixel word maxxing"
+    ></svg>
+  </div>
+
+  <div class="cta">
+    <div class="cmd" data-cmd-box>
+      <div class="tabs" role="tablist" aria-label="Install target">
+        <button class="tab pixel" role="tab" aria-selected="true" data-target="claude-code">Claude Code</button>
+        <button class="tab pixel" role="tab" aria-selected="false" data-target="codex">Codex</button>
+      </div>
+      <div class="cmd-line">
+        <code data-cmd data-claude-code={commands['claude-code']} data-codex={commands.codex}
+          >{commands['claude-code']}</code
+        >
+      </div>
+    </div>
+
+    <div class="text">
+      <p class="kicker">a skill for Claude</p>
+      <h1 class="lede">
+        A topic-based way to study Mandarin with HSK&nbsp;3.0 vocabulary and phrases you can use in everyday
+        conversations.
+      </h1>
+    </div>
+
+    <div class="buttons">
+      <a class="btn solid" href={SKILL_ZIP}>Download for Claude</a>
+      <button class="btn outline" type="button" data-copy>Copy install command</button>
+    </div>
+  </div>
+
+  <p class="meta">
+    <span>/mandarinmaxxing</span><span>·</span><span>HSK 3.0</span><span>·</span><span>by Eduarda</span><span
+      >·</span
+    ><span>{SKILL_VERSION}</span><span>·</span><span>Free</span><span>·</span><a href="#install">Install ↓</a>
+  </p>
+</header>
+
+<style>
+  .hero {
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    padding-block: 40px 64px;
+  }
+
+  /* Art + headroom above it for the floating characters */
+  .stage {
+    position: relative;
+    width: 100%;
+    padding-top: 120px;
+  }
+  .stage canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  .stage svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 742 / 243;
+    fill: var(--text);
+    overflow: visible;
+    opacity: 0;
+    transition: opacity 0.4s ease-out;
+  }
+  .stage svg.ready {
+    opacity: 1;
+  }
+  .stage :global(svg .g) {
+    transition: opacity 0.45s ease-out;
+  }
+  .stage :global(svg .g.swap) {
+    opacity: 0.15;
+    transition: none;
+  }
+  .stage :global(svg .g.gone) {
+    opacity: 0;
+    transition: none;
+  }
+
+  .cta {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .cmd {
+    width: 100%;
+    border: 1px solid var(--outline);
+  }
+  .tabs {
+    display: flex;
+    gap: 20px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--outline);
+  }
+  .tab {
+    background: none;
+    border: 0;
+    padding: 0;
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .tab[aria-selected='true'] {
+    color: var(--text);
+  }
+  .tab:focus-visible,
+  .btn:focus-visible {
+    outline: 1px solid var(--accent);
+    outline-offset: 3px;
+  }
+  .cmd-line {
+    padding: 14px 16px;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .cmd-line code {
+    font-family: var(--f-mono);
+    font-size: 13px;
+    line-height: 16px;
+    color: var(--text);
+  }
+
+  .text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    text-align: center;
+  }
+  .kicker {
+    font-size: 14px;
+    line-height: 18px;
+    color: var(--text-dim);
+  }
+  .lede {
+    font-size: 20px;
+    line-height: 30px;
+    font-weight: 400;
+    color: var(--text-soft);
+  }
+
+  .buttons {
+    display: flex;
+    gap: 12px;
+  }
+  .btn {
+    font: 500 14px/18px var(--f-body);
+    padding: 12px 20px;
+    border: 1px solid var(--text);
+    cursor: pointer;
+  }
+  .btn.solid {
+    background: var(--text);
+    color: var(--bg);
+  }
+  .btn.outline {
+    background: transparent;
+    color: var(--text);
+  }
+  .btn.outline:hover {
+    background: rgba(242, 242, 242, 0.06);
+  }
+  .btn.solid:hover {
+    background: var(--text-soft);
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+    font-size: 13px;
+    line-height: 16px;
+    color: var(--text-dim);
+  }
+  .meta a:hover {
+    color: var(--text);
+  }
+</style>
+
+<script>
+  // ---------- install command tabs + copy ----------
+  const code = document.querySelector<HTMLElement>('[data-cmd]')!;
+  const tabs = document.querySelectorAll<HTMLButtonElement>('.tab');
+  const copyBtn = document.querySelector<HTMLButtonElement>('[data-copy]')!;
+  let target = 'claude-code';
+
+  tabs.forEach((t) =>
+    t.addEventListener('click', () => {
+      target = t.dataset.target!;
+      tabs.forEach((x) => x.setAttribute('aria-selected', String(x === t)));
+      code.textContent = target === 'codex' ? code.dataset.codex! : code.dataset.claudeCode!;
+    }),
+  );
+
+  const label = copyBtn.textContent;
+  copyBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(code.textContent ?? '');
+      copyBtn.textContent = 'Copied';
+    } catch {
+      copyBtn.textContent = 'Copy failed';
+    }
+    setTimeout(() => (copyBtn.textContent = label), 1600);
+  });
+
+  // ---------- rising hanzi art (port of the prototype) ----------
+  type Art = { glyphs: string[]; cells: [number, number, number, number][]; maxxing: string };
+  type Cell = {
+    el: SVGPathElement; x: number; y: number; col: number; g: number;
+    dx: number; dy: number; vx: number; vy: number; back?: number;
+  };
+  type Part = { x: number; y: number; y0: number; g: number; speed: number; life: number; vx: number; vy: number; rot: number; vr: number };
+
+  const NS = 'http://www.w3.org/2000/svg';
+  const stage = document.getElementById('hero-stage')!;
+  const svg = stage.querySelector('svg')!;
+  const canvas = stage.querySelector('canvas')!;
+  const ctx = canvas.getContext('2d')!;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const INK = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#F2F2F2';
+  const rnd = (a: number, b: number) => a + Math.random() * (b - a);
+
+  // Prototype constants
+  const PITCH = 8.53;
+  const SWAPS_PER_SEC = 34;
+  const RADIUS = 46, FORCE = 2600;
+  const ART_R = 42, ART_DRAG = 9, ART_PULL = 900, SPRING = 650, SPRING_DAMP = 38;
+
+  fetch('/hero-art.json')
+    .then((r) => r.json())
+    .then((art: Art) => start(art))
+    .catch(() => {});
+
+  function start(ART: Art) {
+    const G = ART.glyphs, N = G.length;
+    const pickGlyph = () => (Math.random() * N) | 0;
+
+    const frag = document.createDocumentFragment();
+    const cells: Cell[] = ART.cells.map(([x, y, col, g]) => {
+      const p = document.createElementNS(NS, 'path');
+      p.setAttribute('class', 'g');
+      p.setAttribute('transform', `translate(${x} ${y})`);
+      p.setAttribute('d', G[g]);
+      frag.appendChild(p);
+      return { el: p, x, y, col, g, dx: 0, dy: 0, vx: 0, vy: 0 };
+    });
+    const mx = document.createElementNS(NS, 'path');
+    mx.setAttribute('d', ART.maxxing);
+    frag.appendChild(mx);
+    svg.appendChild(frag);
+    svg.classList.add('ready');
+
+    if (reduce) return;
+
+    // emitters: the top character of every column
+    const tops = new Map<number, Cell>();
+    for (const c of cells) {
+      const t = tops.get(c.col);
+      if (!t || c.y < t.y) tops.set(c.col, c);
+    }
+    const emitters = [...tops.values()].map((c) => ({ cell: c, speed: rnd(9, 15), left: 0, wait: rnd(0, 2.5), since: 0 }));
+
+    let swapClock = 0;
+    function swapOne() {
+      const c = cells[(Math.random() * cells.length) | 0];
+      c.g = pickGlyph();
+      c.el.classList.add('swap');
+      c.el.setAttribute('d', G[c.g]);
+      requestAnimationFrame(() => requestAnimationFrame(() => c.el.classList.remove('swap')));
+    }
+
+    const cache = new Map<number, Path2D>();
+    const path2d = (i: number) => {
+      let p = cache.get(i);
+      if (!p) { p = new Path2D(G[i]); cache.set(i, p); }
+      return p;
+    };
+    let parts: Part[] = [];
+    let scale = 1, ox = 0, oy = 0, dpr = 1, headroom = 100;
+
+    function layout() {
+      const sr = stage.getBoundingClientRect();
+      const ar = svg.getBoundingClientRect();
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(sr.width * dpr);
+      canvas.height = Math.round(sr.height * dpr);
+      scale = ar.width / 742;
+      ox = ar.left - sr.left;
+      oy = ar.top - sr.top;
+      headroom = oy / scale;
+    }
+
+    const moving = new Set<Cell>();
+    const pointer = { x: 0, y: 0, vx: 0, vy: 0, active: false, t: 0 };
+    let warming = false;
+
+    function step(dt: number) {
+      for (const e of emitters) {
+        if (e.left > 0) {
+          e.since += dt;
+          const gap = PITCH / e.speed;
+          if (e.since >= gap) {
+            e.since -= gap;
+            e.left--;
+            const c = e.cell;
+            parts.push({ x: c.x, y: c.y, y0: c.y, g: c.g, speed: e.speed, life: c.y + headroom * rnd(0.7, 1), vx: 0, vy: 0, rot: 0, vr: 0 });
+            if (warming) { c.g = pickGlyph(); c.el.setAttribute('d', G[c.g]); continue; }
+            c.el.classList.add('gone');
+            clearTimeout(c.back);
+            c.back = window.setTimeout(() => {
+              c.g = pickGlyph();
+              c.el.setAttribute('d', G[c.g]);
+              c.el.classList.remove('gone');
+            }, gap * 1000 * 0.85);
+          }
+        } else {
+          e.wait -= dt;
+          if (e.wait <= 0) {
+            e.left = rnd(3, 11) | 0;
+            e.since = PITCH / e.speed;
+            e.wait = rnd(1.5, 7);
+            e.speed = rnd(9, 15);
+          }
+        }
+      }
+
+      // floating characters: pushed away by the cursor, more strongly the higher they are
+      const damp = Math.exp(-6 * dt), dampR = Math.exp(-3 * dt);
+      for (const p of parts) {
+        if (pointer.active) {
+          const dx = p.x - pointer.x, dy = p.y - pointer.y;
+          const d = Math.hypot(dx, dy);
+          if (d < RADIUS && d > 0.001) {
+            const h = Math.min(1, (p.y0 - p.y) / (p.life * 0.75));
+            const lift = 0.25 + 0.75 * h * h;
+            const fall = 1 - d / RADIUS;
+            const f = FORCE * fall * fall * lift;
+            p.vx += (dx / d) * f * dt + pointer.vx * 0.02 * fall * lift;
+            p.vy += (dy / d) * f * dt + pointer.vy * 0.02 * fall * lift;
+            p.vr += (dx / d) * f * dt * 0.02 * (Math.random() < 0.5 ? -1 : 1);
+          }
+        }
+        p.vx *= damp; p.vy *= damp; p.vr *= dampR;
+        p.x += p.vx * dt;
+        p.y += (p.vy - p.speed) * dt;
+        p.rot += p.vr * dt;
+      }
+      parts = parts.filter((p) => p.y0 - p.y < p.life && p.y > -headroom - PITCH && p.y < 243 && p.x > -40 && p.x < 782);
+
+      if (warming) return;
+
+      // MANDARIN glyphs near the cursor follow it and spring back
+      const still = Math.exp(-10 * dt);
+      pointer.vx *= still; pointer.vy *= still;
+      if (pointer.active) {
+        for (const c of cells) {
+          const dx = c.x - pointer.x, dy = c.y - pointer.y;
+          if (dx * dx + dy * dy < ART_R * ART_R) moving.add(c);
+        }
+      }
+      for (const c of moving) {
+        let px = 0, py = 0;
+        if (pointer.active) {
+          const dx = c.x - pointer.x, dy = c.y - pointer.y, d = Math.hypot(dx, dy);
+          if (d < ART_R && d > 0.001) {
+            const fall = 1 - d / ART_R;
+            const w = fall * fall;
+            px = pointer.vx * ART_DRAG * w - (dx / d) * ART_PULL * w;
+            py = pointer.vy * ART_DRAG * w - (dy / d) * ART_PULL * w;
+            const m = Math.hypot(px, py), cap = 3200;
+            if (m > cap) { px *= cap / m; py *= cap / m; }
+          }
+        }
+        const n = Math.ceil(dt / (1 / 120)), h = dt / n;
+        for (let s = 0; s < n; s++) {
+          c.vx += (px - SPRING * c.dx - SPRING_DAMP * c.vx) * h;
+          c.vy += (py - SPRING * c.dy - SPRING_DAMP * c.vy) * h;
+          c.dx += c.vx * h; c.dy += c.vy * h;
+        }
+        if (Math.abs(c.dx) + Math.abs(c.dy) + Math.abs(c.vx) + Math.abs(c.vy) < 0.01) {
+          c.dx = c.dy = c.vx = c.vy = 0;
+          moving.delete(c);
+        }
+        c.el.setAttribute('transform', `translate(${(c.x + c.dx).toFixed(2)} ${(c.y + c.dy).toFixed(2)})`);
+      }
+
+      swapClock += dt * SWAPS_PER_SEC;
+      while (swapClock >= 1) { swapClock--; swapOne(); }
+    }
+
+    function draw() {
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const k = scale * dpr;
+      ctx.fillStyle = INK;
+      for (const p of parts) {
+        const a = Math.max(0, 1 - Math.pow((p.y0 - p.y) / p.life, 1.6));
+        if (a <= 0.01) continue;
+        ctx.globalAlpha = a;
+        const cs = Math.cos(p.rot) * k, sn = Math.sin(p.rot) * k;
+        ctx.setTransform(cs, sn, -sn, cs, (ox + p.x * scale) * dpr, (oy + p.y * scale) * dpr);
+        ctx.fill(path2d(p.g));
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    stage.addEventListener('pointermove', (ev) => {
+      const sr = stage.getBoundingClientRect();
+      const x = (ev.clientX - sr.left - ox) / scale, y = (ev.clientY - sr.top - oy) / scale;
+      const now = ev.timeStamp || performance.now(), dt = Math.max(8, now - pointer.t) / 1000;
+      if (pointer.active) { pointer.vx = (x - pointer.x) / dt; pointer.vy = (y - pointer.y) / dt; }
+      pointer.vx = Math.max(-900, Math.min(900, pointer.vx));
+      pointer.vy = Math.max(-900, Math.min(900, pointer.vy));
+      Object.assign(pointer, { x, y, t: now, active: true });
+    });
+    stage.addEventListener('pointerleave', () => { pointer.active = false; pointer.vx = pointer.vy = 0; });
+
+    // pause when the hero is off screen
+    let visible = true;
+    new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(stage);
+
+    new ResizeObserver(() => { layout(); draw(); }).observe(stage);
+    layout();
+
+    // start mid-flow
+    warming = true;
+    for (let t = 0; t < 9; t += 1 / 30) step(1 / 30);
+    warming = false;
+    draw();
+
+    let last = performance.now();
+    function frame(now: number) {
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      if (visible && !document.hidden) { step(dt); draw(); }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+</script>
