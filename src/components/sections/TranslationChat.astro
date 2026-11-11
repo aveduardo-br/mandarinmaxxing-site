@@ -295,7 +295,6 @@ const exercises: Exercise[] = [
 
     async function play(b: Block) {
       busy = true;
-      b.next.disabled = true;
       const e = ex[b.i];
       await wait(150);
       reveal(b.prompt);
@@ -315,8 +314,8 @@ const exercises: Exercise[] = [
       await wait(1100);
       reveal(b.reply);
       live.textContent = `${e.prompt} — ${e.answer} — ${e.fixed || 'Natural.'} ${e.note}`;
+      // the button arrives orange and only greys out once it's clicked (busy blocks early clicks)
       await wait(350);
-      b.next.disabled = false;
       busy = false;
     }
 
