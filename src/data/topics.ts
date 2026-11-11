@@ -6,6 +6,8 @@ export type Topic = {
   num: string;
   name: string;
   preview: string;
+  // level of each preview word, in order (colours them on hover like the open lesson)
+  previewLevels?: Level[];
   words?: Word[];
   more?: number;
   counts?: { base: number; below: number; above: number };
@@ -27,6 +29,8 @@ const placeholder: Pick<Topic, 'words' | 'more' | 'counts'> = {
   ],
   more: 11,
   counts: { base: 14, below: 3, above: 3 },
+  // TODO (pendência): real level of each preview word per topic; placeholder shows one of each
+  previewLevels: ['base', 'below', 'above'],
 };
 
 export const topics: Topic[] = [
@@ -37,7 +41,7 @@ export const topics: Topic[] = [
   { num: '05', name: 'Weather and nature', preview: '温度 季节 森林', ...placeholder },
   { num: '06', name: 'Shopping and money', preview: '打折 价格 付款', ...placeholder },
   { num: '07', name: 'Friends and family', preview: '亲戚 邻居 聚会', ...placeholder },
-  { num: '08', name: 'Eating out', preview: '菜单 味道 打包', ...placeholder },
+  { num: '08', name: 'Eating out', preview: '菜单 点菜 外卖', ...placeholder },
   { num: '09', name: 'Technology and media', preview: '网站 密码 下载', ...placeholder },
   { num: '10', name: 'Culture and festivals', preview: '春节 传统 京剧', ...placeholder },
 ];

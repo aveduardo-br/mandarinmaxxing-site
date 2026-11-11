@@ -40,7 +40,7 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
                 <span class="arrow pixel" aria-hidden="true"><span class="dash">--</span>&gt;</span>
                 <span class="num pixel">{t.num}</span>
                 <span class="name pixel">{t.name}</span>
-                <span class="preview hanzi" aria-hidden="true">{t.preview.split(' ').map((p, i) => <>{i > 0 && ' '}<span class="pw" style={`--i:${i}`}>{p}</span></>)}</span>
+                <span class="preview hanzi" aria-hidden="true">{t.preview.split(' ').map((p, i) => <>{i > 0 && ' '}<span class={`pw ${t.previewLevels?.[i] ?? 'base'}`} style={`--i:${i}`}>{p}</span></>)}</span>
               </button>
               <div class="panel" id={`topic-${t.num}`} role="region" aria-label={t.name}>
                 <div class="panel-inner">
@@ -193,9 +193,18 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
   .topic.open :is(.num, .name) {
     color: var(--text);
   }
-  .row:hover .preview,
-  .row:focus-visible .preview {
+  /* preview hanzi light up in their level's colour, like the open lesson */
+  .row:hover .pw.base,
+  .row:focus-visible .pw.base {
     color: var(--bone);
+  }
+  .row:hover .pw.below,
+  .row:focus-visible .pw.below {
+    color: var(--accent-light);
+  }
+  .row:hover .pw.above,
+  .row:focus-visible .pw.above {
+    color: var(--accent);
   }
   .row:focus-visible {
     outline: none;
@@ -217,6 +226,7 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
      vanish at their fastest point instead of fading */
   .pw {
     display: inline-block;
+    transition: color 0.15s ease;
   }
   .topic.open .pw {
     animation: preview-out 0.14s cubic-bezier(0.3, 0, 0.9, 0.4) forwards;
