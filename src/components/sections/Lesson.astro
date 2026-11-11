@@ -384,6 +384,11 @@ const PLAYED = 11;
     color: var(--muted);
     white-space: pre;
   }
+  /* the glitch rebuilds these spans in JS, so the highlight must be global */
+  .chunk-body :global(.hl),
+  .cap-en :global(.hl) {
+    color: var(--accent);
+  }
   .chunk-body {
     display: flex;
     justify-content: center;
