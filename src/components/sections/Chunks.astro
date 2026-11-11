@@ -91,22 +91,14 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
     display: flex;
     align-items: center;
     gap: 16px;
-    /* fade towards top and bottom (on the half, so wide rows aren't clipped sideways) */
-    -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 36%, #000 64%, transparent 100%);
-    mask-image: linear-gradient(180deg, transparent 0%, #000 36%, #000 64%, transparent 100%);
     min-width: 0; /* let a long phrase overflow outwards instead of moving the seam */
   }
-  /* each half reaches 64px past the slot so a long phrase stays inside the fade mask */
   .half.left {
-    flex: 0 0 calc(var(--seam) - 8px + 64px);
-    margin-left: -64px;
-    padding-left: 64px;
+    flex: 0 0 calc(var(--seam) - 8px);
     justify-content: flex-end;
   }
   .half.right {
     flex: 1 1 0;
-    margin-right: -64px;
-    padding-right: 64px;
     justify-content: flex-start;
   }
   .tag {
@@ -133,9 +125,6 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
     outline: none;
     transition: width 0.22s ease;
     touch-action: none;
-    /* one shared viewpoint at the slot's centre line, like looking at a drum */
-    perspective: 220px;
-    perspective-origin: 50% 128px;
   }
   .col.left {
     color: var(--text);
@@ -161,10 +150,6 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
     /* Movement is animated in JS (easeOutBack): position and scale overshoot together, and
        the font swaps (Zpix ↔ Kaiti) partway through the move. */
   }
-  /* fisheye: rows above/below the centre tilt away like on a drum */
-  .item {
-    transform: rotateX(var(--rx, 0deg));
-  }
   .col.left .item {
     right: 0;
     transform-origin: right center;
@@ -176,15 +161,12 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
 
   /* slot positions (set by data-s) */
   .item[data-s='-3'] {
-    --rx: 80deg;
     translate: 0 -42px;
   }
   .item[data-s='-2'] {
-    --rx: 58deg;
     translate: 0 0px;
   }
   .item[data-s='-1'] {
-    --rx: 38deg;
     translate: 0 42px;
     font-size: 36px;
     line-height: 44px;
@@ -198,17 +180,14 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
     opacity: 1;
   }
   .item[data-s='1'] {
-    --rx: -38deg;
     translate: 0 170px;
     font-size: 36px;
     line-height: 44px;
   }
   .item[data-s='2'] {
-    --rx: -58deg;
     translate: 0 224px;
   }
   .item[data-s='3'] {
-    --rx: -80deg;
     translate: 0 266px;
   }
   .item[data-s='-1'],
@@ -220,19 +199,19 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
   }
   .col.left .item[data-s='-1'],
   .col.left .item[data-s='1'] {
-    opacity: 0.4;
+    opacity: 0.18;
   }
   .col.left .item[data-s='-2'],
   .col.left .item[data-s='2'] {
-    opacity: 0.2;
+    opacity: 0.07;
   }
   .col.right .item[data-s='-1'],
   .col.right .item[data-s='1'] {
-    opacity: 0.5;
+    opacity: 0.25;
   }
   .col.right .item[data-s='-2'],
   .col.right .item[data-s='2'] {
-    opacity: 0.25;
+    opacity: 0.1;
   }
 
   .sr-only {
@@ -268,13 +247,12 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
   const SWAP_AT = 0.5; // font switches when the eased progress passes this point
 
   // Geometry per slot (matches the CSS): top, line height, font size
-  const RX: Record<number, number> = { [-3]: 80, [-2]: 58, [-1]: 38, 0: 0, 1: -38, 2: -58, 3: -80 };
   const TOP: Record<number, number> = { [-3]: -42, [-2]: 0, [-1]: 42, 0: 96, 1: 170, 2: 224, 3: 266 };
   const LH: Record<number, number> = { [-3]: 32, [-2]: 32, [-1]: 44, 0: 64, 1: 44, 2: 32, 3: 32 };
   const SIZE: Record<number, number> = { [-3]: 24, [-2]: 24, [-1]: 36, 0: 56, 1: 36, 2: 24, 3: 24 };
   const OPACITY = {
-    left: { [-3]: 0, [-2]: 0.2, [-1]: 0.4, 0: 1, 1: 0.4, 2: 0.2, 3: 0 } as Record<number, number>,
-    right: { [-3]: 0, [-2]: 0.25, [-1]: 0.5, 0: 1, 1: 0.5, 2: 0.25, 3: 0 } as Record<number, number>,
+    left: { [-3]: 0, [-2]: 0.07, [-1]: 0.18, 0: 1, 1: 0.18, 2: 0.07, 3: 0 } as Record<number, number>,
+    right: { [-3]: 0, [-2]: 0.1, [-1]: 0.25, 0: 1, 1: 0.25, 2: 0.1, 3: 0 } as Record<number, number>,
   };
   const centre = (s: number) => TOP[s] + LH[s] / 2;
 
@@ -323,7 +301,6 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
         for (const m of moving) {
           m.it.dataset.s = String(m.to);
           m.it.style.translate = m.it.style.scale = m.it.style.opacity = '';
-          m.it.style.removeProperty('--rx');
         }
         finish = null;
       };
@@ -341,7 +318,6 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
           const size = SIZE[from] + (SIZE[to] - SIZE[from]) * e;
           it.style.translate = `0 ${(c - LH[s] / 2).toFixed(2)}px`;
           it.style.scale = (size / SIZE[s]).toFixed(4);
-          it.style.setProperty('--rx', `${(RX[from] + (RX[to] - RX[from]) * e).toFixed(2)}deg`);
           it.style.opacity = String(op[from] + (op[to] - op[from]) * fade);
         }
         if (t < 1) anim = requestAnimationFrame(frame);
