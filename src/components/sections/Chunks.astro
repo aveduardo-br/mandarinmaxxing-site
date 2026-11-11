@@ -147,43 +147,32 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
     line-height: 32px;
     opacity: 0;
     pointer-events: none;
-    /* Fast ease-in-out with a small overshoot at the end. The font swaps (Zpix ↔ Kaiti) halfway
-       through the move instead of at the start (allow-discrete flips at 50%). */
-    --move: 0.28s cubic-bezier(0.55, 0, 0.25, 1.35);
-    --swap: 0.28s cubic-bezier(0.6, 0, 0.4, 1);
-    transition:
-      transform var(--move),
-      opacity var(--swap),
-      font-size var(--swap),
-      line-height var(--swap),
-      font-family var(--swap),
-      font-weight var(--swap);
-    transition-behavior: allow-discrete;
+    /* Movement is animated in JS (easeOutBack): position and scale overshoot together, and
+       the font swaps (Zpix ↔ Kaiti) partway through the move. */
   }
   .col.left .item {
     right: 0;
+    transform-origin: right center;
   }
   .col.right .item {
     left: 0;
-  }
-  .item.no-anim {
-    transition: none;
+    transform-origin: left center;
   }
 
   /* slot positions (set by data-s) */
   .item[data-s='-3'] {
-    transform: translateY(-42px);
+    translate: 0 -42px;
   }
   .item[data-s='-2'] {
-    transform: translateY(0);
+    translate: 0 0px;
   }
   .item[data-s='-1'] {
-    transform: translateY(42px);
+    translate: 0 42px;
     font-size: 36px;
     line-height: 44px;
   }
   .item[data-s='0'] {
-    transform: translateY(96px);
+    translate: 0 96px;
     font-family: var(--f-brush);
     font-weight: 700;
     font-size: 56px;
@@ -191,15 +180,15 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
     opacity: 1;
   }
   .item[data-s='1'] {
-    transform: translateY(170px);
+    translate: 0 170px;
     font-size: 36px;
     line-height: 44px;
   }
   .item[data-s='2'] {
-    transform: translateY(224px);
+    translate: 0 224px;
   }
   .item[data-s='3'] {
-    transform: translateY(266px);
+    translate: 0 266px;
   }
   .item[data-s='-1'],
   .item[data-s='1'],
@@ -249,6 +238,24 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
   const START = Number(slot.dataset.start);
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  // Motion: Robert Penner's easeOutBack (c1 = 1.70158), the standard overshoot curve.
+  // Position and size both follow it, so the chunk overshoots its spot and its scale, then settles.
+  const DURATION = 380;
+  const C1 = 1.70158;
+  const C3 = C1 + 1;
+  const easeOutBack = (t: number) => 1 + C3 * Math.pow(t - 1, 3) + C1 * Math.pow(t - 1, 2);
+  const SWAP_AT = 0.5; // font switches when the eased progress passes this point
+
+  // Geometry per slot (matches the CSS): top, line height, font size
+  const TOP: Record<number, number> = { [-3]: -42, [-2]: 0, [-1]: 42, 0: 96, 1: 170, 2: 224, 3: 266 };
+  const LH: Record<number, number> = { [-3]: 32, [-2]: 32, [-1]: 44, 0: 64, 1: 44, 2: 32, 3: 32 };
+  const SIZE: Record<number, number> = { [-3]: 24, [-2]: 24, [-1]: 36, 0: 56, 1: 36, 2: 24, 3: 24 };
+  const OPACITY = {
+    left: { [-3]: 0, [-2]: 0.07, [-1]: 0.18, 0: 1, 1: 0.18, 2: 0.07, 3: 0 } as Record<number, number>,
+    right: { [-3]: 0, [-2]: 0.1, [-1]: 0.25, 0: 1, 1: 0.25, 2: 0.1, 3: 0 } as Record<number, number>,
+  };
+  const centre = (s: number) => TOP[s] + LH[s] / 2;
+
   type Col = { el: HTMLElement; items: HTMLElement[]; en: string[]; zh: string[]; tag: HTMLElement; idx: number; step: (d: number) => void };
 
   const cols: Record<string, Col> = {};
@@ -276,18 +283,57 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
     };
     const clampSlot = (s: number) => Math.max(-3, Math.min(3, s));
 
-    function render(prev?: number[]) {
+    let anim = 0;
+    let finish: (() => void) | null = null;
+
+    function animate(prev: number[], next: number[]) {
+      finish?.();
+      const op = OPACITY[side];
+      const moving = items
+        .map((it, i) => ({ it, from: prev[i], to: next[i] }))
+        .filter((m) => m.from !== m.to && Math.abs(m.from - m.to) <= 3);
+      // items that wrap between the hidden ends jump straight there
       items.forEach((it, i) => {
-        const s = clampSlot(rel(i));
-        // an item that wraps from one hidden end to the other must not animate across
-        if (prev && Math.abs(prev[i] - s) > 3) it.classList.add('no-anim');
-        it.dataset.s = String(s);
+        if (Math.abs(prev[i] - next[i]) > 3) it.dataset.s = String(next[i]);
       });
-      requestAnimationFrame(() => items.forEach((it) => it.classList.remove('no-anim')));
-      const centre = items.find((it) => it.dataset.s === '0');
-      if (centre) {
+      const done = () => {
+        cancelAnimationFrame(anim);
+        for (const m of moving) {
+          m.it.dataset.s = String(m.to);
+          m.it.style.translate = m.it.style.scale = m.it.style.opacity = '';
+        }
+        finish = null;
+      };
+      if (reduce) return done();
+      finish = done;
+      const t0 = performance.now();
+      const frame = (now: number) => {
+        const t = Math.min(1, (now - t0) / DURATION);
+        const e = easeOutBack(t);
+        const fade = t * t * (3 - 2 * t); // opacity eases without overshoot
+        for (const { it, from, to } of moving) {
+          const s = e < SWAP_AT ? from : to;
+          if (it.dataset.s !== String(s)) it.dataset.s = String(s);
+          const c = centre(from) + (centre(to) - centre(from)) * e;
+          const size = SIZE[from] + (SIZE[to] - SIZE[from]) * e;
+          it.style.translate = `0 ${(c - LH[s] / 2).toFixed(2)}px`;
+          it.style.scale = (size / SIZE[s]).toFixed(4);
+          it.style.opacity = String(op[from] + (op[to] - op[from]) * fade);
+        }
+        if (t < 1) anim = requestAnimationFrame(frame);
+        else done();
+      };
+      anim = requestAnimationFrame(frame);
+    }
+
+    function render(prev?: number[]) {
+      const next = items.map((_, i) => clampSlot(rel(i)));
+      if (prev) animate(prev, next);
+      else items.forEach((it, i) => (it.dataset.s = String(next[i])));
+      const mid = items[next.indexOf(0)];
+      if (mid) {
         // column width follows the centre chunk so the tags have room
-        el.style.width = `${measure(centre)}px`;
+        el.style.width = `${measure(mid)}px`;
       }
       const k = pos % n;
       el.setAttribute('aria-valuetext', zh[k]);
@@ -306,13 +352,13 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
         t.textContent = text.slice(0, ++i);
         if (i < text.length) t.dataset.timer = String(setTimeout(tick, 28));
       };
-      t.dataset.timer = String(setTimeout(tick, reduce ? 0 : 240));
+      t.dataset.timer = String(setTimeout(tick, reduce ? 0 : DURATION));
     }
 
     // width the item will have once it sits in the centre slot
     function measure(it: HTMLElement) {
       const probe = it.cloneNode(true) as HTMLElement;
-      probe.style.cssText = 'position:absolute;visibility:hidden;transition:none;transform:none';
+      probe.style.cssText = 'position:absolute;visibility:hidden;translate:none;scale:none';
       probe.dataset.s = '0';
       el.appendChild(probe);
       const w = Math.ceil(probe.getBoundingClientRect().width);
@@ -321,7 +367,7 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
     }
 
     function step(d: number) {
-      const prev = items.map((it) => Number(it.dataset.s));
+      const prev = items.map((_, i) => clampSlot(rel(i)));
       pos = (((pos + d) % N) + N) % N;
       col.idx = pos % n;
       render(prev);
