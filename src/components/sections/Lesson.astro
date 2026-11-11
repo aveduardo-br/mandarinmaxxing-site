@@ -1,18 +1,8 @@
 ---
-// Section 04 — Paper node 2M-0 (bento 9KE-0). Static default states; card interactions come in step 4.
+// Section 04 — Paper node 2M-0 (bento 9KE-0). Card interactions are added one by one.
 import Section from '../Section.astro';
 import Bubble from '../Bubble.astro';
-
-// Spaced review timeline: lessons 0–20, learned in 4, reviewed in 5, 7, 11, 18.
-const LEARNED = 4;
-const REVIEWS = [5, 7, 11, 18];
-const CENTER = 10;
-const timeline = Array.from({ length: 21 }, (_, i) => {
-  const kind = i === LEARNED ? 'learned' : REVIEWS.includes(i) ? 'review' : 'idle';
-  const fade = Math.max(0.06, 1 - ((i - CENTER) / CENTER) ** 2);
-  const opacity = kind === 'idle' ? fade : Math.max(fade, 0.9);
-  return { i, kind, opacity: +opacity.toFixed(2) };
-});
+import SpacedReview from './SpacedReview.astro';
 
 const vocab = [
   { hanzi: '菜单', pinyin: 'càidān', meaning: 'menu' },
@@ -53,32 +43,7 @@ const PLAYED = 11;
 
       <!-- + Spaced review -->
       <article class="card spaced">
-        <div class="visual sr">
-          <div class="sr-slot">
-            <div class="sr-line">
-              <span class="nb pixel l">打包</span>
-              <span class="arrow pixel">‹</span>
-              <span class="hanzi sr-main">坐地铁</span>
-              <span class="arrow pixel">›</span>
-              <span class="nb pixel">推荐</span>
-            </div>
-            <span class="sr-en">take the subway</span>
-          </div>
-          <div class="timeline" aria-label="Learned in lesson 4, reviewed in lessons 5, 7, 11 and 18">
-            {
-              timeline.map((t) => (
-                <div class={`tcol ${t.kind}`} style={`opacity:${t.opacity}`}>
-                  <i />
-                  <span class="pixel">{t.kind === 'review' ? t.i : '·'}</span>
-                </div>
-              ))
-            }
-          </div>
-          <div class="sr-legend label">
-            <span><i class="learned"></i>learned</span>
-            <span><i class="review"></i>review</span>
-          </div>
-        </div>
+        <SpacedReview />
         <footer class="foot">
           <div class="foot-head"><span class="tag pixel">+</span><h3>Spaced review</h3></div>
           <p>Older words return later, so they don’t fade.</p>
@@ -315,116 +280,6 @@ const PLAYED = 11;
   }
   .chat :global(.bubble.stack:last-child) {
     gap: 4px;
-  }
-
-  /* spaced review */
-  .sr {
-    align-items: center;
-    justify-content: center;
-    gap: 24px;
-    padding: 44px 0 12px;
-    overflow: hidden;
-  }
-  .sr-slot {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    width: 100%;
-  }
-  .sr-line {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: 100%;
-  }
-  .nb,
-  .arrow {
-    font-size: 12px;
-    line-height: 18px;
-    color: var(--accent);
-    opacity: 0.4;
-    white-space: pre;
-  }
-  .nb {
-    width: 38px;
-    flex-shrink: 0;
-  }
-  .nb.l {
-    text-align: right;
-  }
-  .sr-main {
-    font-size: 32px;
-    line-height: 40px;
-    color: var(--text);
-    white-space: pre;
-  }
-  .sr-en {
-    font-size: 13px;
-    line-height: 18px;
-    color: var(--text);
-    opacity: 0.7;
-    white-space: pre;
-  }
-  .timeline {
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    gap: 4px;
-    width: 100%;
-  }
-  .tcol {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    width: 7px;
-    flex-shrink: 0;
-  }
-  .tcol i {
-    display: block;
-    width: 7px;
-    height: 14px;
-    background: #2e2e2e;
-  }
-  .tcol span {
-    font-size: 12px;
-    line-height: 18px;
-    color: var(--outline);
-    white-space: pre;
-  }
-  .tcol.learned i {
-    background: var(--muted);
-  }
-  .tcol.review i {
-    height: 20px;
-    background: var(--accent);
-  }
-  .tcol.review span {
-    color: var(--accent);
-  }
-  .sr-legend {
-    display: flex;
-    gap: 16px;
-    line-height: 14px;
-    color: var(--muted-2);
-  }
-  .sr-legend span {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .sr-legend i {
-    display: block;
-    width: 6px;
-    height: 6px;
-  }
-  .sr-legend .learned {
-    background: var(--muted);
-  }
-  .sr-legend .review {
-    background: var(--accent);
   }
 
   /* vocabulary */
