@@ -1,7 +1,8 @@
 ---
 // Bento card "+ Spaced review" — visual part (Paper node AM8-0).
-// An infinite carousel of three chunks. The arrows and the neighbouring words (light orange) move it
-// one step at a time with the same easeOutBack overshoot as the Chunks slot. The timeline below is
+// An infinite carousel of three chunks seen through a fisheye: the centre chunk is big, the neighbours
+// (orange) sit close by, turned away like on a drum, and the line fades out towards both edges.
+// Clicking a neighbour moves the carousel one step with the same easeOutBack overshoot as the Chunks slot. The timeline below is
 // fixed (lessons 0–20); its bars change to show when the centre chunk was learned and reviewed.
 // Reviews always come +1, +3, +7 and +14 lessons after the lesson where the chunk was learned.
 
@@ -40,9 +41,7 @@ const slotOf = (i: number) => {
 >
   <div class="sr-slot">
     <div class="sr-line" tabindex="0" role="spinbutton" aria-label="Chunk" aria-valuetext={first.zh}>
-      <button class="arrow pixel left" type="button" aria-label="Previous chunk" data-dir="-1">‹</button>
       {doubled.map((w, i) => <span class="w" data-i={i} data-s={slotOf(i)}>{w.zh}</span>)}
-      <button class="arrow pixel right" type="button" aria-label="Next chunk" data-dir="1">›</button>
     </div>
     <span class="sr-en" data-en>{first.en}</span>
   </div>
@@ -93,6 +92,9 @@ const slotOf = (i: number) => {
     width: 100%;
     height: 40px;
     outline: none;
+    /* fade out towards both edges */
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 42%, #000 58%, transparent 100%);
+    mask-image: linear-gradient(90deg, transparent 0%, #000 42%, #000 58%, transparent 100%);
   }
   .sr-line:focus-visible {
     outline: 1px dashed var(--outline);
@@ -107,17 +109,21 @@ const slotOf = (i: number) => {
     font-weight: 500;
     font-size: 12px;
     line-height: 18px;
-    color: var(--accent-light);
+    color: var(--accent);
     opacity: 0;
     pointer-events: none;
     translate: calc(-50% + var(--x, 0px)) -50%;
+    /* fisheye: neighbours turn away from the viewer like on a drum */
+    transform: perspective(160px) rotateY(var(--ry, 0deg));
   }
   .w[data-s='-2'] {
-    --x: -140px;
+    --x: -112px;
+    --ry: -70deg;
   }
   .w[data-s='-1'] {
-    --x: -92px;
-    opacity: 0.8;
+    --x: -68px;
+    --ry: -42deg;
+    opacity: 0.7;
   }
   .w[data-s='0'] {
     font-family: var(--f-brush);
@@ -128,11 +134,13 @@ const slotOf = (i: number) => {
     opacity: 1;
   }
   .w[data-s='1'] {
-    --x: 92px;
-    opacity: 0.8;
+    --x: 68px;
+    --ry: 42deg;
+    opacity: 0.7;
   }
   .w[data-s='2'] {
-    --x: 140px;
+    --x: 112px;
+    --ry: 70deg;
   }
   .w[data-s='-1'],
   .w[data-s='1'] {
@@ -142,29 +150,6 @@ const slotOf = (i: number) => {
   .w[data-s='-1']:hover,
   .w[data-s='1']:hover {
     opacity: 1;
-  }
-
-  .arrow {
-    position: absolute;
-    top: 50%;
-    translate: -50% -50%;
-    padding: 4px;
-    border: 0;
-    background: none;
-    font-size: 12px;
-    line-height: 18px;
-    color: var(--accent-light);
-    opacity: 0.8;
-    cursor: pointer;
-  }
-  .arrow:hover {
-    opacity: 1;
-  }
-  .arrow.left {
-    left: calc(50% - 60px);
-  }
-  .arrow.right {
-    left: calc(50% + 60px);
   }
 
   .sr-en {
@@ -272,9 +257,10 @@ const slotOf = (i: number) => {
   const C1 = 1.70158;
   const C3 = C1 + 1;
   const easeOutBack = (t: number) => 1 + C3 * Math.pow(t - 1, 3) + C1 * Math.pow(t - 1, 2);
-  const X: Record<number, number> = { [-2]: -140, [-1]: -92, 0: 0, 1: 92, 2: 140 };
+  const X: Record<number, number> = { [-2]: -112, [-1]: -68, 0: 0, 1: 68, 2: 112 };
+  const RY: Record<number, number> = { [-2]: -70, [-1]: -42, 0: 0, 1: 42, 2: 70 };
   const SIZE: Record<number, number> = { [-2]: 12, [-1]: 12, 0: 32, 1: 12, 2: 12 };
-  const OP: Record<number, number> = { [-2]: 0, [-1]: 0.8, 0: 1, 1: 0.8, 2: 0 };
+  const OP: Record<number, number> = { [-2]: 0, [-1]: 0.7, 0: 1, 1: 0.7, 2: 0 };
 
   let pos = Number(root.dataset.start);
   const rel = (i: number) => {
@@ -303,6 +289,7 @@ const slotOf = (i: number) => {
       for (const m of moving) {
         m.it.dataset.s = String(m.to);
         m.it.style.removeProperty('--x');
+        m.it.style.removeProperty('--ry');
         m.it.style.scale = m.it.style.opacity = '';
       }
       finish = null;
@@ -319,6 +306,7 @@ const slotOf = (i: number) => {
         if (it.dataset.s !== String(s)) it.dataset.s = String(s);
         const size = SIZE[from] + (SIZE[to] - SIZE[from]) * e;
         it.style.setProperty('--x', `${(X[from] + (X[to] - X[from]) * e).toFixed(2)}px`);
+        it.style.setProperty('--ry', `${(RY[from] + (RY[to] - RY[from]) * e).toFixed(2)}deg`);
         it.style.scale = (size / SIZE[s]).toFixed(4);
         it.style.opacity = String(OP[from] + (OP[to] - OP[from]) * f);
       }
@@ -368,8 +356,6 @@ const slotOf = (i: number) => {
 
   line.addEventListener('click', (e) => {
     const t = e.target as HTMLElement;
-    const btn = t.closest<HTMLElement>('[data-dir]');
-    if (btn) return step(Number(btn.dataset.dir));
     const w = t.closest<HTMLElement>('.w');
     if (w && (w.dataset.s === '-1' || w.dataset.s === '1')) step(Number(w.dataset.s));
   });
