@@ -330,8 +330,7 @@ const exercises: Exercise[] = [
       await play(current);
     }
 
-    // start: the previous exercise (3 / 3) already done above, exercise 1 plays when in view
-    addBlock(wrap(cur - 1), true);
+    // start: the card is empty, exercise 1 plays when in view and waits on its Next
     current = addBlock(cur, false);
     const io = new IntersectionObserver(
       ([entry]) => {
