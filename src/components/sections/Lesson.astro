@@ -306,13 +306,14 @@ const PLAYED = 11;
   .muted2 {
     color: var(--muted-2);
   }
+  /* two-line bubbles: same 20px lines and gap, so they match each other too */
   .chat :global(.bubble.stack) {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-  }
-  .chat :global(.bubble.stack:last-child) {
     gap: 4px;
+  }
+  .chat :global(.bubble.stack) .label {
+    line-height: 20px;
   }
 
   /* vocabulary */
