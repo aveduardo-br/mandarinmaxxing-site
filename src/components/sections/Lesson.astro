@@ -270,18 +270,20 @@ const PLAYED = 11;
   }
   .fb {
     font-size: 13px;
-    line-height: 18px;
+    line-height: 20px;
     color: var(--text-dim);
   }
+  /* hanzi in bubbles share the 20px line of the other messages, so every one-line bubble
+     has the same height */
   .a24 {
-    font-size: 24px;
-    line-height: 30px;
+    font-size: 18px;
+    line-height: 20px;
     color: var(--text);
     white-space: pre;
   }
   .a20 {
-    font-size: 20px;
-    line-height: 26px;
+    font-size: 18px;
+    line-height: 20px;
     color: var(--text);
   }
   .ok {
@@ -290,7 +292,7 @@ const PLAYED = 11;
   /* inside the orange user bubble, highlighted words go dark so they still stand out */
   .chat :global(.bubble.user) .hl-light,
   .chat :global(.bubble.user) .hl-mid {
-    color: #2a0d02;
+    color: rgba(242, 242, 242, 0.7);
   }
   .hl-light {
     color: var(--accent-light);

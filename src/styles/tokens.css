@@ -16,7 +16,7 @@
   --accent-mid: #e2652e;
   --ok: #7fb37f;
   --bubble-ai: #1c1c1c;
-  --bubble-user: #d2430e; /* the person's chat bubble uses the accent orange */
+  --bubble-user: #b53902; /* the person's chat bubble: accent orange, one shade darker */
 
   /* Type */
   --f-pixel: 'Zpix', ui-monospace, monospace;
