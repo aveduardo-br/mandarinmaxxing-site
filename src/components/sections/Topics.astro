@@ -196,8 +196,8 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
     display: inline-block;
   }
   .topic.open .pw {
-    animation: preview-out 0.34s cubic-bezier(0.5, 0, 0.75, 0) forwards;
-    animation-delay: calc(var(--i) * 70ms);
+    animation: preview-out 0.18s cubic-bezier(0.3, 0, 0.9, 0.4) forwards;
+    animation-delay: calc(var(--i) * 35ms);
   }
   @keyframes preview-out {
     0% {
@@ -205,11 +205,11 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
       opacity: 1;
     }
     99.9% {
-      translate: 0 -16px;
+      translate: -12px -14px;
       opacity: 1;
     }
     100% {
-      translate: 0 -16px;
+      translate: -12px -14px;
       opacity: 0;
     }
   }
