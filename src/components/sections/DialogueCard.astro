@@ -1,0 +1,506 @@
+---
+// Bento card "04 Dialogue and comprehension" — visual part.
+// Everything is driven by the audio's current time, so playing, dragging the waveform or using the
+// arrow keys all give the same picture: the dialogue is written in as it is spoken, and each
+// question turns white while it's the current one, then gets struck through and ticked once the
+// audio passes the moment that answers it.
+//
+// Timings were mapped from public/audio/dialogue-restaurant.mp3 (8.2 s) by detecting the pauses
+// with ffmpeg (silencedetect, -35 dB). Each part is [text, from, to] in seconds; characters inside
+// a part are spread evenly across it, punctuation appears instantly.
+
+type Part = [string, number, number];
+type Line = { who: 'A' | 'B'; parts: Part[] };
+
+const lines: Line[] = [
+  { who: 'A', parts: [['请问', 0.0, 0.49], ['，', 0.49, 0.49], ['你们有什么推荐', 0.83, 1.9], ['？', 1.9, 1.9]] },
+  { who: 'B', parts: [['我推荐主厨的红烧鱼', 2.22, 4.0], ['。', 4.0, 4.0]] },
+  { who: 'A', parts: [['好的', 4.35, 4.67], ['，', 4.67, 4.67], ['多少钱', 4.99, 5.58], ['？', 5.58, 5.58]] },
+  { who: 'B', parts: [['三十块', 5.83, 6.46], ['。', 6.46, 6.46]] },
+  { who: 'A', parts: [['好', 6.78, 7.01], ['，', 7.01, 7.01], ['就点这个吧', 7.25, 8.0], ['。', 8.0, 8.0]] },
+];
+
+const questions = [
+  { q: 'What does she ask the waiter?', at: 1.9 },
+  { q: 'What does the waiter recommend?', at: 4.0 },
+  { q: 'How much is it?', at: 6.46 },
+];
+
+const DURATION = 8.2;
+// waveform: RMS of the audio in 26 bins, scaled to 6–26 px
+const wave = [25, 22, 26, 24, 18, 17, 7, 19, 15, 14, 16, 16, 14, 8, 23, 11, 20, 17, 14, 15, 15, 22, 17, 25, 21, 16];
+
+// per-character reveal times
+const charLines = lines.map((l) => ({
+  who: l.who,
+  start: l.parts[0][1],
+  chars: l.parts.flatMap(([text, from, to]) => {
+    const cs = [...text];
+    return cs.map((c, k) => ({ c, t: +(from + ((to - from) * k) / cs.length).toFixed(3) }));
+  }),
+}));
+
+const fmt = (s: number) => `0:${String(Math.round(s)).padStart(2, '0')}`;
+---
+
+<div class="dlg" data-dlg data-duration={DURATION} data-questions={JSON.stringify(questions.map((q) => q.at))}>
+  <div class="fieldset">
+    <div class="edge top">
+      <span class="line stub"></span><span class="cap pixel cap-label">AUDIO · LESSON 08 · HSK 4</span><span
+        class="line"></span>
+    </div>
+    <div class="body audio-body">
+      <div class="player-wrap">
+        <div class="player">
+          <audio preload="auto" src="/audio/dialogue-restaurant.mp3" data-audio></audio>
+          <button class="play" type="button" aria-label="Play dialogue" data-play>
+            <svg viewBox="0 0 12 12" aria-hidden="true">
+              <path class="i-play" d="M3 1.5 L10.5 6 L3 10.5 Z"></path>
+              <path class="i-pause" d="M2.5 1.5 H5 V10.5 H2.5 Z M7 1.5 H9.5 V10.5 H7 Z"></path>
+            </svg>
+          </button>
+          <div
+            class="wave"
+            data-wave
+            role="slider"
+            tabindex="0"
+            aria-label="Dialogue position"
+            aria-valuemin="0"
+            aria-valuemax={DURATION}
+            aria-valuenow="0"
+          >
+            {wave.map((h) => <i style={`height:${h}px`} />)}
+          </div>
+          <span class="time pixel" data-time>{fmt(DURATION)}</span>
+        </div>
+      </div>
+
+      <div class="convo">
+        <div class="lines-view" aria-hidden="true">
+          <div class="lines" data-lines>
+            {
+              charLines.map((l, i) => (
+                <div class={`line ${l.who === 'A' ? 'a' : 'b'} future`} data-line={i} data-start={l.start}>
+                  {l.who === 'A' && <span class="who pixel">A</span>}
+                  <span class="hanzi">{l.chars.map((ch) => <span class="ch" data-t={ch.t}>{ch.c}</span>)}</span>
+                  {l.who === 'B' && <span class="who pixel">B</span>}
+                </div>
+              ))
+            }
+          </div>
+        </div>
+        <p class="sr-only" aria-live="off">
+          {lines.map((l) => `${l.who}: ${l.parts.map((p) => p[0]).join('')}`).join(' ')}
+        </p>
+        <ul class="questions" data-questions-list>
+          {
+            questions.map((q, i) => (
+              <li class:list={{ current: i === 0 }} data-q={i}>
+                <span class="mark" aria-hidden="true">
+                  <span class="o">○</span>
+                  <span class="tick">✓</span>
+                </span>
+                <span class="qt">{q.q}</span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .dlg {
+    padding: 20px;
+  }
+  .dlg .line.stub {
+    flex: 0 0 20px;
+  }
+  .audio-body {
+    display: flex;
+    padding: 16px 20px 20px;
+    border-bottom: 1px solid var(--outline);
+  }
+
+  /* player */
+  .player-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 260px;
+    flex-shrink: 0;
+    padding-right: 24px;
+  }
+  .player {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px 8px 8px;
+    border-radius: 999px;
+    background: #1a1a1a;
+  }
+  .play {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    border: 0;
+    border-radius: 999px;
+    background: var(--accent);
+    cursor: pointer;
+  }
+  .play svg {
+    width: 12px;
+    height: 12px;
+    fill: #121212;
+  }
+  .play .i-pause,
+  .play.playing .i-play {
+    display: none;
+  }
+  .play.playing .i-pause {
+    display: inline;
+  }
+  .play:focus-visible,
+  .wave:focus-visible {
+    outline: 1px dashed var(--accent-light);
+    outline-offset: 3px;
+  }
+  .wave {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    height: 28px;
+    cursor: pointer;
+    touch-action: none;
+    user-select: none;
+  }
+  .wave i {
+    display: block;
+    width: 3px;
+    flex-shrink: 0;
+    background: #3a3a3a;
+    pointer-events: none;
+  }
+  .wave i.played {
+    background: var(--accent);
+  }
+  .time {
+    min-width: 28px;
+    font-size: 12px;
+    line-height: 18px;
+    color: var(--muted-2);
+  }
+
+  /* conversation: the last two lines are visible, newest at the bottom */
+  .convo {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-left: 24px;
+    border-left: 1px solid var(--divider);
+  }
+  .lines-view {
+    position: relative;
+    height: 58px; /* two 26px lines + 6px gap */
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 30%);
+    mask-image: linear-gradient(180deg, transparent 0%, #000 30%);
+  }
+  .lines {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .line {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    transition: opacity 0.2s ease;
+  }
+  .line.a {
+    align-self: flex-start;
+  }
+  .line.b {
+    align-self: flex-end;
+  }
+  .line.future {
+    opacity: 0;
+  }
+  .who {
+    font-size: 12px;
+    line-height: 18px;
+    color: var(--muted-2);
+  }
+  .line .hanzi {
+    font-size: 20px;
+    line-height: 26px;
+    white-space: pre;
+  }
+  .ch {
+    color: transparent;
+  }
+  .line.past .ch {
+    color: var(--muted);
+  }
+  .line.now .ch.on {
+    color: var(--text);
+  }
+  /* the next few characters are ghosted in, fading out */
+  .line.now .ch.g1 {
+    color: #b0b0b0;
+  }
+  .line.now .ch.g2 {
+    color: #6a6a6a;
+  }
+  .line.now .ch.g3 {
+    color: #3a3a3a;
+  }
+  .line.now .ch.g4 {
+    color: #222222;
+  }
+
+  /* questions */
+  .questions {
+    list-style: none;
+    margin: 0;
+    padding: 14px 0 0;
+    border-top: 1px solid var(--divider);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .questions li {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 13px;
+    line-height: 18px;
+    color: var(--muted);
+    transition: color 0.2s ease;
+  }
+  .mark {
+    position: relative;
+    width: 10px;
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--muted-2);
+  }
+  .mark .tick {
+    position: absolute;
+    left: 0;
+    color: var(--ok);
+    opacity: 0;
+    scale: 0.4;
+    transition:
+      opacity 0.15s ease,
+      scale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .qt {
+    position: relative;
+  }
+  /* strike line drawn across the question once it's answered */
+  .qt::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    height: 1px;
+    width: 100%;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.35s ease;
+  }
+  .questions li.current {
+    color: var(--text);
+  }
+  .questions li.current .mark {
+    color: var(--text);
+  }
+  .questions li.done {
+    color: var(--muted-2);
+  }
+  .questions li.done .qt::after {
+    transform: scaleX(1);
+  }
+  .questions li.done .o {
+    opacity: 0;
+  }
+  .questions li.done .tick {
+    opacity: 1;
+    scale: 1;
+    transition-delay: 0.3s;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lines,
+    .qt::after,
+    .mark .tick {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-dlg]');
+  if (root) {
+    const audio = root.querySelector<HTMLAudioElement>('[data-audio]')!;
+    const playBtn = root.querySelector<HTMLButtonElement>('[data-play]')!;
+    const wave = root.querySelector<HTMLElement>('[data-wave]')!;
+    const bars = [...wave.querySelectorAll<HTMLElement>('i')];
+    const timeEl = root.querySelector<HTMLElement>('[data-time]')!;
+    const linesEl = root.querySelector<HTMLElement>('[data-lines]')!;
+    const view = linesEl.parentElement!;
+    const lines = [...linesEl.querySelectorAll<HTMLElement>('[data-line]')].map((el) => ({
+      el,
+      start: Number(el.dataset.start),
+      chars: [...el.querySelectorAll<HTMLElement>('.ch')].map((c) => ({ el: c, t: Number(c.dataset.t) })),
+    }));
+    const qEls = [...root.querySelectorAll<HTMLElement>('[data-q]')];
+    const qAt: number[] = JSON.parse(root.dataset.questions!);
+    let duration = Number(root.dataset.duration);
+    const GHOSTS = 4;
+
+    const fmt = (s: number) => `0:${String(Math.floor(s)).padStart(2, '0')}`;
+
+    let t = 0;
+    let started = false;
+
+    function render() {
+      // dialogue
+      // before playing, the first line is shown as a ghost hint
+      let cur = 0;
+      lines.forEach((l, i) => {
+        if (t >= l.start && started) cur = i;
+      });
+      lines.forEach((l, i) => {
+        l.el.classList.toggle('future', i > cur);
+        l.el.classList.toggle('past', i < cur);
+        l.el.classList.toggle('now', i === cur);
+        if (i !== cur) return;
+        let ghost = 0;
+        for (const ch of l.chars) {
+          const on = t >= ch.t;
+          ch.el.classList.toggle('on', on);
+          ch.el.classList.remove('g1', 'g2', 'g3', 'g4');
+          if (!on && ghost < GHOSTS) ch.el.classList.add(`g${++ghost}`);
+        }
+      });
+      // keep the current line at the bottom of the two-line view
+      const target = lines[Math.max(cur, 0)].el;
+      const y = Math.min(0, view.clientHeight - (target.offsetTop + target.offsetHeight));
+      linesEl.style.transform = `translateY(${y}px)`;
+
+      // questions
+      let currentQ = qAt.findIndex((at) => !(started && t >= at));
+      qEls.forEach((li, i) => {
+        li.classList.toggle('done', started && t >= qAt[i]);
+        li.classList.toggle('current', i === currentQ);
+      });
+
+      // player
+      const p = Math.min(1, t / duration);
+      bars.forEach((b, i) => b.classList.toggle('played', started && (i + 0.5) / bars.length <= p));
+      timeEl.textContent = started ? fmt(t) : fmt(duration);
+      wave.setAttribute('aria-valuenow', t.toFixed(1));
+      wave.setAttribute('aria-valuetext', `${fmt(t)} of ${fmt(duration)}`);
+    }
+
+    // smooth updates while playing
+    let raf = 0;
+    const loop = () => {
+      t = audio.currentTime;
+      render();
+      if (!audio.paused) raf = requestAnimationFrame(loop);
+    };
+
+    function setPlaying(on: boolean) {
+      playBtn.classList.toggle('playing', on);
+      playBtn.setAttribute('aria-label', on ? 'Pause dialogue' : 'Play dialogue');
+    }
+
+    playBtn.addEventListener('click', () => {
+      if (audio.paused) {
+        if (t >= duration - 0.05) audio.currentTime = 0;
+        started = true;
+        audio.play().catch(() => {});
+      } else {
+        audio.pause();
+      }
+    });
+    audio.addEventListener('play', () => {
+      setPlaying(true);
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(loop);
+    });
+    audio.addEventListener('pause', () => {
+      setPlaying(false);
+      t = audio.currentTime;
+      render();
+    });
+    audio.addEventListener('ended', () => {
+      setPlaying(false);
+      t = duration;
+      render();
+    });
+    audio.addEventListener('loadedmetadata', () => {
+      if (isFinite(audio.duration)) duration = audio.duration;
+      render();
+    });
+
+    // scrub: click or drag on the waveform
+    const seekTo = (clientX: number) => {
+      const r = wave.getBoundingClientRect();
+      const p = Math.max(0, Math.min(1, (clientX - r.left) / r.width));
+      started = true;
+      t = p * duration;
+      audio.currentTime = t;
+      render();
+    };
+    let dragging = false;
+    wave.addEventListener('pointerdown', (e) => {
+      dragging = true;
+      wave.setPointerCapture(e.pointerId);
+      seekTo(e.clientX);
+    });
+    wave.addEventListener('pointermove', (e) => {
+      if (dragging) seekTo(e.clientX);
+    });
+    const stop = () => (dragging = false);
+    wave.addEventListener('pointerup', stop);
+    wave.addEventListener('pointercancel', stop);
+
+    // keyboard: ←/→ one second, Home/End
+    wave.addEventListener('keydown', (e) => {
+      let next: number | null = null;
+      if (e.key === 'ArrowRight') next = t + 1;
+      else if (e.key === 'ArrowLeft') next = t - 1;
+      else if (e.key === 'Home') next = 0;
+      else if (e.key === 'End') next = duration;
+      if (next === null) return;
+      e.preventDefault();
+      started = true;
+      t = Math.max(0, Math.min(duration, next));
+      audio.currentTime = t;
+      render();
+    });
+
+    render();
+  }
+</script>
