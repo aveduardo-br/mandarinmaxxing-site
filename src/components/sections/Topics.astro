@@ -1,6 +1,6 @@
 ---
 // Section 02 — Paper node 1V-0.
-// Three states per topic: closed, hover (arrow slides in, row turns white, preview hanzi light up)
+// Three states per topic: closed, hover (arrow head slides in, row turns white, preview hanzi light up)
 // and open (accordion, like 08 in Paper). One topic open at a time; all start closed.
 import Section from '../Section.astro';
 import { topics, levelNames, type Topic } from '../../data/topics';
@@ -37,7 +37,7 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
           {g.map((t) => (
             <div class="topic" data-topic>
               <button class="row" type="button" aria-expanded="false" aria-controls={`topic-${t.num}`}>
-                <span class="arrow pixel" aria-hidden="true">--&gt;</span>
+                <span class="arrow pixel" aria-hidden="true"><span class="dash">--</span>&gt;</span>
                 <span class="num pixel">{t.num}</span>
                 <span class="name pixel">{t.name}</span>
                 <span class="preview hanzi" aria-hidden="true">{t.preview.split(' ').map((p, i) => <>{i > 0 && ' '}<span class="pw" style={`--i:${i}`}>{p}</span></>)}</span>
@@ -177,6 +177,16 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
   .topic.open .arrow {
     max-width: 3em;
     margin-right: 14px;
+  }
+  /* hover shows only the arrow head; the dashes join it once the topic is open */
+  .dash {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: top;
+    max-width: 0;
+  }
+  .topic.open .dash {
+    max-width: 2em;
   }
   .row:hover :is(.num, .name),
   .row:focus-visible :is(.num, .name),
