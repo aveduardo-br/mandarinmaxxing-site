@@ -96,12 +96,17 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
     mask-image: linear-gradient(180deg, transparent 0%, #000 36%, #000 64%, transparent 100%);
     min-width: 0; /* let a long phrase overflow outwards instead of moving the seam */
   }
+  /* each half reaches 64px past the slot so a long phrase stays inside the fade mask */
   .half.left {
-    flex: 0 0 calc(var(--seam) - 8px);
+    flex: 0 0 calc(var(--seam) - 8px + 64px);
+    margin-left: -64px;
+    padding-left: 64px;
     justify-content: flex-end;
   }
   .half.right {
     flex: 1 1 0;
+    margin-right: -64px;
+    padding-right: 64px;
     justify-content: flex-start;
   }
   .tag {
