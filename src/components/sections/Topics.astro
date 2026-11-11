@@ -31,7 +31,16 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
                 <span class="arrow pixel" aria-hidden="true">--&gt;</span>
                 <span class="num pixel">{t.num}</span>
                 <span class="name pixel">{t.name}</span>
-                <span class="preview hanzi" aria-hidden="true">{t.preview}</span>
+                <span class="preview hanzi" aria-hidden="true">
+                  {t.preview.split(' ').map((p, i) => (
+                    <>
+                      {i > 0 && ' '}
+                      <span class="pw" style={`--i:${i}`}>
+                        {p}
+                      </span>
+                    </>
+                  ))}
+                </span>
               </button>
               <div class="panel" id={`topic-${t.num}`} role="region" aria-label={t.name}>
                 <div class="panel-inner">
@@ -190,8 +199,28 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
   .topic.open .num {
     width: auto;
   }
-  .topic.open .preview {
-    display: none;
+  /* preview hanzi leave one by one, left to right: they rise slowly, speed up (ease-in) and
+     vanish at their fastest point instead of fading */
+  .pw {
+    display: inline-block;
+  }
+  .topic.open .pw {
+    animation: preview-out 0.34s cubic-bezier(0.5, 0, 0.75, 0) forwards;
+    animation-delay: calc(var(--i) * 70ms);
+  }
+  @keyframes preview-out {
+    0% {
+      translate: 0 0;
+      opacity: 1;
+    }
+    99.9% {
+      translate: 0 -16px;
+      opacity: 1;
+    }
+    100% {
+      translate: 0 -16px;
+      opacity: 0;
+    }
   }
 
   /* ---------- panel (accordion) ---------- */
@@ -355,6 +384,10 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .topic.open .pw {
+      animation: none;
+      opacity: 0;
+    }
     .arrow,
     .panel,
     .topic.open :is(.word, .legend, .note, .squares .sq) {
