@@ -1,0 +1,77 @@
+@import './tokens.css';
+
+/* Zpix — crisp at multiples of 12px. Weight 500 per design. */
+@font-face {
+  font-family: 'Zpix';
+  src: url('/fonts/zpix-latin-subset.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+2000-206F, U+2190-21FF, U+2713, U+25A0, U+25CB;
+}
+@font-face {
+  font-family: 'Zpix';
+  src: url('/fonts/zpix-cjk-subset.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+3000-303F, U+4E00-9FFF, U+FF00-FFEF;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--muted);
+  font-family: var(--f-body);
+  font-size: 16px;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+.pixel {
+  font-family: var(--f-pixel);
+  font-weight: 500;
+  -webkit-font-smoothing: none;
+  font-smooth: never;
+}
+
+.label {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.hanzi {
+  font-family: var(--f-brush);
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}

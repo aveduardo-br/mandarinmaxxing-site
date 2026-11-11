@@ -1,0 +1,33 @@
+---
+// Wrapper for numbered sections: anchor id + pixel title.
+// TODO (step 2): pixel numeral SVGs exported from Paper (nodes 8IA-0 … 8IZ-0).
+interface Props {
+  id: string;
+  num: string;
+  title: string;
+}
+const { id, num, title } = Astro.props;
+---
+
+<section id={id} class="section">
+  <h2 class="title pixel"><span class="num">{num}</span> {title}</h2>
+  <slot />
+</section>
+
+<style>
+  .section {
+    padding-top: var(--section-gap);
+    scroll-margin-top: 80px;
+  }
+
+  .title {
+    font-size: 24px;
+    line-height: 36px;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .num {
+    color: var(--muted-2);
+  }
+</style>

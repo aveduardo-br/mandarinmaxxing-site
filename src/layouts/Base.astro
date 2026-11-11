@@ -1,0 +1,51 @@
+---
+import '../styles/global.css';
+import SideNav from '../components/SideNav.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'mandarinmaxxing',
+  description = 'A topic-based way to study Mandarin with HSK 3.0 vocabulary and phrases you can use in everyday conversations.',
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0E0E0E" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+
+    <link rel="preload" href="/fonts/zpix-latin-subset.woff" as="font" type="font/woff" crossorigin />
+    <!-- TODO: self-host Geist / Geist Mono in public/fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&family=Geist+Mono:wght@400;500&display=swap"
+    />
+  </head>
+  <body>
+    <SideNav />
+    <main class="col">
+      <slot />
+    </main>
+  </body>
+</html>
+
+<style>
+  .col {
+    width: min(var(--col), 100% - 32px);
+    margin-inline: auto;
+  }
+</style>

@@ -1,0 +1,63 @@
+---
+import Base from '../layouts/Base.astro';
+import Section from '../components/Section.astro';
+import { sections, faq } from '../data/site';
+---
+
+<Base>
+  <!-- Hero: step 3 (port prototypes/rising-hanzi-hero.html) -->
+  <header class="hero-placeholder">
+    <p class="pixel">mandarinmaxxing</p>
+    <p class="label">Scaffold · hero coming soon</p>
+  </header>
+
+  <!-- Static sections: step 2 (copy from Paper) -->
+  {sections.map((s) => (
+    <Section id={s.id} num={s.num} title={s.title}>
+      <p class="placeholder">Section content coming soon.</p>
+    </Section>
+  ))}
+
+  <Section id="faq" num="07" title="Questions">
+    {faq.map((q) => (
+      <h3 id={q.id} class="q pixel">{q.title}</h3>
+    ))}
+  </Section>
+
+  <footer class="footer">
+    <p>Made by Eduarda. Lessons taught by Claude.</p>
+  </footer>
+</Base>
+
+<style>
+  .hero-placeholder {
+    min-height: 100vh;
+    display: grid;
+    place-content: center;
+    text-align: center;
+    gap: 12px;
+  }
+
+  .hero-placeholder .pixel {
+    font-size: 48px;
+    line-height: 48px;
+    color: var(--text);
+  }
+
+  .placeholder {
+    min-height: 40vh;
+  }
+
+  .q {
+    font-size: 12px;
+    line-height: 24px;
+    color: var(--text-soft);
+    padding-block: 24px;
+    scroll-margin-top: 80px;
+  }
+
+  .footer {
+    padding-block: var(--section-gap) 64px;
+    font-size: 13px;
+  }
+</style>

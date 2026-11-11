@@ -1,0 +1,119 @@
+---
+import { sections, faq, SKILL_REPO } from '../data/site';
+---
+
+<nav class="sidenav pixel" aria-label="Sections">
+  <p class="group">How it works</p>
+  <ul>
+    {sections.map((s) => (
+      <li>
+        <a href={`#${s.id}`} data-nav={s.id}>{s.num} {s.title}</a>
+      </li>
+    ))}
+  </ul>
+
+  <p class="group">FAQ</p>
+  <ul>
+    {faq.map((q) => (
+      <li>
+        <a href={`#${q.id}`} data-nav={q.id}>{q.title}</a>
+      </li>
+    ))}
+  </ul>
+
+  <ul class="end">
+    <li><a href="#install">Install ↓</a></li>
+    <li><a href={SKILL_REPO} target="_blank" rel="noopener">GitHub ↗</a></li>
+  </ul>
+</nav>
+
+<style>
+  .sidenav {
+    position: fixed;
+    top: 50%;
+    left: var(--nav-left);
+    transform: translateY(-50%);
+    z-index: 10;
+    font-size: 12px;
+    line-height: 28px;
+    letter-spacing: 0.08em;
+  }
+
+  .group {
+    color: var(--muted-2);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  ul {
+    list-style: none;
+    margin: 0 0 22px;
+    padding: 0;
+  }
+
+  .end {
+    margin: 0;
+  }
+
+  a {
+    color: var(--muted);
+    transition: color 0.15s ease;
+  }
+
+  a:hover,
+  a.active {
+    color: var(--text);
+  }
+
+  /* Desktop-first; mobile behavior to be defined with Eduarda. */
+  @media (max-width: 1180px) {
+    .sidenav {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  const links = new Map<string, HTMLAnchorElement>();
+  document.querySelectorAll<HTMLAnchorElement>('[data-nav]').forEach((a) => {
+    links.set(a.dataset.nav!, a);
+  });
+
+  const targets = [...links.keys()]
+    .map((id) => document.getElementById(id))
+    .filter((el): el is HTMLElement => el !== null);
+
+  let current: string | null = null;
+  const setActive = (id: string | null) => {
+    if (id === current) return;
+    if (current) links.get(current)?.classList.remove('active');
+    if (id) links.get(id)?.classList.add('active');
+    current = id;
+  };
+
+  // Active = last target whose top has crossed 40% of the viewport.
+  const update = () => {
+    const line = window.innerHeight * 0.4;
+    let active: string | null = null;
+    for (const el of targets) {
+      if (el.getBoundingClientRect().top <= line) active = el.id;
+    }
+    setActive(active);
+  };
+
+  let ticking = false;
+  window.addEventListener(
+    'scroll',
+    () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        update();
+        ticking = false;
+      });
+    },
+    { passive: true },
+  );
+  window.addEventListener('resize', update);
+  update();
+</script>

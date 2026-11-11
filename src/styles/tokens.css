@@ -1,0 +1,30 @@
+/* Design tokens — source of truth: Paper file "Brilliant dew", artboard 1-0 */
+:root {
+  /* Colors */
+  --bg: #0e0e0e;
+  --card: #121212;
+  --card-border: #222222;
+  --divider: #1e1e1e;
+  --outline: #2a2a2a;
+  --text: #f2f2f2;
+  --text-soft: #e0e0e0;
+  --muted: #8a8a8a;
+  --muted-2: #5c5c5c;
+  --accent: #d2430e;
+  --accent-light: #f49a62;
+  --accent-mid: #e2652e;
+  --ok: #7fb37f;
+  --bubble-ai: #1c1c1c;
+  --bubble-user: #262626;
+
+  /* Type */
+  --f-pixel: 'Zpix', ui-monospace, monospace;
+  --f-brush: 'Kaiti SC', 'STKaiti', 'LXGW WenKai', serif;
+  --f-body: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Layout */
+  --col: 680px;
+  --nav-left: 98px;
+  --section-gap: 160px;
+}
