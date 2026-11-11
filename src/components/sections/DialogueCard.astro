@@ -396,7 +396,7 @@ const fmt = (s: number) => `0:${String(Math.round(s)).padStart(2, '0')}`;
         if (i !== cur) return;
         let ghost = 0;
         for (const ch of l.chars) {
-          const on = t >= ch.t;
+          const on = started && t >= ch.t;
           ch.el.classList.toggle('on', on);
           ch.el.classList.remove('g1', 'g2', 'g3', 'g4');
           if (!on && ghost < GHOSTS) ch.el.classList.add(`g${++ghost}`);
