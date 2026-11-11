@@ -7,7 +7,7 @@
 //
 // Timings were mapped from public/audio/dialogue-restaurant.mp3 (8.2 s) by detecting the pauses
 // with ffmpeg (silencedetect, -35 dB). Each part is [text, from, to] in seconds; characters inside
-// a part are spread evenly across it, punctuation appears instantly.
+// a line is revealed as one continuous sweep from its first to its last checkpoint.
 
 type Part = [string, number, number];
 type Line = { who: 'A' | 'B'; parts: Part[] };
@@ -30,14 +30,12 @@ const DURATION = 8.2;
 // waveform: RMS of the audio in 26 bins, scaled to 6–26 px
 const wave = [25, 22, 26, 24, 18, 17, 7, 19, 15, 14, 16, 16, 14, 8, 23, 11, 20, 17, 14, 15, 15, 22, 17, 25, 21, 16];
 
-// per-character reveal times
-const charLines = lines.map((l) => ({
+// each line has two checkpoints, start and end; between them it is revealed in one smooth sweep
+const lineData = lines.map((l) => ({
   who: l.who,
+  text: l.parts.map((p) => p[0]).join(''),
   start: l.parts[0][1],
-  chars: l.parts.flatMap(([text, from, to]) => {
-    const cs = [...text];
-    return cs.map((c, k) => ({ c, t: +(from + ((to - from) * k) / cs.length).toFixed(3) }));
-  }),
+  end: l.parts[l.parts.length - 1][2],
 }));
 
 const fmt = (s: number) => `0:${String(Math.round(s)).padStart(2, '0')}`;
@@ -79,10 +77,10 @@ const fmt = (s: number) => `0:${String(Math.round(s)).padStart(2, '0')}`;
         <div class="lines-view" aria-hidden="true">
           <div class="lines" data-lines>
             {
-              charLines.map((l, i) => (
-                <div class={`line ${l.who === 'A' ? 'a' : 'b'} future`} data-line={i} data-start={l.start}>
+              lineData.map((l, i) => (
+                <div class={`line ${l.who === 'A' ? 'a' : 'b'} future`} data-line={i} data-start={l.start} data-end={l.end}>
                   {l.who === 'A' && <span class="who pixel">A</span>}
-                  <span class="hanzi">{l.chars.map((ch) => <span class="ch" data-t={ch.t}>{ch.c}</span>)}</span>
+                  <span class="hanzi">{l.text}</span>
                   {l.who === 'B' && <span class="who pixel">B</span>}
                 </div>
               ))
@@ -243,27 +241,24 @@ const fmt = (s: number) => `0:${String(Math.round(s)).padStart(2, '0')}`;
     line-height: 26px;
     white-space: pre;
   }
-  .ch {
+  /* the whole line appears at once (dim) and a soft white sweep runs across it, from the
+     line's start checkpoint to its end checkpoint */
+  .line .hanzi {
+    --p: 0;
+    background-image: linear-gradient(
+      90deg,
+      var(--text) calc(var(--p) * 120% - 20%),
+      #4a4a4a calc(var(--p) * 120%)
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
     color: transparent;
   }
-  .line.past .ch {
+  .line.past .hanzi {
+    background-image: none;
+    -webkit-text-fill-color: var(--muted);
     color: var(--muted);
-  }
-  .line.now .ch.on {
-    color: var(--text);
-  }
-  /* the next few characters are ghosted in, fading out */
-  .line.now .ch.g1 {
-    color: #b0b0b0;
-  }
-  .line.now .ch.g2 {
-    color: #6a6a6a;
-  }
-  .line.now .ch.g3 {
-    color: #3a3a3a;
-  }
-  .line.now .ch.g4 {
-    color: #222222;
   }
 
   /* questions */
@@ -278,23 +273,29 @@ const fmt = (s: number) => `0:${String(Math.round(s)).padStart(2, '0')}`;
   }
   .questions li {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: 8px;
     font-size: 13px;
     line-height: 18px;
     color: var(--muted);
     transition: color 0.2s ease;
   }
+  /* ○ and ✓ share one centred 14×18 box */
   .mark {
     position: relative;
-    width: 10px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 14px;
+    height: 18px;
     font-size: 12px;
-    line-height: 16px;
+    line-height: 1;
     color: var(--muted-2);
   }
+  .mark > span {
+    grid-area: 1 / 1;
+  }
   .mark .tick {
-    position: absolute;
-    left: 0;
     color: var(--ok);
     opacity: 0;
     scale: 0.4;
@@ -370,12 +371,12 @@ const fmt = (s: number) => `0:${String(Math.round(s)).padStart(2, '0')}`;
     const lines = [...linesEl.querySelectorAll<HTMLElement>('[data-line]')].map((el) => ({
       el,
       start: Number(el.dataset.start),
-      chars: [...el.querySelectorAll<HTMLElement>('.ch')].map((c) => ({ el: c, t: Number(c.dataset.t) })),
+      end: Number(el.dataset.end),
+      text: el.querySelector<HTMLElement>('.hanzi')!,
     }));
     const qEls = [...root.querySelectorAll<HTMLElement>('[data-q]')];
     const qAt: number[] = JSON.parse(root.dataset.questions!);
     let duration = Number(root.dataset.duration);
-    const GHOSTS = 4;
 
     const fmt = (s: number) => `0:${String(Math.floor(s)).padStart(2, '0')}`;
 
@@ -394,13 +395,8 @@ const fmt = (s: number) => `0:${String(Math.round(s)).padStart(2, '0')}`;
         l.el.classList.toggle('past', i < cur);
         l.el.classList.toggle('now', i === cur);
         if (i !== cur) return;
-        let ghost = 0;
-        for (const ch of l.chars) {
-          const on = started && t >= ch.t;
-          ch.el.classList.toggle('on', on);
-          ch.el.classList.remove('g1', 'g2', 'g3', 'g4');
-          if (!on && ghost < GHOSTS) ch.el.classList.add(`g${++ghost}`);
-        }
+        const p = started ? Math.max(0, Math.min(1, (t - l.start) / (l.end - l.start))) : 0;
+        l.text.style.setProperty('--p', p.toFixed(4));
       });
       // keep the current line at the bottom of the two-line view
       const target = lines[Math.max(cur, 0)].el;
