@@ -178,7 +178,11 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
     outline: none;
   }
 
-  /* open: header grows to 24px like 08 in Paper (animated in place by the script), preview hides */
+  /* open: header grows to 24px like 08 in Paper (animated in place by the script), preview hides.
+     The negative margin keeps the title's centre on the same line it had when closed. */
+  .topic.open .row {
+    margin-top: -4px;
+  }
   .topic.open :is(.arrow, .num, .name) {
     font-size: 24px;
     line-height: 32px;
