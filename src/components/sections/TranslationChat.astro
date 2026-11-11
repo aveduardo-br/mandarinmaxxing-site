@@ -2,8 +2,8 @@
 // Bento card "03 Written translation" — visual part.
 // Three exercises that loop forever. Each one plays as a chat: Claude's prompt arrives, the person's
 // answer is typed in, then Claude's correction arrives with a light-orange "Next one ↓" button.
-// Clicking it scrolls the chat to the next exercise. The previous exercise stays visible above and
-// the next prompt peeks in below, both fading out towards the edges.
+// Clicking it starts the next exercise: new messages arrive at the bottom and push the chat up, like
+// a real chat. The previous exercise stays above and fades out towards the top.
 
 type Exercise = {
   prompt: string;
@@ -52,23 +52,26 @@ const exercises: Exercise[] = [
     flex-grow: 1;
     min-height: 0;
     overflow: hidden;
-    -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 24%, #000 76%, transparent 100%);
-    mask-image: linear-gradient(180deg, transparent 0%, #000 24%, #000 76%, transparent 100%);
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, transparent 8%, #000 46%);
+    mask-image: linear-gradient(180deg, transparent 0%, transparent 8%, #000 46%);
   }
+  /* anchored to the bottom like a chat; every message has the same 12px gap */
   .tr-track {
     position: absolute;
     left: 20px;
     right: 20px;
-    top: 0;
+    bottom: 20px;
     display: flex;
     flex-direction: column;
-    gap: 28px;
-    will-change: transform;
+  }
+  /* gap between exercises only once the new one has a visible message (no jump on append) */
+  .tr-block + .tr-block:has(> .msg:not(.hidden)) {
+    margin-top: 12px;
   }
   .tr-block {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
   }
   .tr .bubble {
     display: flex;
@@ -129,16 +132,31 @@ const exercises: Exercise[] = [
     cursor: default;
   }
 
-  /* message states */
-  .tr .msg {
-    transition:
-      opacity 0.28s ease,
-      translate 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
+  /* messages pop in with the site's overshoot, scaling from the corner where the tail is */
   .tr .msg.hidden {
-    opacity: 0;
-    translate: 0 10px;
-    transition: none;
+    display: none;
+  }
+  .tr .bubble.ai.msg {
+    transform-origin: 0% 100%;
+  }
+  .tr .bubble.user.msg {
+    transform-origin: 100% 100%;
+  }
+  .tr .msg.pop {
+    animation: tr-pop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  @keyframes tr-pop {
+    from {
+      opacity: 0;
+      scale: 0.4;
+    }
+    40% {
+      opacity: 1;
+    }
+    to {
+      opacity: 1;
+      scale: 1;
+    }
   }
 
   .tr-sr {
@@ -150,8 +168,8 @@ const exercises: Exercise[] = [
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .tr .msg {
-      transition: none;
+    .tr .msg.pop {
+      animation: none;
     }
   }
 </style>
@@ -237,90 +255,88 @@ const exercises: Exercise[] = [
     };
 
     let cur = 0;
-    let blocks: Block[] = [];
+    let current: Block;
     let busy = false;
 
-    // centre the current block in the visible area
-    const offsetFor = (b: Block) => {
-      const top = b.root.offsetTop;
-      return Math.round((root.clientHeight - b.root.offsetHeight) / 2 - top);
-    };
-    const setY = (y: number, animate = false) => {
-      track.style.transition = animate && !reduce ? 'transform 0.48s cubic-bezier(0.65, 0, 0.35, 1)' : 'none';
-      track.style.transform = `translateY(${y}px)`;
-    };
-
-    // previous (done) · current · next (prompt only)
-    function build(k: number, currentState: 'fresh' | 'prompt') {
-      track.replaceChildren();
-      blocks = [makeBlock(wrap(k - 1)), makeBlock(k), makeBlock(wrap(k + 1))];
-      blocks.forEach((b) => track.append(b.root));
-      const [prev, now, next] = blocks;
-      prev.next.disabled = true;
-      prev.next.tabIndex = -1;
-      now.user.classList.add('hidden');
-      now.reply.classList.add('hidden');
-      if (currentState === 'fresh') now.prompt.classList.add('hidden');
-      next.user.classList.add('hidden');
-      next.reply.classList.add('hidden');
-      next.next.disabled = true;
-      next.next.tabIndex = -1;
-      now.next.addEventListener('click', advance);
-      setY(offsetFor(now));
+    // Reveal a message: the chat slides up by the new message's height (it is anchored to the
+    // bottom), and the message pops in with the overshoot.
+    function reveal(m: HTMLElement) {
+      const before = track.offsetHeight;
+      m.classList.remove('hidden');
+      const grow = track.offsetHeight - before;
+      if (reduce) return;
+      m.classList.remove('pop');
+      void m.offsetWidth;
+      m.classList.add('pop');
+      track.style.transition = 'none';
+      track.style.transform = `translateY(${grow}px)`;
+      void track.offsetHeight;
+      track.style.transition = 'transform 0.42s cubic-bezier(0.22, 1, 0.36, 1)';
+      track.style.transform = 'translateY(0)';
     }
 
-    async function play(withPrompt: boolean) {
-      busy = true;
-      const b = blocks[1];
-      b.next.disabled = true;
-      if (withPrompt) {
-        await wait(150);
-        b.prompt.classList.remove('hidden');
-        await wait(500);
+    function addBlock(i: number, done: boolean) {
+      const b = makeBlock(i);
+      if (done) {
+        b.next.disabled = true;
+        b.next.tabIndex = -1;
       } else {
-        await wait(200);
+        b.prompt.classList.add('hidden');
+        b.user.classList.add('hidden');
+        b.reply.classList.add('hidden');
+        b.next.addEventListener('click', advance);
       }
-      // the person "types" the answer
+      track.append(b.root);
+      return b;
+    }
+
+    async function play(b: Block) {
+      busy = true;
+      b.next.disabled = true;
       const e = ex[b.i];
-      b.user.classList.remove('hidden');
+      await wait(150);
+      reveal(b.prompt);
+      await wait(650);
+      // the person "types" the answer
       const total = [...e.answer].length;
+      b.user.querySelector('.tr-zh')!.replaceWith(zhLine(e.answer, e.mistake, 'bad', 0));
+      reveal(b.user);
+      await wait(260);
       for (let c = 1; c <= total; c++) {
-        const p = b.user.querySelector('.tr-zh')!;
-        p.replaceWith(zhLine(e.answer, e.mistake, 'bad', c));
+        b.user.querySelector('.tr-zh')!.replaceWith(zhLine(e.answer, e.mistake, 'bad', c));
         await wait(75);
       }
-      await wait(380);
-      b.reply.classList.remove('hidden');
+      await wait(420);
+      reveal(b.reply);
       live.textContent = `${e.prompt} — ${e.answer} — ${e.fixed || 'Natural.'} ${e.note}`;
-      await wait(300);
+      await wait(350);
       b.next.disabled = false;
       busy = false;
     }
 
-    async function advance() {
-      if (busy) return;
-      busy = true;
-      const next = blocks[2];
-      setY(offsetFor(next), true);
-      await wait(500);
+    async function advance(this: HTMLButtonElement) {
+      if (busy || this !== current.next) return;
+      current.next.disabled = true;
+      current.next.tabIndex = -1;
       cur = wrap(cur + 1);
-      build(cur, 'prompt');
-      play(false);
+      current = addBlock(cur, false);
+      // keep only the previous exercise above the current one
+      while (track.children.length > 2) track.firstElementChild!.remove();
+      await play(current);
     }
 
-    build(cur, 'fresh');
-    // start when the card comes into view
+    // start: the previous exercise (3 / 3) already done above, exercise 1 plays when in view
+    addBlock(wrap(cur - 1), true);
+    current = addBlock(cur, false);
     const io = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           io.disconnect();
-          play(true);
+          play(current);
         }
       },
       { threshold: 0.5 },
     );
     io.observe(root);
-    window.addEventListener('resize', () => setY(offsetFor(blocks[1])));
-    document.fonts?.ready.then(() => setY(offsetFor(blocks[1])));
   }
 </script>
