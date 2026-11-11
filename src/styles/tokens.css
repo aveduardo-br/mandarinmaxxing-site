@@ -15,7 +15,7 @@
   --accent-light: #f49a62;
   --accent-mid: #e2652e;
   --ok: #7fb37f;
-  --bubble-ai: #1c1c1c;
+  --bubble-ai: #262626; /* lighter now that the person's bubble is orange */
   --bubble-user: #b53902; /* the person's chat bubble: accent orange, one shade darker */
 
   /* Type */
