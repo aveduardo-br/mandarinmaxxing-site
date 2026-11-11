@@ -10,7 +10,8 @@ const FILL_START = 300; // ms after opening
 const FILL_SPAN = 520; // ms from first to last square
 const fillDelay = (i: number, n: number) => {
   const x = n > 1 ? i / (n - 1) : 0;
-  return Math.round(FILL_START + FILL_SPAN * (1 - Math.pow(1 - x, 3)));
+  // small gaps first, growing towards the end
+  return Math.round(FILL_START + FILL_SPAN * x * x);
 };
 
 const groups: Topic[][] = [];
