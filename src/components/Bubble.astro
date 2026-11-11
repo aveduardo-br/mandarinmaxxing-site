@@ -5,12 +5,11 @@ interface Props {
   class?: string;
 }
 const { from, class: cls } = Astro.props;
-const fill = from === 'ai' ? '#1C1C1C' : '#262626';
 ---
 
 <div class:list={['bubble', from, cls]}>
   <slot />
   <svg class="tail" viewBox="0 0 8 10" aria-hidden="true">
-    <path d={from === 'ai' ? 'M8 0 L8 10 L0 10 Z' : 'M0 0 L0 10 L8 10 Z'} fill={fill}></path>
+    <path d={from === 'ai' ? 'M8 0 L8 10 L0 10 Z' : 'M0 0 L0 10 L8 10 Z'} style={`fill: var(--bubble-${from})`}></path>
   </svg>
 </div>

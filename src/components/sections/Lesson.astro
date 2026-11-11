@@ -287,6 +287,11 @@ const PLAYED = 11;
   .ok {
     color: var(--ok);
   }
+  /* inside the orange user bubble, highlighted words go dark so they still stand out */
+  .chat :global(.bubble.user) .hl-light,
+  .chat :global(.bubble.user) .hl-mid {
+    color: #2a0d02;
+  }
   .hl-light {
     color: var(--accent-light);
   }

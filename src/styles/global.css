@@ -101,6 +101,7 @@ p {
   align-self: flex-end;
   background: var(--bubble-user);
   border-bottom-right-radius: 0;
+  color: var(--text);
   padding-block: 8px;
 }
 .bubble .tail {
