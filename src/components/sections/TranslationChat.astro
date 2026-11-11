@@ -143,7 +143,7 @@ const exercises: Exercise[] = [
     transform-origin: 100% 100%;
   }
   .tr .msg.pop {
-    animation: tr-pop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    animation: tr-pop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   }
   @keyframes tr-pop {
     from {
@@ -167,7 +167,29 @@ const exercises: Exercise[] = [
     clip: rect(0 0 0 0);
   }
 
+  /* blinking text cursor while the person types */
+  .tr .caret {
+    display: inline-block;
+    width: 2px;
+    height: 18px;
+    margin-left: 2px;
+    vertical-align: -3px;
+    background: var(--text);
+    animation: tr-blink 0.9s steps(1) infinite;
+  }
+  .tr .caret.typing {
+    animation: none;
+  }
+  @keyframes tr-blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
+    .tr .caret {
+      animation: none;
+    }
     .tr .msg.pop {
       animation: none;
     }
@@ -271,7 +293,7 @@ const exercises: Exercise[] = [
       track.style.transition = 'none';
       track.style.transform = `translateY(${grow}px)`;
       void track.offsetHeight;
-      track.style.transition = 'transform 0.42s cubic-bezier(0.22, 1, 0.36, 1)';
+      track.style.transition = 'transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)';
       track.style.transform = 'translateY(0)';
     }
 
@@ -296,17 +318,28 @@ const exercises: Exercise[] = [
       const e = ex[b.i];
       await wait(150);
       reveal(b.prompt);
-      await wait(650);
-      // the person "types" the answer
+      // time to read the prompt before answering
+      await wait(1500);
+      // the person "types" the answer, with a text cursor
       const total = [...e.answer].length;
-      b.user.querySelector('.tr-zh')!.replaceWith(zhLine(e.answer, e.mistake, 'bad', 0));
+      const caret = el('span', 'caret');
+      const line = (c: number) => {
+        const p = zhLine(e.answer, e.mistake, 'bad', c);
+        p.append(caret);
+        b.user.querySelector('.tr-zh')!.replaceWith(p);
+      };
+      line(0);
       reveal(b.user);
-      await wait(260);
+      await wait(500);
+      caret.classList.add('typing');
       for (let c = 1; c <= total; c++) {
-        b.user.querySelector('.tr-zh')!.replaceWith(zhLine(e.answer, e.mistake, 'bad', c));
-        await wait(75);
+        line(c);
+        await wait(c === total ? 0 : 90 + Math.random() * 60);
       }
-      await wait(420);
+      caret.classList.remove('typing');
+      await wait(650);
+      caret.remove();
+      await wait(150);
       reveal(b.reply);
       live.textContent = `${e.prompt} — ${e.answer} — ${e.fixed || 'Natural.'} ${e.note}`;
       await wait(350);
