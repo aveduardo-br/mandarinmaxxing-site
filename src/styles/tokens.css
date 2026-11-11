@@ -20,6 +20,7 @@
 
   /* Type */
   --f-pixel: 'Zpix', ui-monospace, monospace;
+  --f-geist-pixel: 'Geist Pixel', var(--f-mono);
   --f-brush: 'Kaiti SC', 'STKaiti', 'LXGW WenKai', serif;
   --f-body: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --f-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;

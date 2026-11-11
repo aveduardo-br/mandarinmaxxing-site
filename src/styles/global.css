@@ -11,6 +11,15 @@
   font-display: swap;
 }
 
+/* Geist Pixel (Square) — OFL 1.1, from vercel/geist-font */
+@font-face {
+  font-family: 'Geist Pixel';
+  src: url('/fonts/GeistPixel-Square.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 *,
 *::before,
 *::after {

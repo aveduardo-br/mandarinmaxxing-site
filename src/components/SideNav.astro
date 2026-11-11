@@ -35,9 +35,12 @@ import { sections, faq, SKILL_REPO } from '../data/site';
   /* Paper node 50-0 */
   .sidenav {
     position: fixed;
-    top: 50%;
+    /* centred without transform: a translate(-50%) can land on half a pixel and blur pixel fonts */
+    top: 0;
+    bottom: 0;
+    margin-block: auto;
+    height: fit-content;
     left: var(--nav-left);
-    transform: translateY(-50%);
     z-index: 10;
     width: 200px;
     display: flex;
@@ -48,7 +51,7 @@ import { sections, faq, SKILL_REPO } from '../data/site';
   .group {
     font-size: 12px;
     line-height: 20px;
-    letter-spacing: 0.06em;
+    letter-spacing: 1px; /* whole pixels keep Zpix crisp (Paper: 0.06em = 0.72px) */
     text-transform: uppercase;
     color: var(--muted);
   }
