@@ -5,11 +5,11 @@ import { SKILL_REPO, SKILL_ZIP } from '../../data/site';
 ---
 
 <Section id="install" num="06" title="Install">
-  <p class="lead pixel">Claude on the web or desktop. Download the ZIP and import it as a custom skill.</p>
+  <p class="lead">Claude on the web or desktop. Download the ZIP and import it as a custom skill.</p>
   <a class="btn" href={SKILL_ZIP}>Download for Claude</a>
 
   <div class="cli">
-    <p class="lead pixel">
+    <p class="lead">
       Claude Code or Codex. You'll need Node.js 22.20.0 or newer and a working npx. Run the command in your study folder.
     </p>
     <pre class="code"><code><span class="c"># Claude Code — then open it with /mandarinmaxxing</span>
@@ -26,6 +26,7 @@ npx skills add aveduardo-br/mandarinmaxxing --skill mandarinmaxxing -a codex</co
     font-size: 17px;
     line-height: 28px;
     color: var(--text-soft);
+    opacity: 0.8;
   }
   .btn {
     align-self: flex-start;
