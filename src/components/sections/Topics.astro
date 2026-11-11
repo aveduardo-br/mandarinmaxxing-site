@@ -196,8 +196,27 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
     display: inline-block;
   }
   .topic.open .pw {
-    animation: preview-out 0.18s cubic-bezier(0.3, 0, 0.9, 0.4) forwards;
-    animation-delay: calc(var(--i) * 35ms);
+    animation: preview-out 0.14s cubic-bezier(0.3, 0, 0.9, 0.4) forwards;
+    animation-delay: calc(var(--i) * 28ms);
+  }
+  /* on close they come back the reverse way, right to left: they appear at speed and settle */
+  .topic.closing .pw {
+    animation: preview-in 0.16s cubic-bezier(0.1, 0.6, 0.7, 1) both;
+    animation-delay: calc((2 - var(--i)) * 28ms);
+  }
+  @keyframes preview-in {
+    0% {
+      translate: -12px -14px;
+      opacity: 0;
+    }
+    0.1% {
+      translate: -12px -14px;
+      opacity: 1;
+    }
+    100% {
+      translate: 0 0;
+      opacity: 1;
+    }
   }
   @keyframes preview-out {
     0% {
@@ -379,6 +398,9 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
       animation: none;
       opacity: 0;
     }
+    .topic.closing .pw {
+      animation: none;
+    }
     .arrow,
     .panel,
     .topic.open :is(.word, .legend, .note, .squares .sq) {
@@ -405,6 +427,10 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
     parts.forEach((p) => (p.style.transform = ''));
     const before = parts.map((p) => p.getBoundingClientRect());
     item.classList.toggle('open', open);
+    // closing: play the preview hanzi's return animation
+    clearTimeout(Number(item.dataset.closingTimer));
+    item.classList.toggle('closing', !open);
+    if (!open) item.dataset.closingTimer = String(setTimeout(() => item.classList.remove('closing'), 320));
     btn.setAttribute('aria-expanded', String(open));
     if (reduce) return;
     const after = parts.map((p) => p.getBoundingClientRect());
