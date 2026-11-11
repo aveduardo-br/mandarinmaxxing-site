@@ -5,6 +5,14 @@
 import Section from '../Section.astro';
 import { topics, levelNames, type Topic } from '../../data/topics';
 
+// HSK squares light up left to right on an ease-out schedule: quick at first, slowing at the end.
+const FILL_START = 300; // ms after opening
+const FILL_SPAN = 520; // ms from first to last square
+const fillDelay = (i: number, n: number) => {
+  const x = n > 1 ? i / (n - 1) : 0;
+  return Math.round(FILL_START + FILL_SPAN * (1 - Math.pow(1 - x, 3)));
+};
+
 const groups: Topic[][] = [];
 for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
 ---
@@ -57,8 +65,8 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
                             ...Array.from({ length: t.counts.base }, () => 'base'),
                             ...Array.from({ length: t.counts.below }, () => 'below'),
                             ...Array.from({ length: t.counts.above }, () => 'above'),
-                          ].map((lvl, i) => (
-                            <i class={`sq ${lvl}`} style={`--i:${i}`} />
+                          ].map((lvl, i, all) => (
+                            <i class={`sq ${lvl}`} style={`--d:${fillDelay(i, all.length)}ms`} />
                           ))}
                         </div>
                         <div class="legend pixel">
@@ -277,10 +285,10 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
     transition-delay: calc(120ms + var(--i) * 45ms);
   }
   .topic.open .legend {
-    transition-delay: 620ms;
+    transition-delay: 480ms;
   }
   .topic.open .note {
-    transition-delay: 720ms;
+    transition-delay: 580ms;
   }
 
   .words {
@@ -349,7 +357,7 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
   }
   .topic.open .squares .sq {
     transition: background-color 0.12s ease;
-    transition-delay: calc(560ms + var(--i) * 35ms);
+    transition-delay: var(--d);
   }
   .topic.open .squares .base {
     background: rgba(242, 242, 242, 0.8);
