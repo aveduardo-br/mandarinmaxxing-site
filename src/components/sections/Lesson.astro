@@ -1,7 +1,7 @@
 ---
 // Section 04 — Paper node 2M-0 (bento 9KE-0). Card interactions are added one by one.
 import Section from '../Section.astro';
-import Bubble from '../Bubble.astro';
+import QuickReview from './QuickReview.astro';
 import SpacedReview from './SpacedReview.astro';
 import TranslationChat from './TranslationChat.astro';
 import DialogueCard from './DialogueCard.astro';
@@ -51,15 +51,8 @@ const vocab = [
     <div class="bento-row">
       <!-- 01 Quick review -->
       <article class="card grow">
-        <div class="visual chat">
-          <div class="step">
-            <span class="pixel">↺</span>
-            <span>Mixed 2 chunks from earlier lessons with today's words</span>
-            <span class="chev">›</span>
-          </div>
-          <Bubble from="ai"><p class="q">Tell your friend you’ll take the subway home after dinner.</p></Bubble>
-          <Bubble from="user"><p class="hanzi a24">吃完饭我<span class="hl-light">坐地铁</span>回家。</p></Bubble>
-          <Bubble from="ai"><p class="fb"><span class="ok">✓ Natural.</span> Nice, 坐地铁 is sticking.</p></Bubble>
+        <div class="visual">
+          <QuickReview />
         </div>
         <footer class="foot">
           <div class="foot-head"><span class="tag pixel">01</span><h3>Quick review</h3></div>
