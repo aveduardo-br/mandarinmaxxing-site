@@ -343,10 +343,9 @@ const fmt = (s: number) => `0:${String(Math.round(s)).padStart(2, '0')}`;
   .questions li.done .o {
     opacity: 0;
   }
-  /* the tick starts drawing while the strike is still running */
+  /* the tick starts drawing at the same moment as the strike */
   .questions li.done .tick path {
     stroke-dashoffset: 0;
-    transition-delay: 0.2s;
   }
 
   .sr-only {
