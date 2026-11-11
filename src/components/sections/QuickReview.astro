@@ -1,9 +1,10 @@
 ---
 // Bento card "01 Quick review" — visual part.
-// Shows what the review does: a single status line (shimmering, like Claude thinking) swaps its
+// Shows what the review does. A single status line (shimmering, like Claude thinking) swaps its
 // text in place — opening yesterday's lesson, bringing back an old word, mixing it with one of
-// today's — then the question lands with two small tags saying where each word came from.
-// Three examples loop forever.
+// today's. Then the line of thought opens up as a list, the question lands under it, and two tags
+// say where each word came from, with a light-orange "Next ↓". Clicking it plays the next example
+// below and pushes the chat up, like the Written translation card.
 
 type Round = {
   old: string; // word brought back from an earlier lesson
@@ -19,56 +20,65 @@ const rounds: Round[] = [
 ---
 
 <div class="qr" data-qr data-rounds={JSON.stringify(rounds)}>
-  <div class="qr-stage" data-stage>
-    <div class="qr-status" data-status>
-      <svg class="qr-star" viewBox="0 0 12 12" aria-hidden="true">
-        <path d="M6 1v10M1 6h10M2.5 2.5l7 7M9.5 2.5l-7 7"></path>
-      </svg>
-      <span class="qr-status-text" data-status-text>Opening yesterday’s lesson…</span>
-    </div>
-  </div>
+  <div class="qr-track" data-track></div>
   <p class="qr-sr" aria-live="polite" data-live></p>
 </div>
 
 <style is:global>
-  /* Quick review (global: the message is built by the script) */
+  /* Quick review (global: everything is built by the script) */
   .qr {
     position: relative;
     flex-grow: 1;
-    min-height: 200px;
+    min-height: 220px;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, transparent 8%, #000 46%);
+    mask-image: linear-gradient(180deg, transparent 0%, transparent 8%, #000 46%);
   }
-  .qr-stage {
+  /* anchored to the bottom like a chat */
+  .qr-track {
     position: absolute;
     left: 20px;
     right: 20px;
     bottom: 20px;
     display: flex;
     flex-direction: column;
+  }
+  /* gap between rounds only once the new one has content (no jump when it's added) */
+  .qr-block + .qr-block:not(:empty) {
+    margin-top: 20px;
+  }
+  .qr-block {
+    display: flex;
+    flex-direction: column;
     align-items: flex-start;
     gap: 10px;
   }
 
-  /* status line */
-  .qr-status {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-height: 20px;
-  }
-  .qr-status.out {
-    display: none;
-  }
   .qr-star {
     width: 12px;
     height: 12px;
     flex-shrink: 0;
-    animation: qr-spin 2.4s linear infinite;
   }
   .qr-star path {
     fill: none;
     stroke: var(--accent-light);
     stroke-width: 1.4;
     stroke-linecap: round;
+  }
+  .qr .zh {
+    font-family: var(--f-brush);
+    font-weight: 700;
+  }
+
+  /* status line while thinking */
+  .qr-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 20px;
+  }
+  .qr-status .qr-star {
+    animation: qr-spin 2.4s linear infinite;
   }
   @keyframes qr-spin {
     to {
@@ -94,8 +104,6 @@ const rounds: Round[] = [
     translate: 0 4px;
   }
   .qr-status-text .zh {
-    font-family: var(--f-brush);
-    font-weight: 700;
     font-size: 16px;
   }
   @keyframes qr-shimmer {
@@ -104,6 +112,37 @@ const rounds: Round[] = [
     }
     to {
       background-position: 0% 0;
+    }
+  }
+
+  /* the line of thought, opened up once the question is ready */
+  .qr-thought {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-left: 12px;
+    border-left: 1px solid var(--outline);
+  }
+  .qr-thought > p {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    line-height: 20px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .qr-thought .zh {
+    font-size: 16px;
+    color: var(--text-soft);
+  }
+  .qr-thought > p.in {
+    animation: qr-in 0.3s ease both;
+  }
+  @keyframes qr-in {
+    from {
+      opacity: 0;
+      translate: 0 -4px;
     }
   }
 
@@ -122,8 +161,10 @@ const rounds: Round[] = [
   }
   .qr-tags {
     display: flex;
+    align-items: center;
     gap: 8px;
     padding-left: 2px;
+    min-height: 24px;
   }
   .qr-tag {
     display: flex;
@@ -132,10 +173,9 @@ const rounds: Round[] = [
     padding: 3px 8px;
     border-radius: 6px;
     background: #1a1a1a;
+    transform-origin: 0% 50%;
   }
   .qr-tag .zh {
-    font-family: var(--f-brush);
-    font-weight: 700;
     font-size: 14px;
     line-height: 18px;
     color: var(--text);
@@ -150,12 +190,35 @@ const rounds: Round[] = [
   .qr-tag.today .lb {
     color: var(--accent-light);
   }
+  .qr-next {
+    margin-left: 6px;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: 13px;
+    line-height: 20px;
+    color: var(--accent-light);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .qr-next:hover {
+    color: #f8b68c;
+  }
+  .qr-next:focus-visible {
+    outline: 1px dashed var(--accent-light);
+    outline-offset: 2px;
+  }
+  .qr-next[disabled] {
+    color: var(--muted-2);
+    cursor: default;
+  }
+  .qr-next.in {
+    animation: qr-in 0.3s ease both;
+  }
 
   .qr .pop {
     animation: qr-pop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  }
-  .qr-tag.pop {
-    transform-origin: 0% 50%;
   }
   @keyframes qr-pop {
     from {
@@ -170,13 +233,6 @@ const rounds: Round[] = [
       scale: 1;
     }
   }
-  .qr-stage.leave > * {
-    opacity: 0;
-    translate: 0 -6px;
-    transition:
-      opacity 0.3s ease,
-      translate 0.3s ease;
-  }
 
   .qr-sr {
     position: absolute;
@@ -187,9 +243,10 @@ const rounds: Round[] = [
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .qr-star,
+    .qr-status .qr-star,
     .qr-status-text,
-    .qr .pop {
+    .qr .pop,
+    .qr .in {
       animation: none;
     }
     .qr-status-text {
@@ -205,12 +262,10 @@ const rounds: Round[] = [
   const root = document.querySelector<HTMLElement>('[data-qr]');
   if (root) {
     const rounds: Round[] = JSON.parse(root.dataset.rounds!);
-    const stage = root.querySelector<HTMLElement>('[data-stage]')!;
-    const status = root.querySelector<HTMLElement>('[data-status]')!;
-    const text = root.querySelector<HTMLElement>('[data-status-text]')!;
+    const track = root.querySelector<HTMLElement>('[data-track]')!;
     const live = root.querySelector<HTMLElement>('[data-live]')!;
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+    const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, reduce ? 0 : ms));
 
     const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls = '', txt = '') => {
       const e = document.createElement(tag);
@@ -219,22 +274,28 @@ const rounds: Round[] = [
       return e;
     };
     const zh = (s: string) => el('span', 'zh', s);
-
-    // swap the status text in place: fade the old one down, put the new one in
-    async function say(parts: (string | Node)[]) {
-      if (!reduce) {
-        text.classList.add('swap');
-        await wait(200);
-      }
-      text.replaceChildren(...parts);
-      text.classList.remove('swap');
-    }
+    const NS = 'http://www.w3.org/2000/svg';
+    const star = () => {
+      const svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('class', 'qr-star');
+      svg.setAttribute('viewBox', '0 0 12 12');
+      svg.setAttribute('aria-hidden', 'true');
+      const p = document.createElementNS(NS, 'path');
+      p.setAttribute('d', 'M6 1v10M1 6h10M2.5 2.5l7 7M9.5 2.5l-7 7');
+      svg.appendChild(p);
+      return svg;
+    };
+    // the three thoughts of a round
+    const thoughts = (r: Round): (string | Node)[][] => [
+      ['Opening yesterday’s lesson…'],
+      ['Bringing back ', zh(r.old), '…'],
+      ['Mixing it with today’s ', zh(r.now), '…'],
+    ];
 
     function bubble(r: Round) {
       const b = el('div', 'bubble ai');
       const p = el('p', 'qr-q');
       r.q.forEach((s, i) => p.append(i % 2 ? el('span', 'hl-light', s) : document.createTextNode(s)));
-      const NS = 'http://www.w3.org/2000/svg';
       const svg = document.createElementNS(NS, 'svg');
       svg.setAttribute('class', 'tail');
       svg.setAttribute('viewBox', '0 0 8 10');
@@ -251,50 +312,102 @@ const rounds: Round[] = [
       t.append(zh(word), el('span', 'lb', label));
       return t;
     }
-    const pop = (e: HTMLElement) => {
+    const pop = (e: Element) => {
       if (!reduce) e.classList.add('pop');
     };
 
-    async function loop() {
-      for (let i = 0; ; i = (i + 1) % rounds.length) {
-        const r = rounds[i];
-        // status line
-        stage.replaceChildren(status);
-        status.classList.remove('out');
-        stage.classList.remove('leave');
-        await say(['Opening yesterday’s lesson…']);
+    // Put something into the current block: the chat (anchored to the bottom) slides up by however
+    // much it grew, so new content pushes the older content up instead of jumping.
+    function add(block: HTMLElement, node: Node, replace?: Element) {
+      const before = track.offsetHeight;
+      if (replace) replace.replaceWith(node);
+      else block.append(node);
+      const grow = track.offsetHeight - before;
+      if (reduce || !grow) return;
+      track.style.transition = 'none';
+      track.style.transform = `translateY(${grow}px)`;
+      void track.offsetHeight;
+      track.style.transition = 'transform 0.42s cubic-bezier(0.22, 1, 0.36, 1)';
+      track.style.transform = 'translateY(0)';
+    }
+
+    let cur = 0;
+    let busy = false;
+    let next: HTMLButtonElement | null = null;
+
+    async function play(i: number) {
+      busy = true;
+      const r = rounds[i];
+      const block = el('div', 'qr-block');
+      // keep only the previous round above the new one
+      while (track.children.length > 1) track.firstElementChild!.remove();
+      track.append(block);
+
+      // 1. one status line, text swapping in place
+      const status = el('div', 'qr-status');
+      const text = el('span', 'qr-status-text');
+      status.append(star(), text);
+      const steps = thoughts(r);
+      text.append(...steps[0]);
+      add(block, status);
+      await wait(1400);
+      for (const s of steps.slice(1)) {
+        text.classList.add('swap');
+        await wait(200);
+        text.replaceChildren(...s);
+        text.classList.remove('swap');
         await wait(1400);
-        await say(['Bringing back ', zh(r.old), '…']);
-        await wait(1400);
-        await say(['Mixing it with today’s ', zh(r.now), '…']);
-        await wait(1500);
-        // the question lands, then the two tags
-        status.classList.add('out');
-        const b = bubble(r);
-        stage.append(b);
-        pop(b);
-        live.textContent = `${r.q.join('')} (${r.old} from yesterday, ${r.now} from today)`;
-        await wait(380);
-        const tags = el('div', 'qr-tags');
-        const t1 = tag(r.old, 'YESTERDAY', false);
-        const t2 = tag(r.now, 'TODAY', true);
-        tags.append(t1, t2);
-        t2.style.animationDelay = '0.11s';
-        stage.append(tags);
-        pop(t1);
-        pop(t2);
-        // time to read, then clear for the next one
-        await wait(4800);
-        stage.classList.add('leave');
-        await wait(400);
       }
+
+      // 2. the line of thought opens up where the status line was
+      const thought = el('div', 'qr-thought');
+      thoughts(r).forEach((s, k) => {
+        const p = el('p', 'in');
+        p.append(...s);
+        (p as HTMLElement).style.animationDelay = `${k * 0.08}s`;
+        thought.append(p);
+      });
+      add(block, thought, status);
+      await wait(350);
+
+      // 3. the question lands
+      const b = bubble(r);
+      add(block, b);
+      pop(b);
+      live.textContent = `${r.q.join('')} (${r.old} from yesterday, ${r.now} from today)`;
+      await wait(650);
+
+      // 4. where the words came from, one after the other, then Next
+      const tags = el('div', 'qr-tags');
+      add(block, tags);
+      const t1 = tag(r.old, 'YESTERDAY', false);
+      tags.append(t1);
+      pop(t1);
+      await wait(450);
+      const t2 = tag(r.now, 'TODAY', true);
+      tags.append(t2);
+      pop(t2);
+      await wait(450);
+      next = el('button', 'qr-next in', 'Next ↓') as HTMLButtonElement;
+      next.type = 'button';
+      next.addEventListener('click', advance);
+      tags.append(next);
+      busy = false;
+    }
+
+    function advance(this: HTMLButtonElement) {
+      if (busy || this !== next) return;
+      this.disabled = true;
+      this.tabIndex = -1;
+      cur = (cur + 1) % rounds.length;
+      play(cur);
     }
 
     const io = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           io.disconnect();
-          loop();
+          play(cur);
         }
       },
       { threshold: 0.5 },
