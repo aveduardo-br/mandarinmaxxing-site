@@ -133,6 +133,9 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
     outline: none;
     transition: width 0.22s ease;
     touch-action: none;
+    /* one shared viewpoint at the slot's centre line, like looking at a drum */
+    perspective: 220px;
+    perspective-origin: 50% 128px;
   }
   .col.left {
     color: var(--text);
@@ -160,7 +163,7 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
   }
   /* fisheye: rows above/below the centre tilt away like on a drum */
   .item {
-    transform: perspective(140px) rotateX(var(--rx, 0deg));
+    transform: rotateX(var(--rx, 0deg));
   }
   .col.left .item {
     right: 0;
