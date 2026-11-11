@@ -96,7 +96,9 @@ const fmt = (s: number) => `0:${String(Math.round(s)).padStart(2, '0')}`;
               <li class:list={{ current: i === 0 }} data-q={i}>
                 <span class="mark" aria-hidden="true">
                   <span class="o">○</span>
-                  <span class="tick">✓</span>
+                  <svg class="tick" viewBox="0 0 12 12" width="12" height="12">
+                    <path d="M2.5 6.4 L5 8.9 L9.6 3.4" pathLength="1"></path>
+                  </svg>
                 </span>
                 <span class="qt">{q.q}</span>
               </li>
@@ -290,16 +292,25 @@ const fmt = (s: number) => `0:${String(Math.round(s)).padStart(2, '0')}`;
     line-height: 1;
     color: var(--muted-2);
   }
-  .mark > span {
+  .mark > * {
     grid-area: 1 / 1;
   }
+  .mark .o {
+    transition: opacity 0.2s ease;
+  }
+  /* green tick drawn like a trim path: the stroke grows from the short leg to the tip */
   .mark .tick {
-    color: var(--ok);
-    opacity: 0;
-    scale: 0.4;
-    transition:
-      opacity 0.15s ease,
-      scale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: visible;
+  }
+  .mark .tick path {
+    fill: none;
+    stroke: var(--ok);
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    transition: stroke-dashoffset 0.45s cubic-bezier(0.65, 0, 0.35, 1);
   }
   .qt {
     position: relative;
@@ -332,10 +343,10 @@ const fmt = (s: number) => `0:${String(Math.round(s)).padStart(2, '0')}`;
   .questions li.done .o {
     opacity: 0;
   }
-  .questions li.done .tick {
-    opacity: 1;
-    scale: 1;
-    transition-delay: 0.75s;
+  /* the tick starts drawing while the strike is still running */
+  .questions li.done .tick path {
+    stroke-dashoffset: 0;
+    transition-delay: 0.2s;
   }
 
   .sr-only {
@@ -350,7 +361,7 @@ const fmt = (s: number) => `0:${String(Math.round(s)).padStart(2, '0')}`;
   @media (prefers-reduced-motion: reduce) {
     .lines,
     .qt::after,
-    .mark .tick {
+    .mark .tick path {
       transition: none;
     }
   }
