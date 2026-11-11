@@ -1,0 +1,326 @@
+---
+// Bento card "03 Written translation" — visual part.
+// Three exercises that loop forever. Each one plays as a chat: Claude's prompt arrives, the person's
+// answer is typed in, then Claude's correction arrives with a light-orange "Next one ↓" button.
+// Clicking it scrolls the chat to the next exercise. The previous exercise stays visible above and
+// the next prompt peeks in below, both fading out towards the edges.
+
+type Exercise = {
+  prompt: string;
+  answer: string; // what the person types
+  mistake?: string; // part of the answer that is wrong (shown at 70% white)
+  fixed: string; // Claude's version; '' when the answer was already right
+  fix?: string; // part of Claude's version that changed (shown in green)
+  note: string;
+};
+
+const exercises: Exercise[] = [
+  {
+    prompt: 'Can you recommend a dish?',
+    answer: '你可以推荐一个菜吗？',
+    mistake: '个',
+    fixed: '你可以推荐一道菜吗？',
+    fix: '道',
+    note: 'Dishes take 道, not 个.',
+  },
+  {
+    prompt: 'The menu, please.',
+    answer: '请给我菜单。',
+    fixed: '',
+    note: 'That’s exactly how you’d say it.',
+  },
+  {
+    prompt: 'I’d like it to go.',
+    answer: '我要外卖。',
+    mistake: '外卖',
+    fixed: '我要打包。',
+    fix: '打包',
+    note: '外卖 is delivery. To go is 打包.',
+  },
+];
+---
+
+<div class="tr" data-tr data-exercises={JSON.stringify(exercises)}>
+  <div class="tr-track" data-track></div>
+  <p class="tr-sr" aria-live="polite" data-live></p>
+</div>
+
+<style is:global>
+  /* Written translation chat (global: the bubbles are built by the script) */
+  .tr {
+    position: relative;
+    flex-grow: 1;
+    min-height: 0;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 24%, #000 76%, transparent 100%);
+    mask-image: linear-gradient(180deg, transparent 0%, #000 24%, #000 76%, transparent 100%);
+  }
+  .tr-track {
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    will-change: transform;
+  }
+  .tr-block {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .tr .bubble {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .tr .tr-label {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    line-height: 20px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted-2);
+  }
+  .tr .tr-q {
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--text-soft);
+  }
+  .tr .tr-zh {
+    font-family: var(--f-brush);
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 20px;
+    color: var(--text);
+    white-space: pre;
+    min-height: 20px;
+  }
+  .tr .tr-zh .bad {
+    color: rgba(242, 242, 242, 0.7);
+  }
+  .tr .tr-zh .good,
+  .tr .tr-ok {
+    color: var(--ok);
+  }
+  .tr .tr-note {
+    font-size: 13px;
+    line-height: 20px;
+    color: var(--text-dim);
+  }
+  .tr .tr-next {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: var(--accent-light);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .tr .tr-next:hover {
+    color: #f8b68c;
+  }
+  .tr .tr-next:focus-visible {
+    outline: 1px dashed var(--accent-light);
+    outline-offset: 2px;
+  }
+  .tr .tr-next[disabled] {
+    cursor: default;
+  }
+
+  /* message states */
+  .tr .msg {
+    transition:
+      opacity 0.28s ease,
+      translate 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .tr .msg.hidden {
+    opacity: 0;
+    translate: 0 10px;
+    transition: none;
+  }
+
+  .tr-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tr .msg {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  type Exercise = {
+    prompt: string;
+    answer: string;
+    mistake?: string;
+    fixed: string;
+    fix?: string;
+    note: string;
+  };
+
+  const root = document.querySelector<HTMLElement>('[data-tr]');
+  if (root) {
+    const ex: Exercise[] = JSON.parse(root.dataset.exercises!);
+    const track = root.querySelector<HTMLElement>('[data-track]')!;
+    const live = root.querySelector<HTMLElement>('[data-live]')!;
+    const n = ex.length;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const wrap = (i: number) => ((i % n) + n) % n;
+    const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, reduce ? 0 : ms));
+
+    const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls = '', text = '') => {
+      const e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (text) e.textContent = text;
+      return e;
+    };
+    const tail = (from: 'ai' | 'user') => {
+      const NS = 'http://www.w3.org/2000/svg';
+      const svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('class', 'tail');
+      svg.setAttribute('viewBox', '0 0 8 10');
+      svg.setAttribute('aria-hidden', 'true');
+      const p = document.createElementNS(NS, 'path');
+      p.setAttribute('d', from === 'ai' ? 'M8 0 L8 10 L0 10 Z' : 'M0 0 L0 10 L8 10 Z');
+      p.setAttribute('style', `fill: var(--bubble-${from})`);
+      svg.appendChild(p);
+      return svg;
+    };
+    const bubble = (from: 'ai' | 'user', children: Node[]) => {
+      const b = el('div', `bubble ${from} msg`);
+      b.append(...children, tail(from));
+      return b;
+    };
+    // hanzi line with one highlighted part
+    const zhLine = (text: string, mark: string | undefined, cls: string, upto = text.length) => {
+      const p = el('p', 'tr-zh');
+      const shown = [...text].slice(0, upto).join('');
+      const at = mark ? text.indexOf(mark) : -1;
+      if (at < 0) {
+        p.textContent = shown;
+        return p;
+      }
+      const a = [...text.slice(0, at)].length;
+      const b = a + [...mark!].length;
+      const chars = [...shown];
+      p.append(
+        document.createTextNode(chars.slice(0, a).join('')),
+        el('span', cls, chars.slice(a, b).join('')),
+        document.createTextNode(chars.slice(b).join('')),
+      );
+      return p;
+    };
+
+    type Block = { root: HTMLElement; prompt: HTMLElement; user: HTMLElement; reply: HTMLElement; next: HTMLButtonElement; i: number };
+
+    const makeBlock = (i: number): Block => {
+      const e = ex[i];
+      const blk = el('div', 'tr-block');
+      const prompt = bubble('ai', [el('span', 'tr-label', `Translate · ${i + 1} / ${n}`), el('p', 'tr-q', e.prompt)]);
+      const user = bubble('user', [zhLine(e.answer, e.mistake, 'bad')]);
+      const next = el('button', 'tr-next', 'Next one ↓') as HTMLButtonElement;
+      next.type = 'button';
+      const note = el('p', 'tr-note', e.note + ' ');
+      note.append(next);
+      const first = e.fixed ? zhLine(e.fixed, e.fix, 'good') : el('p', 'tr-zh tr-ok', '✓ Natural.');
+      const reply = bubble('ai', [first, note]);
+      blk.append(prompt, user, reply);
+      return { root: blk, prompt, user, reply, next, i };
+    };
+
+    let cur = 0;
+    let blocks: Block[] = [];
+    let busy = false;
+
+    // centre the current block in the visible area
+    const offsetFor = (b: Block) => {
+      const top = b.root.offsetTop;
+      return Math.round((root.clientHeight - b.root.offsetHeight) / 2 - top);
+    };
+    const setY = (y: number, animate = false) => {
+      track.style.transition = animate && !reduce ? 'transform 0.48s cubic-bezier(0.65, 0, 0.35, 1)' : 'none';
+      track.style.transform = `translateY(${y}px)`;
+    };
+
+    // previous (done) · current · next (prompt only)
+    function build(k: number, currentState: 'fresh' | 'prompt') {
+      track.replaceChildren();
+      blocks = [makeBlock(wrap(k - 1)), makeBlock(k), makeBlock(wrap(k + 1))];
+      blocks.forEach((b) => track.append(b.root));
+      const [prev, now, next] = blocks;
+      prev.next.disabled = true;
+      prev.next.tabIndex = -1;
+      now.user.classList.add('hidden');
+      now.reply.classList.add('hidden');
+      if (currentState === 'fresh') now.prompt.classList.add('hidden');
+      next.user.classList.add('hidden');
+      next.reply.classList.add('hidden');
+      next.next.disabled = true;
+      next.next.tabIndex = -1;
+      now.next.addEventListener('click', advance);
+      setY(offsetFor(now));
+    }
+
+    async function play(withPrompt: boolean) {
+      busy = true;
+      const b = blocks[1];
+      b.next.disabled = true;
+      if (withPrompt) {
+        await wait(150);
+        b.prompt.classList.remove('hidden');
+        await wait(500);
+      } else {
+        await wait(200);
+      }
+      // the person "types" the answer
+      const e = ex[b.i];
+      b.user.classList.remove('hidden');
+      const total = [...e.answer].length;
+      for (let c = 1; c <= total; c++) {
+        const p = b.user.querySelector('.tr-zh')!;
+        p.replaceWith(zhLine(e.answer, e.mistake, 'bad', c));
+        await wait(75);
+      }
+      await wait(380);
+      b.reply.classList.remove('hidden');
+      live.textContent = `${e.prompt} — ${e.answer} — ${e.fixed || 'Natural.'} ${e.note}`;
+      await wait(300);
+      b.next.disabled = false;
+      busy = false;
+    }
+
+    async function advance() {
+      if (busy) return;
+      busy = true;
+      const next = blocks[2];
+      setY(offsetFor(next), true);
+      await wait(500);
+      cur = wrap(cur + 1);
+      build(cur, 'prompt');
+      play(false);
+    }
+
+    build(cur, 'fresh');
+    // start when the card comes into view
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          io.disconnect();
+          play(true);
+        }
+      },
+      { threshold: 0.5 },
+    );
+    io.observe(root);
+    window.addEventListener('resize', () => setY(offsetFor(blocks[1])));
+    document.fonts?.ready.then(() => setY(offsetFor(blocks[1])));
+  }
+</script>

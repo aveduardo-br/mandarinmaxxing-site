@@ -3,6 +3,7 @@
 import Section from '../Section.astro';
 import Bubble from '../Bubble.astro';
 import SpacedReview from './SpacedReview.astro';
+import TranslationChat from './TranslationChat.astro';
 
 // Vocabulary card: hovering a row makes it active (the last one hovered stays) and swaps the useful
 // chunk below for one that uses that word. [before, word, after] so the word can be highlighted.
@@ -112,17 +113,7 @@ const PLAYED = 11;
 
       <!-- 03 Written translation -->
       <article class="card half">
-        <div class="visual chat center">
-          <Bubble from="ai" class="stack">
-            <span class="label muted2">Translate · 3 / 8</span>
-            <p class="q">Can you recommend a dish?</p>
-          </Bubble>
-          <Bubble from="user"><p class="hanzi a20">你可以推荐一<span class="hl-mid">个</span>菜吗？</p></Bubble>
-          <Bubble from="ai" class="stack">
-            <p class="hanzi a20 white">你可以推荐一<span class="ok">道</span>菜吗？</p>
-            <p class="fb">Dishes take 道, not 个. Next one ↓</p>
-          </Bubble>
-        </div>
+        <TranslationChat />
         <footer class="foot">
           <div class="foot-head"><span class="tag pixel">03</span><h3>Written translation</h3></div>
           <p>You write in Mandarin, one sentence at a time. Claude corrects it and sends the next.</p>
