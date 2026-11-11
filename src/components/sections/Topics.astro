@@ -31,16 +31,7 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
                 <span class="arrow pixel" aria-hidden="true">--&gt;</span>
                 <span class="num pixel">{t.num}</span>
                 <span class="name pixel">{t.name}</span>
-                <span class="preview hanzi" aria-hidden="true">
-                  {t.preview.split(' ').map((p, i) => (
-                    <>
-                      {i > 0 && ' '}
-                      <span class="pw" style={`--i:${i}`}>
-                        {p}
-                      </span>
-                    </>
-                  ))}
-                </span>
+                <span class="preview hanzi" aria-hidden="true">{t.preview.split(' ').map((p, i) => <>{i > 0 && ' '}<span class="pw" style={`--i:${i}`}>{p}</span></>)}</span>
               </button>
               <div class="panel" id={`topic-${t.num}`} role="region" aria-label={t.name}>
                 <div class="panel-inner">
