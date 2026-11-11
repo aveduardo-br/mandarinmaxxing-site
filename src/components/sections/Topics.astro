@@ -1,6 +1,6 @@
 ---
 // Section 02 — Paper node 1V-0.
-// Three states per topic: closed, hover (arrow slides in, row turns white, preview hanzi light up)
+// Three states per topic: closed, hover (arrow slides in, row turns bone, preview hanzi light up)
 // and open (accordion, like 08 in Paper). One topic open at a time; all start closed.
 import Section from '../Section.astro';
 import { topics, levelNames, type Topic } from '../../data/topics';
@@ -171,7 +171,7 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
     transform-origin: left center;
   }
 
-  /* hover (and keyboard focus): arrow slides in, everything turns white */
+  /* hover (and keyboard focus): arrow slides in, everything turns bone */
   .row:hover .arrow,
   .row:focus-visible .arrow,
   .topic.open .arrow {
@@ -368,7 +368,7 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
     transition-delay: var(--d);
   }
   .topic.open .squares .base {
-    background: rgba(242, 242, 242, 0.8);
+    background: var(--bone);
   }
   .topic.open .squares .below {
     background: var(--accent-light);
