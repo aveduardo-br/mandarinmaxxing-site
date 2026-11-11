@@ -35,6 +35,7 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
   </p>
 
   <div class="slot" data-slot data-start={START}>
+    <div class="half left">
     <div class="tag left pixel" data-tag="left" aria-hidden="true">{left[START].en}</div>
 
     <div
@@ -49,7 +50,9 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
     >
       {doubled(left).map((x, i) => <span class="item" data-i={i}>{x.zh}</span>)}
     </div>
+    </div>
 
+    <div class="half right">
     <div
       class="col right"
       data-col="right"
@@ -64,25 +67,41 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
     </div>
 
     <div class="tag right pixel" data-tag="right" aria-hidden="true">{right[START].en}</div>
+    </div>
 
     <p class="sr-only" aria-live="polite" data-live></p>
   </div>
 </Section>
 
 <style>
+  /* The seam between the two columns never moves: the left column is always right-aligned
+     against it and the right column always left-aligned. The English tags sit next to their
+     column and get pushed outwards when a chunk is longer. */
   .slot {
+    --seam: 430px;
     position: relative;
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: 16px;
     padding-block: 32px;
     user-select: none;
     -webkit-user-select: none;
   }
-  .tag {
+  .half {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .half.left {
+    flex: 0 0 calc(var(--seam) - 8px);
+    justify-content: flex-end;
+  }
+  .half.right {
     flex: 1 1 0;
-    min-width: 0;
+    justify-content: flex-start;
+  }
+  .tag {
+    flex: none;
     font-size: 12px; /* Paper 14 → 12 */
     line-height: 18px;
     white-space: nowrap;
@@ -94,9 +113,6 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
   .tag.right {
     color: var(--accent);
     text-align: right;
-  }
-  .tag.swap {
-    opacity: 0;
   }
 
   /* Column: 5 visible slots (32 / 44 / 64 / 44 / 32 px, 10px gaps) = 256px tall */
@@ -221,9 +237,7 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
   const slot = document.querySelector<HTMLElement>('[data-slot]')!;
   const live = slot.querySelector<HTMLElement>('[data-live]')!;
   const START = Number(slot.dataset.start);
-  const STEP_WHEEL = 40; // px of wheel delta per step
-  const STEP_DRAG = 42; // px of drag per step
-  const COOLDOWN = 140; // ms between wheel steps
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   type Col = { el: HTMLElement; items: HTMLElement[]; en: string[]; zh: string[]; tag: HTMLElement; idx: number; step: (d: number) => void };
 
@@ -267,13 +281,22 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
       }
       const k = pos % n;
       el.setAttribute('aria-valuetext', zh[k]);
-      if (tag.textContent !== en[k]) {
-        tag.classList.add('swap');
-        setTimeout(() => {
-          tag.textContent = en[k];
-          tag.classList.remove('swap');
-        }, 110);
-      }
+      if (!prev) tag.dataset.text = en[k];
+      else if (tag.dataset.text !== en[k]) typeTag(tag, en[k]);
+    }
+
+    // The English tag is cleared and typed in again once the new chunk has settled.
+    function typeTag(t: HTMLElement, text: string) {
+      t.dataset.text = text;
+      clearTimeout(Number(t.dataset.timer));
+      t.textContent = '';
+      let i = 0;
+      const tick = () => {
+        if (t.dataset.text !== text) return;
+        t.textContent = text.slice(0, ++i);
+        if (i < text.length) t.dataset.timer = String(setTimeout(tick, 28));
+      };
+      t.dataset.timer = String(setTimeout(tick, reduce ? 0 : 240));
     }
 
     // width the item will have once it sits in the centre slot
