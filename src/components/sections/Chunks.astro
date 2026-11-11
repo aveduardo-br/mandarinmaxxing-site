@@ -91,6 +91,7 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
     display: flex;
     align-items: center;
     gap: 16px;
+    min-width: 0; /* let a long phrase overflow outwards instead of moving the seam */
   }
   .half.left {
     flex: 0 0 calc(var(--seam) - 8px);
