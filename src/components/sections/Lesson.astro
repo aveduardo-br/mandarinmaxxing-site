@@ -46,7 +46,7 @@ const PLAYED = 11;
           <Bubble from="ai"><p class="fb"><span class="ok">✓ Natural.</span> Nice, 坐地铁 is sticking.</p></Bubble>
         </div>
         <footer class="foot">
-          <div class="foot-head"><span class="tag pixel">01</span><h3 class="pixel">Quick review</h3></div>
+          <div class="foot-head"><span class="tag pixel">01</span><h3>Quick review</h3></div>
           <p>Short questions on the last lesson, mixed with older chunks that are due to come back.</p>
         </footer>
       </article>
@@ -80,7 +80,7 @@ const PLAYED = 11;
           </div>
         </div>
         <footer class="foot">
-          <div class="foot-head"><span class="tag pixel">+</span><h3 class="pixel">Spaced review</h3></div>
+          <div class="foot-head"><span class="tag pixel">+</span><h3>Spaced review</h3></div>
           <p>Older words return later, so they don’t fade.</p>
         </footer>
       </article>
@@ -114,7 +114,7 @@ const PLAYED = 11;
           </div>
         </div>
         <footer class="foot">
-          <div class="foot-head"><span class="tag pixel">02</span><h3 class="pixel">Vocabulary and chunks</h3></div>
+          <div class="foot-head"><span class="tag pixel">02</span><h3>Vocabulary and chunks</h3></div>
           <p>A table with hanzi, pinyin and meaning, then the useful phrases.</p>
         </footer>
       </article>
@@ -133,7 +133,7 @@ const PLAYED = 11;
           </Bubble>
         </div>
         <footer class="foot">
-          <div class="foot-head"><span class="tag pixel">03</span><h3 class="pixel">Written translation</h3></div>
+          <div class="foot-head"><span class="tag pixel">03</span><h3>Written translation</h3></div>
           <p>You write in Mandarin, one sentence at a time. Claude corrects it and sends the next.</p>
         </footer>
       </article>
@@ -180,7 +180,7 @@ const PLAYED = 11;
         </div>
       </div>
       <footer class="foot">
-        <div class="foot-head"><span class="tag pixel">04</span><h3 class="pixel">Dialogue and comprehension</h3></div>
+        <div class="foot-head"><span class="tag pixel">04</span><h3>Dialogue and comprehension</h3></div>
         <p>One to three short dialogues, about 20 seconds each. Listen or read, answer all the questions, get corrected.</p>
       </footer>
     </article>
@@ -231,8 +231,9 @@ const PLAYED = 11;
     color: var(--muted);
   }
   .foot h3 {
-    font-size: 24px; /* Paper 16 → 24, nearest crisp size above */
-    line-height: 28px;
+    font-family: var(--f-body); /* Geist instead of Zpix (Eduarda), size as in Paper */
+    font-size: 16px;
+    line-height: 22px;
     font-weight: 500;
     color: var(--text);
   }
