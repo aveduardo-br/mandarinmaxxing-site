@@ -116,6 +116,9 @@ import { sections, faq, SKILL_REPO } from '../data/site';
     for (const el of targets) {
       if (el.getBoundingClientRect().top <= line) active = el.id;
     }
+    // At the very bottom the last items can't reach the line: pick the last one.
+    const atBottom = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+    if (atBottom && targets.length) active = targets[targets.length - 1].id;
     setActive(active);
 
     // Section titles light up while their section is on screen
