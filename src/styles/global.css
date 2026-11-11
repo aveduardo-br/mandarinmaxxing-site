@@ -1,21 +1,14 @@
 @import './tokens.css';
 
-/* Zpix — crisp at multiples of 12px. Weight 500 per design. */
+/* Zpix — crisp at multiples of 12px. Weight 500 per design.
+   zpix-site.woff is a subset with only the characters the site uses: regenerate it with
+   scripts/subset-zpix.py whenever hanzi set in Zpix change. */
 @font-face {
   font-family: 'Zpix';
-  src: url('/fonts/zpix-latin-subset.woff') format('woff');
+  src: url('/fonts/zpix-site.woff') format('woff');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
-  unicode-range: U+0000-00FF, U+2000-206F, U+2190-21FF, U+2713, U+25A0, U+25CB;
-}
-@font-face {
-  font-family: 'Zpix';
-  src: url('/fonts/zpix-cjk-subset.woff') format('woff');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-  unicode-range: U+3000-303F, U+4E00-9FFF, U+FF00-FFEF;
 }
 
 *,
