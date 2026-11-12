@@ -70,9 +70,12 @@ const commands = {
     width: 100%;
     padding-top: 120px;
   }
+  /* the canvas reaches up to the top of the hero, so the floating characters can rise that far
+     (top and height are set by the script) */
   .stage canvas {
     position: absolute;
-    inset: 0;
+    left: 0;
+    bottom: 0;
     width: 100%;
     height: 100%;
     pointer-events: none;
@@ -242,6 +245,7 @@ const commands = {
 
   const NS = 'http://www.w3.org/2000/svg';
   const stage = document.getElementById('hero-stage')!;
+  const hero = stage.closest<HTMLElement>('.hero') ?? stage;
   const svg = stage.querySelector('svg')!;
   const canvas = stage.querySelector('canvas')!;
   const ctx = canvas.getContext('2d')!;
@@ -308,7 +312,11 @@ const commands = {
     let scale = 1, ox = 0, oy = 0, dpr = 1, headroom = 100;
 
     function layout() {
-      const sr = stage.getBoundingClientRect();
+      // stretch the canvas from the art up to the top of the hero
+      const st = stage.getBoundingClientRect();
+      const extra = Math.max(0, st.top - hero.getBoundingClientRect().top);
+      canvas.style.height = `${st.height + extra}px`;
+      const sr = canvas.getBoundingClientRect();
       const ar = svg.getBoundingClientRect();
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = Math.round(sr.width * dpr);
@@ -433,8 +441,8 @@ const commands = {
       ctx.globalAlpha = 1;
     }
 
-    stage.addEventListener('pointermove', (ev) => {
-      const sr = stage.getBoundingClientRect();
+    hero.addEventListener('pointermove', (ev) => {
+      const sr = canvas.getBoundingClientRect();
       const x = (ev.clientX - sr.left - ox) / scale, y = (ev.clientY - sr.top - oy) / scale;
       const now = ev.timeStamp || performance.now(), dt = Math.max(8, now - pointer.t) / 1000;
       if (pointer.active) { pointer.vx = (x - pointer.x) / dt; pointer.vy = (y - pointer.y) / dt; }
@@ -442,13 +450,13 @@ const commands = {
       pointer.vy = Math.max(-900, Math.min(900, pointer.vy));
       Object.assign(pointer, { x, y, t: now, active: true });
     });
-    stage.addEventListener('pointerleave', () => { pointer.active = false; pointer.vx = pointer.vy = 0; });
+    hero.addEventListener('pointerleave', () => { pointer.active = false; pointer.vx = pointer.vy = 0; });
 
     // pause when the hero is off screen
     let visible = true;
     new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(stage);
 
-    new ResizeObserver(() => { layout(); draw(); }).observe(stage);
+    new ResizeObserver(() => { layout(); draw(); }).observe(hero);
     layout();
 
     // start mid-flow
