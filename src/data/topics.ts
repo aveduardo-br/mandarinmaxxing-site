@@ -1,50 +1,151 @@
-// Topics shown in section 02. Preview hanzi come from Paper.
-// TODO (pendência): full word lists, levels and counts for every topic, built with Eduarda from HSK 3.0.
-export type Level = 'base' | 'below' | 'above';
-export type Word = { hanzi: string; en: string; level: Level };
+// Topics shown in section 02.
+// Every word shown is in the New HSK 4 list (HSK 3.0), checked against studycli.org's HSK 4 list.
+// `count` is how many of HSK 4's 1,000 words the topic covers. The ten counts add up to 1,000.
+// TODO (pendência): real per-topic word lists and counts, built with Eduarda from HSK 3.0.
+export type Word = { hanzi: string; en: string };
 export type Topic = {
   num: string;
   name: string;
-  preview: string;
-  // level of each preview word, in order (colours them on hover like the open lesson)
-  previewLevels?: Level[];
-  words?: Word[];
-  more?: number;
-  counts?: { base: number; below: number; above: number };
+  words: Word[]; // the first three are also the preview on the right of the row
+  count: number;
 };
 
-// Placeholder: until each topic has its own list, every topic opens with 08 (Eating out)'s content.
-// TODO (pendência): real word lists, levels and counts per topic, built with Eduarda from HSK 3.0.
-const placeholder: Pick<Topic, 'words' | 'more' | 'counts'> = {
-  words: [
-    { hanzi: '菜单', en: 'menu', level: 'base' },
-    { hanzi: '味道', en: 'taste', level: 'base' },
-    { hanzi: '服务员', en: 'waiter', level: 'base' },
-    { hanzi: '打包', en: 'take away', level: 'base' },
-    { hanzi: '推荐', en: 'recommend', level: 'base' },
-    { hanzi: '点菜', en: 'order', level: 'below' },
-    { hanzi: '甜', en: 'sweet', level: 'below' },
-    { hanzi: '外卖', en: 'delivery', level: 'above' },
-    { hanzi: '口味', en: 'flavor', level: 'above' },
-  ],
-  more: 11,
-  counts: { base: 14, below: 3, above: 3 },
-  // TODO (pendência): real level of each preview word per topic; placeholder shows one of each
-  previewLevels: ['base', 'below', 'above'],
-};
+export const HSK4_TOTAL = 1000;
 
 export const topics: Topic[] = [
-  { num: '01', name: 'Travel and transport', preview: '航班 签证 行李', ...placeholder },
-  { num: '02', name: 'Work and careers', preview: '面试 工资 同事', ...placeholder },
-  { num: '03', name: 'Health and the body', preview: '感冒 发烧 过敏', ...placeholder },
-  { num: '04', name: 'School and learning', preview: '考试 专业 毕业', ...placeholder },
-  { num: '05', name: 'Weather and nature', preview: '温度 季节 森林', ...placeholder },
-  { num: '06', name: 'Shopping and money', preview: '打折 价格 付款', ...placeholder },
-  { num: '07', name: 'Friends and family', preview: '亲戚 邻居 聚会', ...placeholder },
-  { num: '08', name: 'Eating out', preview: '菜单 点菜 外卖', ...placeholder },
-  { num: '09', name: 'Technology and media', preview: '网站 密码 下载', ...placeholder },
-  { num: '10', name: 'Culture and festivals', preview: '春节 传统 京剧', ...placeholder },
+  {
+    num: '01',
+    name: 'Travel and transport',
+    count: 82,
+    words: [
+      { hanzi: '航班', en: 'flight' },
+      { hanzi: '登机', en: 'board a plane' },
+      { hanzi: '换乘', en: 'transfer' },
+      { hanzi: '安检', en: 'security check' },
+      { hanzi: '堵车', en: 'traffic jam' },
+    ],
+  },
+  {
+    num: '02',
+    name: 'Work and careers',
+    count: 115,
+    words: [
+      { hanzi: '工资', en: 'pay' },
+      { hanzi: '加班', en: 'work overtime' },
+      { hanzi: '招聘', en: 'hire' },
+      { hanzi: '部门', en: 'department' },
+      { hanzi: '办公', en: 'office work' },
+    ],
+  },
+  {
+    num: '03',
+    name: 'Health and the body',
+    count: 82,
+    words: [
+      { hanzi: '咳嗽', en: 'cough' },
+      { hanzi: '体温', en: 'temperature' },
+      { hanzi: '护士', en: 'nurse' },
+      { hanzi: '肚子', en: 'stomach' },
+      { hanzi: '健身房', en: 'gym' },
+    ],
+  },
+  {
+    num: '04',
+    name: 'School and learning',
+    count: 115,
+    words: [
+      { hanzi: '毕业', en: 'graduate' },
+      { hanzi: '课程', en: 'course' },
+      { hanzi: '奖学金', en: 'scholarship' },
+      { hanzi: '本科', en: "bachelor's" },
+      { hanzi: '笔试', en: 'written exam' },
+    ],
+  },
+  {
+    num: '05',
+    name: 'Weather and nature',
+    count: 98,
+    words: [
+      { hanzi: '气候', en: 'climate' },
+      { hanzi: '气温', en: 'temperature' },
+      { hanzi: '阳光', en: 'sunshine' },
+      { hanzi: '海洋', en: 'ocean' },
+      { hanzi: '树林', en: 'woods' },
+    ],
+  },
+  {
+    num: '06',
+    name: 'Shopping and money',
+    count: 98,
+    words: [
+      { hanzi: '打折', en: 'discount' },
+      { hanzi: '价格', en: 'price' },
+      { hanzi: '现金', en: 'cash' },
+      { hanzi: '零钱', en: 'change' },
+      { hanzi: '顾客', en: 'customer' },
+    ],
+  },
+  {
+    num: '07',
+    name: 'Friends and family',
+    count: 82,
+    words: [
+      { hanzi: '亲戚', en: 'relative' },
+      { hanzi: '家庭', en: 'family' },
+      { hanzi: '父母', en: 'parents' },
+      { hanzi: '兄弟', en: 'brothers' },
+      { hanzi: '友谊', en: 'friendship' },
+    ],
+  },
+  {
+    num: '08',
+    name: 'Eating out',
+    count: 131,
+    words: [
+      { hanzi: '餐厅', en: 'restaurant' },
+      { hanzi: '厨师', en: 'chef' },
+      { hanzi: '小吃', en: 'street food' },
+      { hanzi: '味道', en: 'taste' },
+      { hanzi: '汤', en: 'soup' },
+    ],
+  },
+  {
+    num: '09',
+    name: 'Technology and media',
+    count: 115,
+    words: [
+      { hanzi: '互联网', en: 'internet' },
+      { hanzi: '视频', en: 'video' },
+      { hanzi: '密码', en: 'password' },
+      { hanzi: '扫码', en: 'scan a QR code' },
+      { hanzi: '短信', en: 'text message' },
+    ],
+  },
+  {
+    num: '10',
+    name: 'Culture and festivals',
+    count: 82,
+    words: [
+      { hanzi: '京剧', en: 'Peking opera' },
+      { hanzi: '红包', en: 'red envelope' },
+      { hanzi: '月饼', en: 'mooncake' },
+      { hanzi: '庆祝', en: 'celebrate' },
+      { hanzi: '节假日', en: 'public holiday' },
+    ],
+  },
 ];
 
-// Example level for the open lesson (HSK 4 = base, extras from HSK 3 and HSK 5)
-export const levelNames = { base: 'HSK 4', below: 'HSK 3', above: 'HSK 5' };
+// Example of a textbook lesson, for the comparison in the intro.
+// HSK Standard Course 4 (上), Lesson 1 "简单的爱情" (Simple love).
+// TODO (pendência): confirm against the book (list taken from two student flashcard decks).
+export const bookLesson = {
+  label: 'HSK Standard Course 4 · Lesson 1 · “Simple love”',
+  words: [
+    { hanzi: '法律', en: 'law' },
+    { hanzi: '星星', en: 'star' },
+    { hanzi: '加班', en: 'overtime' },
+    { hanzi: '脾气', en: 'temper' },
+    { hanzi: '浪漫', en: 'romantic' },
+    { hanzi: '缺点', en: 'flaw' },
+  ],
+};
