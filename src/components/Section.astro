@@ -1,6 +1,5 @@
 ---
-// Numbered section: pixel numeral + display title. Title turns orange while the section is active
-// (the side nav script toggles .is-active), matching section 01's state in Paper.
+// Numbered section: pixel numeral + display title, always in the accent orange.
 import { numerals } from '../data/numerals';
 
 interface Props {
@@ -51,8 +50,6 @@ const n = numerals[num];
     flex-shrink: 0;
     width: 30px;
     height: 26px;
-    filter: grayscale(100%) brightness(147%);
-    transition: filter 0.25s ease;
   }
   .numeral svg {
     display: block;
@@ -62,14 +59,7 @@ const n = numerals[num];
   .title {
     font-size: var(--fs-h2);
     line-height: var(--lh-h2);
-    color: var(--muted);
-    transition: color 0.25s ease;
-  }
-
-  .section:global(.is-active) .numeral {
-    filter: none;
-  }
-  .section:global(.is-active) .title {
     color: var(--accent);
   }
+
 </style>
