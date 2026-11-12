@@ -132,7 +132,6 @@ const stripData = topics.map((t, ti) => {
       <p class="bar-label" data-bar-label aria-live="polite">
         The HSK 4 book: {HSK4_TOTAL.toLocaleString('en-US')} words, in the order its chapters teach them.
       </p>
-      <span class="marker" data-marker aria-hidden="true"></span>
       <svg class="strip" viewBox={`0 0 ${COLS * 4 - 1} ${ROWS * 4 - 1}`} preserveAspectRatio="none" aria-hidden="true">
         {
           owner.map((o, i) => (
@@ -474,20 +473,6 @@ const stripData = topics.map((t, ti) => {
   .strip rect.dim {
     fill: #3a3a3a;
   }
-  /* small tick above the square of the word being hovered */
-  .marker {
-    position: absolute;
-    bottom: 29px;
-    width: 1px;
-    height: 8px;
-    background: var(--accent-light);
-    opacity: 0;
-    transition: opacity 0.15s ease;
-    pointer-events: none;
-  }
-  .marker.on {
-    opacity: 1;
-  }
   .word[data-w] {
     cursor: default;
   }
@@ -566,8 +551,6 @@ const stripData = topics.map((t, ti) => {
   type WordCell = { zh: string; en: string; cell: number; chapter: number };
   const data: { count: number; chapters: number; words: WordCell[]; moreChapters: number }[] = JSON.parse(bar.dataset.strip!);
   const rects = [...bar.querySelectorAll<SVGRectElement>('rect')].map((r, i) => ({ r, t: Number(r.dataset.t), i }));
-  const marker = bar.querySelector<HTMLElement>('[data-marker]')!;
-  const svg = bar.querySelector<SVGSVGElement>('.strip')!;
   const TOTAL = '1,000';
   let active = -1;
   let hover = -1;
@@ -589,23 +572,15 @@ const stripData = topics.map((t, ti) => {
         r.classList.toggle('on', false);
       }
       if (wordFocus === 'more') {
-        marker.classList.remove('on');
         label.innerHTML =
           `${span('o', String(d.count - d.words.length))} more words ` +
           span('dim', `· spread across ${d.moreChapters} chapters in the book`);
       } else {
         const w = d.words[wordFocus];
-        const box = svg.getBoundingClientRect();
-        const vb = svg.viewBox.baseVal;
-        const col = Math.floor(w.cell / 2);
-        marker.style.left = `${((col * 4 + 1.5) / vb.width) * box.width}px`;
-        marker.classList.add('on');
         label.innerHTML = `${span('o', w.zh)} ${w.en} ` + span('dim', `· chapter ${w.chapter} of 20 in the book`);
       }
       return;
     }
-    marker.classList.remove('on');
-
     for (const { r, t } of rects) {
       r.classList.toggle('on', t === active);
       r.classList.toggle('hov', t === h);
