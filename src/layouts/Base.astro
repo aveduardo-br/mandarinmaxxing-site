@@ -47,7 +47,7 @@ const {
     <Footer />
     <script>
       // Reveal on scroll: each section's title, then each block of its content, then each row of a
-      // bento grid fade in (opacity 0 → 1) as they reach the screen. Items that arrive together come
+      // bento grid fade up (global.css .rv) as they reach reading height. Items that arrive together come
       // in one after the other, in page order.
       const STEP = 100; // ms between items arriving together
       const items: HTMLElement[] = [];
@@ -61,21 +61,24 @@ const {
       if (footer) items.push(footer);
       items.forEach((el) => el.classList.add('rv'));
 
-      const io = new IntersectionObserver(
-        (entries) => {
-          const arriving = entries
-            .filter((e) => e.isIntersecting)
-            .map((e) => e.target as HTMLElement)
-            .sort((a, b) => items.indexOf(a) - items.indexOf(b));
-          arriving.forEach((el, i) => {
-            el.style.setProperty('--rd', `${i * STEP}ms`);
-            el.classList.add('in');
-            io.unobserve(el);
-          });
-        },
-        { rootMargin: '0px 0px -40% 0px', threshold: 0 } // appear once they reach ~60% down the screen (reading height),
-      );
-      items.forEach((el) => io.observe(el));
+      // An item appears once its top reaches 60% down the screen (reading height). Checked on scroll
+      // instead of with an IntersectionObserver so items jumped past (nav links, #hash) appear too.
+      let pending = items.slice();
+      const check = () => {
+        const line = innerHeight * 0.6;
+        const arriving = pending.filter((el) => el.getBoundingClientRect().top < line);
+        if (!arriving.length) return;
+        pending = pending.filter((el) => !arriving.includes(el));
+        arriving.forEach((el, i) => {
+          el.style.setProperty('--rd', `${i * STEP}ms`);
+          el.classList.add('in');
+        });
+        if (!pending.length) removeEventListener('scroll', onScroll);
+      };
+      const onScroll = () => check(); // a few dozen rect reads, cheap enough to run on every scroll
+      addEventListener('scroll', onScroll, { passive: true });
+      addEventListener('resize', onScroll);
+      check();
     </script>
   </body>
 </html>
