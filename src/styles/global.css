@@ -61,7 +61,7 @@ p {
 
 .hanzi {
   font-family: var(--f-brush);
-  font-weight: 700;
+  font-weight: var(--fw-brush);
 }
 
 @media (prefers-reduced-motion: reduce) {
