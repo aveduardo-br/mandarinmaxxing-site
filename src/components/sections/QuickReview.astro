@@ -97,6 +97,20 @@ const rounds: Round[] = [
   .qr .now,
   .qr .now :is(.zh, .lb) {
     color: var(--text) !important;
+    transition: color 0.15s ease;
+  }
+  /* hovering a tag lights it and its word in the question (and in the steps): yesterday dark
+     orange, today light orange */
+  .qr-tag {
+    cursor: default;
+  }
+  .qr .qr-block.show-old .old,
+  .qr .qr-block.show-old .old :is(.zh, .lb) {
+    color: var(--accent) !important;
+  }
+  .qr .qr-block.show-now .now,
+  .qr .qr-block.show-now .now :is(.zh, .lb) {
+    color: var(--accent-light) !important;
   }
 
   /* status line while thinking */
@@ -351,6 +365,9 @@ const rounds: Round[] = [
     function tag(word: string, label: string, today: boolean) {
       const t = el('span', `qr-tag ${today ? 'now' : 'old'}`);
       t.append(zh(word), el('span', 'lb', label));
+      const cls = today ? 'show-now' : 'show-old';
+      t.addEventListener('mouseenter', () => t.closest('.qr-block')?.classList.add(cls));
+      t.addEventListener('mouseleave', () => t.closest('.qr-block')?.classList.remove(cls));
       return t;
     }
     const pop = (e: Element) => {
