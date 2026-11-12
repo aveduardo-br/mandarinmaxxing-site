@@ -114,6 +114,10 @@ import { sections, faq, SKILL_REPO } from '../data/site';
   // to the next item's top). A short section scrolled to the top stays active even when the next
   // one's top is also in that band.
   const sectionEls = [...document.querySelectorAll<HTMLElement>('[data-section]')];
+  let pinned: string | null = null;
+  links.forEach((a, id) => a.addEventListener('click', () => (pinned = id)));
+  const unpin = () => (pinned = null);
+  for (const ev of ['wheel', 'touchstart', 'keydown', 'mousedown']) addEventListener(ev, unpin, { passive: true });
   let currentSection: HTMLElement | null = null;
   const pick = <T extends HTMLElement>(els: T[], line: number, endOf: (el: T, i: number) => number) => {
     let best: T | null = null;
@@ -138,7 +142,8 @@ import { sections, faq, SKILL_REPO } from '../data/site';
     // At the very bottom the last items can't reach the band: pick the last one.
     const atBottom = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
     if (atBottom && targets.length) activeEl = targets[targets.length - 1];
-    setActive(activeEl ? activeEl.id : null);
+    // a link just clicked stays active until the person scrolls by themselves
+    setActive(pinned ?? (activeEl ? activeEl.id : null));
 
     // Section titles light up while their section is on screen
     const sec = pick(sectionEls, line, (el) => el.getBoundingClientRect().bottom);
