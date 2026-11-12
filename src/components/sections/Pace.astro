@@ -3,9 +3,9 @@
 import Section from '../Section.astro';
 
 const paces = [
-  { name: 'Light', items: '1–4 items per lesson', tone: 'light', face: 'face 1' },
-  { name: 'Standard', items: '5–7 items per lesson', extra: 'default', tone: 'standard', face: 'face 2' },
-  { name: 'Intensive', items: '8–10 items per lesson', tone: 'intensive', face: 'face 3' },
+  { name: 'Light', zh: '轻松', items: '1–4 items per lesson', tone: 'light', face: 'face 1' },
+  { name: 'Standard', zh: '标准', items: '5–7 items per lesson', extra: 'default', tone: 'standard', face: 'face 2' },
+  { name: 'Intensive', zh: '强化', items: '8–10 items per lesson', tone: 'intensive', face: 'face 3' },
 ];
 ---
 
@@ -23,6 +23,13 @@ const paces = [
             {p.face}
           </div>
           <div class="txt">
+            <span class="zh" lang="zh-Hans" aria-label={p.zh}>
+              {[...p.zh].map((c) => (
+                <span class="ch" data-ch={c} aria-hidden="true">
+                  <span class="static">{c}</span>
+                </span>
+              ))}
+            </span>
             <span class="name display">{p.name}</span>
             <span class="items">
               {p.items}
@@ -50,6 +57,64 @@ const paces = [
     Bold on Mac or AR PL KaitiM GB on Windows.
   </p>
 </Section>
+
+<script>
+  // Each pace's name is written in real stroke order (Hanzi Writer, SVG). When the row reaches reading
+  // height the three columns appear one after another, and each writes itself as it appears: Light,
+  // then Standard, then Intensive. Stroke data comes from the hanzi-writer-data CDN; if it fails to load,
+  // or reduced motion is on, the characters stay as static text in the brush font.
+  import HanziWriter from 'hanzi-writer';
+
+  const wrap = document.querySelector<HTMLElement>('#pace .paces');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (wrap && !reduce) {
+    wrap.classList.add('writing');
+    const SIZE = 44;
+    const paces = [...wrap.querySelectorAll<HTMLElement>('.pace')];
+    const writers = paces.map((pace) => {
+      const color = getComputedStyle(pace).color;
+      return [...pace.querySelectorAll<HTMLElement>('.ch')].map((el) => {
+        const w = HanziWriter.create(el, el.dataset.ch!, {
+          width: SIZE,
+          height: SIZE,
+          padding: 2,
+          showCharacter: false,
+          showOutline: false,
+          strokeColor: color,
+          strokeAnimationSpeed: 2.2,
+          delayBetweenStrokes: 40,
+          onLoadCharDataSuccess: () => el.classList.add('drawn'),
+          onLoadCharDataError: () => el.classList.add('failed'),
+        });
+        return { el, w };
+      });
+    });
+
+    const write = async (i: number) => {
+      paces[i].classList.add('on');
+      for (const [k, { el, w }] of writers[i].entries()) {
+        try {
+          await w.animateCharacter();
+        } catch {
+          el.classList.add('failed');
+        }
+        // The next column starts once this one's first character is down, so they overlap.
+        if (k === 0 && i + 1 < paces.length) write(i + 1);
+      }
+    };
+
+    // Start when the row's reveal fires (Base.astro adds .in to the block).
+    const start = () => {
+      if (!wrap.classList.contains('in')) return false;
+      mo.disconnect();
+      setTimeout(() => write(0), 150);
+      return true;
+    };
+    const mo = new MutationObserver(start);
+    mo.observe(wrap, { attributes: true, attributeFilter: ['class'] });
+    start();
+  }
+</script>
 
 <style>
   .paces {
@@ -90,6 +155,44 @@ const paces = [
     align-items: center;
     gap: 4px;
     text-align: center;
+  }
+  .zh {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 4px;
+  }
+  .ch {
+    position: relative;
+    display: block;
+    width: 44px;
+    height: 44px;
+  }
+  .ch :global(svg) {
+    position: absolute;
+    inset: 0;
+  }
+  .static {
+    display: block;
+    font-family: var(--f-brush);
+    font-weight: var(--fw-brush);
+    font-size: 40px;
+    line-height: 44px;
+    text-align: center;
+  }
+  /* While writing, the static text hides once the stroke data is in (it stays if loading failed). */
+  .writing .ch.drawn:not(.failed) .static {
+    visibility: hidden;
+  }
+  .writing .pace {
+    opacity: 0;
+    translate: 0 16px;
+    transition:
+      opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+      translate 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .writing .pace.on {
+    opacity: 1;
+    translate: 0 0;
   }
   .name {
     font-size: var(--fs-h3);
