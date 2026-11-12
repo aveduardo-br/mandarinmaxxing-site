@@ -1,5 +1,16 @@
 @import './tokens.css';
 
+/* Zpix pixel font: only for the Chunks columns' neighbour chunks (crisp at multiples of 12px).
+   zpix-site.woff is a subset with only the characters the site uses: regenerate it with
+   scripts/subset-zpix.py whenever the hanzi set in Zpix changes. */
+@font-face {
+  font-family: 'Zpix';
+  src: url('/fonts/zpix-site.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
 *,
 *::before,
 *::after {

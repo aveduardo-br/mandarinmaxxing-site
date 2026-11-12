@@ -141,14 +141,16 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
     position: absolute;
     top: 0;
     white-space: pre;
-    font-family: var(--f-display);
-    font-weight: var(--fw-display);
+    /* neighbours in the pixel font; the centre chunk switches to the brush font (data-s="0") */
+    font-family: var(--f-pixel);
+    font-weight: 500;
+    -webkit-font-smoothing: none;
     font-size: 24px;
     line-height: 32px;
     opacity: 0;
     pointer-events: none;
     /* Movement is animated in JS (easeOutBack): position and scale overshoot together, and
-       the font swaps (display ↔ Kaiti) partway through the move. */
+       the font swaps (Zpix ↔ Kaiti) partway through the move. */
   }
   .col.left .item {
     right: 0;

@@ -24,6 +24,7 @@
      the system's Chinese sans. */
   --f-display: 'Geist', system-ui, -apple-system, 'PingFang SC', 'Noto Sans SC', sans-serif;
   --fw-display: 600;
+  --f-pixel: 'Zpix', var(--f-display); /* Chunks neighbours only */
   --f-brush: 'Kaiti SC', 'STKaiti', 'LXGW WenKai', serif;
   --f-body: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --f-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
