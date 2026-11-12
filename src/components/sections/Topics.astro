@@ -357,6 +357,17 @@ const stripData = topics.map((t, i) => ({ count: t.count, chapters: chapters[i] 
     line-height: var(--lh-caption);
     color: var(--muted);
   }
+  /* each word arrives light orange and settles to its colour */
+  .topic.open .word:not(.more) :is(.hanzi, .en) {
+    animation: word-tint 0.5s ease-out both;
+    animation-delay: calc(120ms + var(--i) * 45ms);
+  }
+  @keyframes word-tint {
+    from,
+    30% {
+      color: var(--accent-light);
+    }
+  }
   .word.more .hanzi {
     color: #3a3a3a;
   }
@@ -365,9 +376,17 @@ const stripData = topics.map((t, i) => ({ count: t.count, chapters: chapters[i] 
   }
 
   /* ---------- sticky bar ---------- */
+  /* the list and its bar: overflow clip keeps the bar's cover (below) inside the section */
+  .topics-wrap {
+    overflow: clip;
+    overflow-clip-margin: 0px;
+  }
+  /* The bar sticks at --stick from the bottom of the screen: the script sets it so the list and the
+     bar sit centred on screen while it's stuck. Below the bar a cover hides the rows that haven't
+     scrolled up yet, so the list always "closes" with the bar. */
   .bar {
     position: sticky;
-    bottom: 0;
+    bottom: var(--stick, 0px);
     z-index: 2;
     display: flex;
     flex-direction: column;
@@ -376,6 +395,16 @@ const stripData = topics.map((t, i) => ({ count: t.count, chapters: chapters[i] 
     padding: 16px 0 20px;
     border-top: 1px solid var(--outline);
     background: var(--bg);
+  }
+  .bar::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    height: 100vh;
+    background: var(--bg);
+    pointer-events: none;
   }
   .bar-label {
     font-size: var(--fs-small);
@@ -420,6 +449,9 @@ const stripData = topics.map((t, i) => ({ count: t.count, chapters: chapters[i] 
     .strip rect,
     .topic.open .word {
       transition: none;
+    }
+    .topic.open .word :is(.hanzi, .en) {
+      animation: none;
     }
   }
 </style>
@@ -496,6 +528,16 @@ const stripData = topics.map((t, i) => ({ count: t.count, chapters: chapters[i] 
         span('dim', `· in the book, these ${data[h].count} are spread across ${data[h].chapters} chapters. Here they’re one topic.`);
     }
   }
+
+  // keep the list + bar centred on screen while the bar is stuck
+  const wrap = bar.parentElement!;
+  const placeBar = () => {
+    const free = innerHeight - wrap.offsetHeight;
+    wrap.style.setProperty('--stick', `${Math.max(0, Math.round(free / 2))}px`);
+  };
+  placeBar();
+  addEventListener('resize', placeBar);
+  new ResizeObserver(placeBar).observe(wrap);
 
   items.forEach((item, i) => {
     const row = item.querySelector<HTMLElement>('.row')!;
