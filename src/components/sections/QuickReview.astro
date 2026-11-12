@@ -33,8 +33,8 @@ const rounds: Round[] = [
     flex-grow: 1;
     min-height: 220px;
     overflow: hidden;
-    -webkit-mask-image: linear-gradient(180deg, transparent 0%, transparent 8%, #000 46%);
-    mask-image: linear-gradient(180deg, transparent 0%, transparent 8%, #000 46%);
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 36px);
+    mask-image: linear-gradient(180deg, transparent 0, #000 36px);
   }
   /* anchored to the bottom like a chat */
   .qr-track {
@@ -91,14 +91,12 @@ const rounds: Round[] = [
     font-family: var(--f-brush);
     font-weight: 700;
   }
-  /* yesterday's word is dark orange, today's light orange: in the steps, the question and the tags */
+  /* yesterday's and today's words stay plain white everywhere (classes kept for structure) */
   .qr .old,
-  .qr .old :is(.zh, .lb) {
-    color: var(--accent) !important;
-  }
+  .qr .old :is(.zh, .lb),
   .qr .now,
   .qr .now :is(.zh, .lb) {
-    color: var(--accent-light) !important;
+    color: var(--text) !important;
   }
 
   /* status line while thinking */
