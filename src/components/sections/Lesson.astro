@@ -90,7 +90,7 @@ const vocab = [
             <div class="edge top">
               <span class="line"></span><span class="cap label cap-label">USEFUL CHUNK</span><span class="line"></span>
             </div>
-            <div class="body chunk-body"><span class="hanzi" data-chunk-zh>{vocab[0].zh[0]}<span class="hl">{vocab[0].zh[1]}</span>{vocab[0].zh[2]}</span></div>
+            <div class="body chunk-body" data-chunk-body><span class="hanzi">{vocab[0].zh[0]}<span class="hl">{vocab[0].zh[1]}</span>{vocab[0].zh[2]}</span></div>
             <div class="edge bottom">
               <span class="line"></span><span class="cap cap-en" data-chunk-en>{vocab[0].en[0]}<span class="hl">{vocab[0].en[1]}</span>{vocab[0].en[2]}</span><span
                 class="line"></span>
@@ -344,10 +344,51 @@ const vocab = [
   .cap-en :global(.hl) {
     color: var(--accent);
   }
+  .cap-en :global(.ghost) {
+    visibility: hidden;
+  }
   .chunk-body {
+    position: relative;
+    display: grid;
+    place-items: center;
+    height: 58px;
+  }
+  /* each chunk is a layer in the same grid cell, so a new one writes on top of the one fading out */
+  .chunk-body :global(.zl) {
+    grid-area: 1 / 1;
     display: flex;
-    justify-content: center;
-    padding-block: 14px;
+    transition: opacity 0.3s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  .chunk-body :global(.zl.out) {
+    opacity: 0;
+  }
+  .chunk-body :global(.zc) {
+    position: relative;
+    width: 26px;
+    height: 26px;
+    color: var(--text);
+  }
+  .chunk-body :global(.zc.hl) {
+    color: var(--accent);
+  }
+  .chunk-body :global(.zc svg) {
+    position: absolute;
+    inset: 0;
+  }
+  .chunk-body :global(.zt) {
+    display: block;
+    font-family: var(--f-brush);
+    font-weight: var(--fw-brush);
+    font-size: 23px;
+    line-height: 26px;
+    text-align: center;
+  }
+  /* text stays hidden once stroke data is in (unless it failed); while writing, each box waits its turn */
+  .chunk-body :global(.zc.drawn:not(.text) .zt) {
+    visibility: hidden;
+  }
+  .chunk-body :global(.zl.writing .zc.text:not(.shown) .zt) {
+    visibility: hidden;
   }
   .chunk-body .hanzi {
     font-size: 24px;
@@ -359,52 +400,119 @@ const vocab = [
 </style>
 
 <script>
-  // Vocabulary card: last hovered (or focused) row is active; the useful chunk swaps with a glitch,
-  // scrambling characters before they settle left to right.
+  // Vocabulary card: last hovered (or focused) row is active. The useful chunk is written in real stroke
+  // order (Hanzi Writer, as in Pace): on a swap the old chunk fades out while the new one writes itself
+  // on top, character by character, and the English line below types in. Punctuation has no stroke data,
+  // so it appears as text; if stroke data can't load, or reduced motion is on, characters show as text.
+  import HanziWriter from 'hanzi-writer';
+
   type Parts = [string, string, string];
   const table = document.querySelector<HTMLElement>('[data-vocab]');
   if (table) {
     const data: { zh: Parts; en: Parts }[] = JSON.parse(table.dataset.vocab!);
     const rows = [...table.querySelectorAll<HTMLElement>('[data-row]')];
-    const zhEl = document.querySelector<HTMLElement>('[data-chunk-zh]')!;
+    const body = document.querySelector<HTMLElement>('[data-chunk-body]')!;
     const enEl = document.querySelector<HTMLElement>('[data-chunk-en]')!;
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const HANZI =
-      '的一是不了人我在有他这中大来上个到说们为子和你地出道也时年得就那要下以生会自着去过家学对可里后小么心多天能好都没日起还发成事只作当想看开手用主行方又如前本见经头面公同三老从动两长知样现分外但身些高意进把法回二理美点月明种声全工己话者向情部正名定女问力机给等几很最间新什打便位因重走电四门相次东海口西再平真听世气信北少关先山五水万市眼体别处才场书比住九笑通目报立马命张活难数件安表原车白应路期叫常提感金何更反合放做系计或司利受光王果亲界今京务解各任至清物台记边共风干接许特觉望直服林题建南度色字请交爱让认算百吃义怎元功指思流每青管夫连远资队跟带花快条院变言往展该领近留红决周保达办运半候七必城父强步完深区求品转量空众轻程告江语基派满式写呢识极令黄收脸钱倒未持取设始双越商千片容像找友孩站广改议形早房音火则首单据导影失拿网香似专石若兵弟谁校读飞观争究包组造落视喜离虽坏兴切团夜鸡';
-    const LATIN = 'abcdefghijklmnopqrstuvwxyz';
-    const DURATION = 460;
-    const TICK = 34;
-    const timers = new WeakMap<HTMLElement, number>();
+    const css = getComputedStyle(document.documentElement);
+    const TEXT = css.getPropertyValue('--text').trim() || '#F2F2F2';
+    const ACCENT = css.getPropertyValue('--accent').trim() || '#E8590C';
+    const BOX = 26;
+    const PUNCT = /[？！，。、：；“”‘’?!,.]/;
 
-    const render = (el: HTMLElement, chars: string[], hl: [number, number]) => {
-      const before = chars.slice(0, hl[0]).join('');
-      const word = chars.slice(hl[0], hl[1]).join('');
-      const after = chars.slice(hl[1]).join('');
-      el.replaceChildren(document.createTextNode(before), Object.assign(document.createElement('span'), { className: 'hl', textContent: word }), document.createTextNode(after));
-    };
-
-    function glitch(el: HTMLElement, parts: Parts, pool: string) {
-      clearInterval(timers.get(el));
-      const target = [...parts.join('')];
-      const hl: [number, number] = [[...parts[0]].length, [...parts[0]].length + [...parts[1]].length];
-      if (reduce) return render(el, target, hl);
-      const keep = (c: string) => /[\s,.?!？，。'’]/.test(c);
-      const rand = () => pool[(Math.random() * pool.length) | 0];
-      const t0 = performance.now();
-      const tick = () => {
-        const p = Math.min(1, (performance.now() - t0) / DURATION);
-        // characters settle left to right; the rest keep flickering
-        const settled = Math.floor(p * p * (target.length + 1));
-        const chars = target.map((c, i) => (i < settled || keep(c) ? c : rand()));
-        render(el, chars, hl);
-        if (p >= 1) {
-          clearInterval(timers.get(el));
-          render(el, target, hl);
-        }
-      };
-      tick();
-      timers.set(el, window.setInterval(tick, TICK));
+    // warm the stroke-data cache so the first hover writes straight away
+    if (!reduce) {
+      const all = new Set(data.flatMap((d) => [...d.zh.join('')]).filter((c) => !PUNCT.test(c)));
+      all.forEach((c) => HanziWriter.loadCharacterData(c).catch(() => {}));
     }
+
+    let run = 0; // bumps on every swap so an interrupted chunk stops writing
+
+    function layer(parts: Parts, animate: boolean) {
+      const id = ++run;
+      const el = document.createElement('span');
+      el.className = 'zl';
+      el.lang = 'zh-Hans';
+      el.setAttribute('aria-label', parts.join(''));
+      const queue: { w: ReturnType<typeof HanziWriter.create> | null; box: HTMLElement }[] = [];
+      parts.forEach((part, k) => {
+        for (const c of part) {
+          const box = document.createElement('span');
+          box.className = 'zc' + (k === 1 ? ' hl' : '');
+          box.setAttribute('aria-hidden', 'true');
+          const txt = Object.assign(document.createElement('span'), { className: 'zt', textContent: c });
+          box.append(txt);
+          el.append(box);
+          if (reduce || PUNCT.test(c)) {
+            box.classList.add('text');
+            queue.push({ w: null, box });
+            continue;
+          }
+          const w = HanziWriter.create(box, c, {
+            width: BOX,
+            height: BOX,
+            padding: 1,
+            showOutline: false,
+            showCharacter: !animate,
+            strokeColor: k === 1 ? ACCENT : TEXT,
+            strokeAnimationSpeed: 5,
+            delayBetweenStrokes: 10,
+            onLoadCharDataSuccess: () => box.classList.add('drawn'),
+            onLoadCharDataError: () => box.classList.add('text'),
+          });
+          queue.push({ w, box });
+        }
+      });
+      body.append(el);
+      if (animate) {
+        el.classList.add('writing');
+        (async () => {
+          for (const { w, box } of queue) {
+            if (id !== run) return;
+            box.classList.add('shown');
+            if (w && !box.classList.contains('text')) {
+              try {
+                await w.animateCharacter();
+              } catch {
+                box.classList.add('text');
+              }
+            }
+          }
+        })();
+      }
+      return el;
+    }
+
+    // English line: typed in, keeping the highlighted word in its span.
+    let typeTimer = 0;
+    function typeEn(parts: Parts) {
+      clearTimeout(typeTimer);
+      const full = parts.join('');
+      const a = parts[0].length;
+      const b = a + parts[1].length;
+      const show = (n: number) => {
+        const t = full.slice(0, n);
+        enEl.replaceChildren(
+          document.createTextNode(t.slice(0, a)),
+          Object.assign(document.createElement('span'), { className: 'hl', textContent: t.slice(a, b) }),
+          document.createTextNode(t.slice(b)),
+          // the untyped rest keeps its space, so the lines either side don't move
+          Object.assign(document.createElement('span'), { className: 'ghost', textContent: full.slice(n) }),
+        );
+      };
+      if (reduce) return show(full.length);
+      let n = 0;
+      const tick = () => {
+        show(++n);
+        if (n < full.length) typeTimer = window.setTimeout(tick, 24);
+      };
+      show(0);
+      typeTimer = window.setTimeout(tick, 60);
+    }
+
+    // first chunk: drawn in place, no animation
+    body.replaceChildren();
+    layer(data[0].zh, false);
 
     let active = 0;
     const activate = (i: number) => {
@@ -412,8 +520,13 @@ const vocab = [
       rows[active].classList.remove('active');
       rows[i].classList.add('active');
       active = i;
-      glitch(zhEl, data[i].zh, HANZI);
-      glitch(enEl, data[i].en, LATIN);
+      // old chunk(s) fade to 0 while the new one is written on top
+      body.querySelectorAll<HTMLElement>('.zl:not(.out)').forEach((old) => {
+        old.classList.add('out');
+        setTimeout(() => old.remove(), 400);
+      });
+      layer(data[i].zh, true);
+      typeEn(data[i].en);
     };
     rows.forEach((row, i) => {
       row.addEventListener('pointerenter', () => activate(i));
