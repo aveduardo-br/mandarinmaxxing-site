@@ -36,6 +36,7 @@ body {
   background: var(--bg);
   color: var(--muted);
   font-family: var(--f-body);
+  font-weight: 300; /* Geist Light across the page (Geist Mono has no 300 loaded, so it stays 400) */
   font-size: 16px;
   line-height: 1.75;
   -webkit-font-smoothing: antialiased;
