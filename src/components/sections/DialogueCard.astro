@@ -117,6 +117,12 @@ const fmt = (s: number) => `0:${String(Math.round(s)).padStart(2, '0')}`;
   .dlg .line.stub {
     flex: 0 0 20px;
   }
+  /* the caption cut into the box's top border (Zpix: 12px so it stays crisp) */
+  .cap-label {
+    font-size: 12px;
+    line-height: 18px;
+    color: var(--muted-2);
+  }
   .audio-body {
     display: flex;
     padding: 16px 20px 20px;

@@ -42,6 +42,70 @@ const {
       <slot />
     </main>
     <Footer />
+    <!-- Pixel-font snapping. Zpix is drawn on a pixel grid, so it is only crisp when each glyph
+         starts exactly on a screen pixel. Centred or scaled layouts often land text on a fraction
+         of a pixel (e.g. 130.31px), which Safari and Retina screens render blurry. This nudges every
+         piece of static Zpix text by that fraction (position: relative + left/top, so it never
+         affects layout or the animations) and re-runs when the layout or the screen changes. -->
+    <script is:inline>
+      (() => {
+        const skip = '.item, [data-sr]'; // Chunks columns and the Spaced review carousel move on their own
+        let els = [];
+        const collect = () => {
+          els = [...document.querySelectorAll('body *')].filter((e) => {
+            if (e.closest(skip)) return false;
+            const cs = getComputedStyle(e);
+            if (!/Zpix/.test(cs.fontFamily) || (cs.position !== 'static' && !e.dataset.snap)) return false;
+            if (![...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())) return false;
+            // text inside a fixed box (the side nav) sits on the screen; the rest on the page
+            let a = e;
+            while (a && getComputedStyle(a).position !== 'fixed') a = a.parentElement;
+            e._fixed = !!a;
+            return true;
+          });
+        };
+        const snap = () => {
+          const dpr = devicePixelRatio || 1;
+          const range = document.createRange();
+          const moves = els.map((e) => {
+            const node = [...e.childNodes].find((n) => n.nodeType === 3 && n.textContent.trim());
+            range.selectNodeContents(node);
+            const r = range.getClientRects()[0];
+            if (!r) return null;
+            const ox = parseFloat(e.style.left) || 0;
+            const oy = parseFloat(e.style.top) || 0;
+            const x = r.left + (e._fixed ? 0 : scrollX);
+            const y = r.top + (e._fixed ? 0 : scrollY);
+            const fx = (x * dpr - Math.round(x * dpr)) / dpr;
+            const fy = (y * dpr - Math.round(y * dpr)) / dpr;
+            return [e, ox - fx, oy - fy];
+          });
+          for (const m of moves) {
+            if (!m) continue;
+            const [e, x, y] = m;
+            e.dataset.snap = '1';
+            e.style.position = 'relative';
+            e.style.left = Math.abs(x) < 0.005 ? '' : x.toFixed(3) + 'px';
+            e.style.top = Math.abs(y) < 0.005 ? '' : y.toFixed(3) + 'px';
+          }
+        };
+        let queued = false;
+        const later = () => {
+          if (queued) return;
+          queued = true;
+          requestAnimationFrame(() => {
+            queued = false;
+            snap();
+          });
+        };
+        document.fonts.ready.then(() => {
+          collect();
+          snap();
+          addEventListener('resize', later);
+          new ResizeObserver(later).observe(document.body);
+        });
+      })();
+    </script>
     <!-- ?px in the URL shows the screen's pixel ratio (to check why the pixel font isn't crisp) -->
     <script is:inline>
       if (new URLSearchParams(location.search).has('px')) {
