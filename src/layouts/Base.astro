@@ -27,13 +27,12 @@ const {
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
 
-    <link rel="preload" href="/fonts/zpix-site.woff" as="font" type="font/woff" crossorigin />
     <!-- TODO: self-host Geist / Geist Mono in public/fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500&family=Geist+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap"
     />
   </head>
   <body>
@@ -42,17 +41,6 @@ const {
       <slot />
     </main>
     <Footer />
-    <!-- ?px in the URL shows the screen's pixel ratio (to check why the pixel font isn't crisp) -->
-    <script is:inline>
-      if (new URLSearchParams(location.search).has('px')) {
-        const d = document.createElement('div');
-        d.style.cssText = 'position:fixed;right:8px;bottom:8px;z-index:9999;padding:6px 10px;background:#000;color:#fff;font:14px/1.4 system-ui;border:1px solid #444;border-radius:6px';
-        const show = () => (d.textContent = 'pixel ratio ' + devicePixelRatio + ' · ' + innerWidth + '×' + innerHeight);
-        show();
-        addEventListener('resize', show);
-        document.body.appendChild(d);
-      }
-    </script>
   </body>
 </html>
 

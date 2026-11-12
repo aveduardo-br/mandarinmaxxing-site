@@ -2,7 +2,7 @@
 import { sections, faq, SKILL_REPO } from '../data/site';
 ---
 
-<nav class="sidenav pixel" aria-label="Sections">
+<nav class="sidenav" aria-label="Sections">
   <div class="block">
   <p class="group">How it works</p>
   <ul>
@@ -35,7 +35,6 @@ import { sections, faq, SKILL_REPO } from '../data/site';
   /* Paper node 50-0 */
   .sidenav {
     position: fixed;
-    /* centred without transform: a translate(-50%) can land on half a pixel and blur pixel fonts */
     top: 0;
     bottom: 0;
     margin-block: auto;
@@ -49,9 +48,10 @@ import { sections, faq, SKILL_REPO } from '../data/site';
   }
 
   .group {
-    font-size: 12px;
-    line-height: 20px;
-    letter-spacing: 1px; /* whole pixels keep Zpix crisp (Paper: 0.06em = 0.72px) */
+    font-family: var(--f-mono);
+    font-size: var(--fs-label);
+    line-height: var(--lh-label);
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--muted);
   }
@@ -72,8 +72,8 @@ import { sections, faq, SKILL_REPO } from '../data/site';
   }
 
   a {
-    font-size: 12px; /* Paper 14 → 12 for crisp Zpix */
-    line-height: 20px;
+    font-size: var(--fs-small);
+    line-height: var(--lh-small);
     color: var(--text-dim);
     white-space: pre;
     transition: color 0.15s ease;

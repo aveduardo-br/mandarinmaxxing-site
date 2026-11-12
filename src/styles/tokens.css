@@ -20,11 +20,32 @@
   --bubble-user: #b53902; /* the person's chat bubble: accent orange, one shade darker */
 
   /* Type */
-  --f-pixel: 'Zpix', ui-monospace, monospace;
-  --f-geist-pixel: 'Geist Pixel', var(--f-mono);
+  /* Display face: placeholder until the final font is chosen (Geist SemiBold). Hanzi fall back to
+     the system's Chinese sans. */
+  --f-display: 'Geist', system-ui, -apple-system, 'PingFang SC', 'Noto Sans SC', sans-serif;
+  --fw-display: 600;
   --f-brush: 'Kaiti SC', 'STKaiti', 'LXGW WenKai', serif;
   --f-body: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --f-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Type scale — every text on the site uses one of these */
+  --fs-h1: 40px; /* hero / page title */
+  --lh-h1: 48px;
+  --fs-h2: 28px; /* section titles */
+  --lh-h2: 36px;
+  --fs-h3: 20px; /* sub-titles: open topic, pace names */
+  --lh-h3: 28px;
+  --fs-h4: 16px; /* small titles: card titles, topic rows, FAQ questions */
+  --lh-h4: 24px;
+  --fs-body: 17px; /* body copy */
+  --lh-body: 28px;
+  --fs-small: 14px; /* UI text: nav, tabs, chat bubbles */
+  --lh-small: 20px;
+  --fs-caption: 13px; /* descriptions, notes */
+  --lh-caption: 20px;
+  --fs-label: 11px; /* mono uppercase labels */
+  --lh-label: 16px;
+  --tr-display: -0.01em;
 
   /* Layout */
   --col: 680px;

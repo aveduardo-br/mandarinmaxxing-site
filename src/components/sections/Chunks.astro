@@ -36,7 +36,7 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
 
   <div class="slot" data-slot data-start={START}>
     <div class="half left">
-    <div class="tag left pixel" data-tag="left" aria-hidden="true">{left[START].en}</div>
+    <div class="tag left" data-tag="left" aria-hidden="true">{left[START].en}</div>
 
     <div
       class="col left"
@@ -66,7 +66,7 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
       {doubled(right).map((x, i) => <span class="item" data-i={i}>{x.zh}</span>)}
     </div>
 
-    <div class="tag right pixel" data-tag="right" aria-hidden="true">{right[START].en}</div>
+    <div class="tag right" data-tag="right" aria-hidden="true">{right[START].en}</div>
     </div>
 
     <p class="sr-only" aria-live="polite" data-live></p>
@@ -103,7 +103,7 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
   }
   .tag {
     flex: none;
-    font-size: 12px; /* Paper 14 → 12 */
+    font-size: var(--fs-caption);
     line-height: 18px;
     white-space: nowrap;
     transition: opacity 0.12s ease;
@@ -141,14 +141,14 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
     position: absolute;
     top: 0;
     white-space: pre;
-    font-family: var(--f-pixel);
-    font-weight: 500;
+    font-family: var(--f-display);
+    font-weight: var(--fw-display);
     font-size: 24px;
     line-height: 32px;
     opacity: 0;
     pointer-events: none;
     /* Movement is animated in JS (easeOutBack): position and scale overshoot together, and
-       the font swaps (Zpix ↔ Kaiti) partway through the move. */
+       the font swaps (display ↔ Kaiti) partway through the move. */
   }
   .col.left .item {
     right: 0;

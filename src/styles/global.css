@@ -1,25 +1,5 @@
 @import './tokens.css';
 
-/* Zpix — crisp at multiples of 12px. Weight 500 per design.
-   zpix-site.woff is a subset with only the characters the site uses: regenerate it with
-   scripts/subset-zpix.py whenever hanzi set in Zpix change. */
-@font-face {
-  font-family: 'Zpix';
-  src: url('/fonts/zpix-site.woff') format('woff');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Geist Pixel (Square) — OFL 1.1, from vercel/geist-font */
-@font-face {
-  font-family: 'Geist Pixel';
-  src: url('/fonts/GeistPixel-Square.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
 *,
 *::before,
 *::after {
@@ -54,16 +34,16 @@ p {
   margin: 0;
 }
 
-.pixel {
-  font-family: var(--f-pixel);
-  font-weight: 500;
-  -webkit-font-smoothing: none;
-  font-smooth: never;
+/* Display text (titles, names, numbers). Was the pixel font; now the placeholder display face. */
+.display {
+  font-family: var(--f-display);
+  font-weight: var(--fw-display);
+  letter-spacing: var(--tr-display);
 }
 
 .label {
   font-family: var(--f-mono);
-  font-size: 11px;
+  font-size: var(--fs-label);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -81,8 +61,8 @@ p {
 
 /* Body copy in sections (Paper: Geist 17/28, #E0E0E0 at 80%) */
 .prose {
-  font-size: 17px;
-  line-height: 28px;
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
   color: var(--text-soft);
   opacity: 0.8;
 }

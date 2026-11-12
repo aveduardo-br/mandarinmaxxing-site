@@ -39,11 +39,11 @@ const items = [
 
 <section id="faq" class="faq" data-section>
   <p class="kicker">FAQ</p>
-  <h2 class="title pixel">Questions</h2>
+  <h2 class="title display">Questions</h2>
   {
     items.map((it) => (
       <div id={it.id} class="item">
-        <h3 class="q pixel">{it.q}</h3>
+        <h3 class="q display">{it.q}</h3>
         {it.a.map((p) => (
           <p class="prose">{p}</p>
         ))}
@@ -61,14 +61,13 @@ const items = [
     border-top: 2px solid var(--text);
   }
   .kicker {
-    font-size: 13px;
-    line-height: 28px;
+    font-size: var(--fs-caption);
+    line-height: var(--lh-caption);
     color: var(--muted);
   }
   .title {
-    font-size: 24px; /* Paper 28 → 24 */
-    line-height: 34px;
-    font-weight: 500;
+    font-size: var(--fs-h2);
+    line-height: var(--lh-h2);
     color: var(--text);
   }
   .item {
@@ -83,9 +82,8 @@ const items = [
     border-bottom: 1px solid var(--outline);
   }
   .q {
-    font-size: 12px; /* Paper 17 → 12 */
-    line-height: 28px;
-    font-weight: 500;
+    font-size: var(--fs-h4);
+    line-height: var(--lh-h4);
     color: var(--text);
   }
 </style>

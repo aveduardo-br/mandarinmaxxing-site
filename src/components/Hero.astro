@@ -22,8 +22,8 @@ const commands = {
   <div class="cta">
     <div class="cmd" data-cmd-box>
       <div class="tabs" role="tablist" aria-label="Install target">
-        <button class="tab pixel" role="tab" aria-selected="true" data-target="claude-code">Claude Code</button>
-        <button class="tab pixel" role="tab" aria-selected="false" data-target="codex">Codex</button>
+        <button class="tab" role="tab" aria-selected="true" data-target="claude-code">Claude Code</button>
+        <button class="tab" role="tab" aria-selected="false" data-target="codex">Codex</button>
       </div>
       <div class="cmd-line">
         <code data-cmd data-claude-code={commands['claude-code']} data-codex={commands.codex}
@@ -124,8 +124,7 @@ const commands = {
     background: none;
     border: 0;
     padding: 0;
-    font-size: 12px;
-    line-height: 16px;
+    font: 500 var(--fs-caption) / var(--lh-caption) var(--f-body);
     color: var(--muted);
     cursor: pointer;
   }
@@ -157,13 +156,13 @@ const commands = {
     text-align: center;
   }
   .kicker {
-    font-size: 14px;
-    line-height: 18px;
+    font-size: var(--fs-small);
+    line-height: var(--lh-small);
     color: var(--text-dim);
   }
   .lede {
-    font-size: 20px;
-    line-height: 30px;
+    font-size: var(--fs-h3);
+    line-height: var(--lh-h3);
     font-weight: 300;
     color: var(--text-soft);
   }
@@ -173,7 +172,7 @@ const commands = {
     gap: 12px;
   }
   .btn {
-    font: 500 14px/18px var(--f-body);
+    font: 500 var(--fs-small) / var(--lh-small) var(--f-body);
     padding: 12px 20px;
     border: 1px solid var(--text);
     cursor: pointer;
@@ -198,8 +197,8 @@ const commands = {
     flex-wrap: wrap;
     justify-content: center;
     gap: 16px;
-    font-size: 13px;
-    line-height: 16px;
+    font-size: var(--fs-caption);
+    line-height: var(--lh-caption);
     color: var(--text-dim);
   }
   .meta a:hover {

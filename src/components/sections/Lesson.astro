@@ -55,7 +55,7 @@ const vocab = [
           <QuickReview />
         </div>
         <footer class="foot">
-          <div class="foot-head"><span class="tag pixel">01</span><h3>Quick review</h3></div>
+          <div class="foot-head"><span class="tag display">01</span><h3>Quick review</h3></div>
           <p>Short questions on the last lesson, mixed with older chunks that are due to come back.</p>
         </footer>
       </article>
@@ -64,7 +64,7 @@ const vocab = [
       <article class="card spaced">
         <SpacedReview />
         <footer class="foot">
-          <div class="foot-head"><span class="tag pixel">+</span><h3>Spaced review</h3></div>
+          <div class="foot-head"><span class="tag display">+</span><h3>Spaced review</h3></div>
           <p>Older words return later, so they don’t fade.</p>
         </footer>
       </article>
@@ -88,7 +88,7 @@ const vocab = [
           </div>
           <div class="fieldset chunk">
             <div class="edge top">
-              <span class="line"></span><span class="cap pixel cap-label">USEFUL CHUNK</span><span class="line"></span>
+              <span class="line"></span><span class="cap label cap-label">USEFUL CHUNK</span><span class="line"></span>
             </div>
             <div class="body chunk-body"><span class="hanzi" data-chunk-zh>{vocab[0].zh[0]}<span class="hl">{vocab[0].zh[1]}</span>{vocab[0].zh[2]}</span></div>
             <div class="edge bottom">
@@ -98,7 +98,7 @@ const vocab = [
           </div>
         </div>
         <footer class="foot">
-          <div class="foot-head"><span class="tag pixel">02</span><h3>Vocabulary and chunks</h3></div>
+          <div class="foot-head"><span class="tag display">02</span><h3>Vocabulary and chunks</h3></div>
           <p>A table with hanzi, pinyin and meaning, then the useful phrases.</p>
         </footer>
       </article>
@@ -107,7 +107,7 @@ const vocab = [
       <article class="card half">
         <TranslationChat />
         <footer class="foot">
-          <div class="foot-head"><span class="tag pixel">03</span><h3>Written translation</h3></div>
+          <div class="foot-head"><span class="tag display">03</span><h3>Written translation</h3></div>
           <p>You write in Mandarin, one sentence at a time. Claude corrects it and sends the next.</p>
         </footer>
       </article>
@@ -117,7 +117,7 @@ const vocab = [
     <article class="card">
       <DialogueCard />
       <footer class="foot">
-        <div class="foot-head"><span class="tag pixel">04</span><h3>Dialogue and comprehension</h3></div>
+        <div class="foot-head"><span class="tag display">04</span><h3>Dialogue and comprehension</h3></div>
         <p>One to three short dialogues, about 20 seconds each. Listen or read, answer all the questions, get corrected.</p>
       </footer>
     </article>
@@ -163,20 +163,21 @@ const vocab = [
     gap: 10px;
   }
   .foot .tag {
-    font-size: 12px;
-    line-height: 18px;
+    font-size: var(--fs-caption);
+    line-height: var(--lh-h4);
     color: var(--muted);
   }
   .foot h3 {
-    font-family: var(--f-body); /* Geist instead of Zpix (Eduarda), size as in Paper */
-    font-size: 16px;
-    line-height: 22px;
-    font-weight: 500;
+    font-family: var(--f-display);
+    font-size: var(--fs-h4);
+    line-height: var(--lh-h4);
+    font-weight: var(--fw-display);
+    letter-spacing: var(--tr-display);
     color: var(--text);
   }
   .foot p {
-    font-size: 13px;
-    line-height: 19px;
+    font-size: var(--fs-caption);
+    line-height: var(--lh-caption);
     color: var(--muted);
   }
 
@@ -318,8 +319,8 @@ const vocab = [
     opacity: 1;
   }
   .vrow.vhead > span {
-    font-family: var(--f-geist-pixel);
-    font-size: 11px;
+    font-family: var(--f-mono);
+    font-size: var(--fs-label);
     line-height: 14px;
     color: var(--muted-2);
   }
@@ -328,12 +329,12 @@ const vocab = [
     margin-top: 24px;
   }
   .cap-label {
-    font-size: 12px;
+    font-size: var(--fs-label);
     line-height: 18px;
     color: var(--muted-2);
   }
   .cap-en {
-    font-size: 13px;
+    font-size: var(--fs-caption);
     line-height: 18px;
     color: var(--muted);
     white-space: pre;

@@ -37,9 +37,9 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
           {g.map((t) => (
             <div class="topic" data-topic>
               <button class="row" type="button" aria-expanded="false" aria-controls={`topic-${t.num}`}>
-                <span class="arrow pixel" aria-hidden="true"><span class="dash">--</span>&gt;</span>
-                <span class="num pixel">{t.num}</span>
-                <span class="name pixel">{t.name}</span>
+                <span class="arrow display" aria-hidden="true"><span class="dash">--</span>&gt;</span>
+                <span class="num display">{t.num}</span>
+                <span class="name display">{t.name}</span>
                 <span class="preview hanzi" aria-hidden="true">{t.preview.split(' ').map((p, i) => <>{i > 0 && ' '}<span class={`pw ${t.previewLevels?.[i] ?? 'base'}`} style={`--i:${i}`}>{p}</span></>)}</span>
               </button>
               <div class="panel" id={`topic-${t.num}`} role="region" aria-label={t.name}>
@@ -70,7 +70,7 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
                             <i class={`sq ${lvl}`} style={`--d:${fillDelay(i, all.length)}ms`} />
                           ))}
                         </div>
-                        <div class="legend pixel">
+                        <div class="legend label">
                           <span class="base">
                             <i class="sq" />
                             {levelNames.base} · {t.counts.base}
@@ -128,26 +128,26 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
     white-space: pre;
     max-width: 0;
     margin-right: 0;
-    font-size: 12px;
-    line-height: 20px;
+    font-size: var(--fs-h4);
+    line-height: var(--lh-h4);
     color: var(--text);
     transition:
       max-width 0.18s ease,
       margin-right 0.18s ease;
   }
   .num {
-    width: 20px;
+    width: 24px;
     flex-shrink: 0;
-    margin-right: 14px;
-    font-size: 12px;
-    line-height: 20px;
+    margin-right: 12px;
+    font-size: var(--fs-h4);
+    line-height: var(--lh-h4);
     color: var(--muted-2);
   }
   .name {
     flex: 1;
     min-width: 0;
-    font-size: 18px; /* Zpix stays crisp at 18 on Retina (multiples of 6 at 2x) */
-    line-height: 20px;
+    font-size: var(--fs-h4);
+    line-height: var(--lh-h4);
     color: var(--text-dim);
   }
   .preview {
@@ -157,7 +157,7 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
     text-align: right;
     white-space: pre;
     font-size: 16px;
-    line-height: 20px;
+    line-height: var(--lh-h4);
     color: #3a3a3a;
   }
   .num,
@@ -210,14 +210,14 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
     outline: none;
   }
 
-  /* open: header grows to 24px like 08 in Paper (animated in place by the script), preview hides.
+  /* open: header grows to the h3 size (animated in place by the script), preview hides.
      The negative margin keeps the title's centre on the same line it had when closed. */
   .topic.open .row {
-    margin-top: -4px;
+    margin-top: calc((var(--lh-h4) - var(--lh-h3)) / 2);
   }
   .topic.open :is(.arrow, .num, .name) {
-    font-size: 24px;
-    line-height: 32px;
+    font-size: var(--fs-h3);
+    line-height: var(--lh-h3);
   }
   .topic.open .num {
     width: auto;
@@ -342,8 +342,8 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
     color: var(--bone);
   }
   .word .en {
-    font-size: 12px;
-    line-height: 16px;
+    font-size: var(--fs-caption);
+    line-height: var(--lh-caption);
     color: var(--muted);
     text-align: center;
   }
@@ -404,8 +404,7 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
     display: flex;
     align-items: center;
     gap: 16px;
-    font-size: 12px;
-    line-height: 16px;
+    line-height: var(--lh-label);
     white-space: pre;
   }
   .legend > span {
@@ -428,8 +427,8 @@ for (let i = 0; i < topics.length; i += 2) groups.push(topics.slice(i, i + 2));
   }
   .note {
     max-width: 440px;
-    font-size: 13px;
-    line-height: 19px;
+    font-size: var(--fs-caption);
+    line-height: var(--lh-caption);
     color: var(--muted);
   }
 
