@@ -418,6 +418,7 @@ const vocab = [
     const TEXT = css.getPropertyValue('--text').trim() || '#F2F2F2';
     const ACCENT = css.getPropertyValue('--accent').trim() || '#E8590C';
     const BOX = 26;
+    const STAGGER = 35; // ms between characters starting
     const PUNCT = /[？！，。、：；“”‘’?!,.]/;
 
     // warm the stroke-data cache so the first hover writes straight away
@@ -455,8 +456,8 @@ const vocab = [
             showOutline: false,
             showCharacter: !animate,
             strokeColor: k === 1 ? ACCENT : TEXT,
-            strokeAnimationSpeed: 5,
-            delayBetweenStrokes: 10,
+            strokeAnimationSpeed: 14,
+            delayBetweenStrokes: 0,
             onLoadCharDataSuccess: () => box.classList.add('drawn'),
             onLoadCharDataError: () => box.classList.add('text'),
           });
@@ -466,19 +467,15 @@ const vocab = [
       body.append(el);
       if (animate) {
         el.classList.add('writing');
-        (async () => {
-          for (const { w, box } of queue) {
+        // All characters write at once, each starting a beat after the previous one, so the whole
+        // chunk is down in about half a second.
+        queue.forEach(({ w, box }, j) => {
+          setTimeout(() => {
             if (id !== run) return;
             box.classList.add('shown');
-            if (w && !box.classList.contains('text')) {
-              try {
-                await w.animateCharacter();
-              } catch {
-                box.classList.add('text');
-              }
-            }
-          }
-        })();
+            if (w && !box.classList.contains('text')) w.animateCharacter().catch(() => box.classList.add('text'));
+          }, j * STAGGER);
+        });
       }
       return el;
     }
@@ -504,10 +501,10 @@ const vocab = [
       let n = 0;
       const tick = () => {
         show(++n);
-        if (n < full.length) typeTimer = window.setTimeout(tick, 24);
+        if (n < full.length) typeTimer = window.setTimeout(tick, 16);
       };
       show(0);
-      typeTimer = window.setTimeout(tick, 60);
+      typeTimer = window.setTimeout(tick, 0);
     }
 
     // first chunk: drawn in place, no animation
