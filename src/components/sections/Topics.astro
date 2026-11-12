@@ -398,7 +398,7 @@ const stripData = topics.map((t, i) => ({ count: t.count, chapters: chapters[i] 
     gap: 12px;
     margin-top: 8px;
     padding: 16px 0 20px;
-    border-top: 1px solid var(--text);
+    border-top: 1px solid var(--text-dim); /* same grey as the inactive topic names */
     background: var(--bg);
     /* own compositing layer: Safari otherwise sometimes skips repainting the cover until hover */
     transform: translateZ(0);
