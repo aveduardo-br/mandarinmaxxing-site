@@ -368,10 +368,12 @@ const slotOf = (i: number) => {
   });
   embla.on('pointerDown', () => line.classList.remove('tchuk'));
 
-  // click a neighbour to bring it to the centre
+  // click a neighbour to bring it to the centre (ignored when the pointer moved: that was a drag)
+  let downX = 0;
+  line.addEventListener('pointerdown', (e) => (downX = e.clientX));
   slides.forEach((slide, i) =>
-    slide.addEventListener('click', () => {
-      if (embla.clickAllowed()) embla.scrollTo(i);
+    slide.addEventListener('click', (e) => {
+      if (Math.abs(e.clientX - downX) < 6) embla.scrollTo(i);
     }),
   );
   line.addEventListener('keydown', (e) => {
