@@ -459,9 +459,11 @@ const commands = {
     new ResizeObserver(() => { layout(); draw(); }).observe(hero);
     layout();
 
-    // start mid-flow
+    // start mid-flow: run long enough for the slowest character to rise all the way up, so the
+    // page opens with the sky already full
     warming = true;
-    for (let t = 0; t < 9; t += 1 / 30) step(1 / 30);
+    const warmFor = (243 + headroom) / 9 + 4;
+    for (let t = 0; t < warmFor; t += 1 / 20) step(1 / 20);
     warming = false;
     draw();
 
