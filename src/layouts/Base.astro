@@ -49,7 +49,7 @@ const {
          affects layout or the animations) and re-runs when the layout or the screen changes. -->
     <script is:inline>
       (() => {
-        const skip = '.item, [data-sr]'; // Chunks columns and the Spaced review carousel move on their own
+        const skip = '.item, [data-sr], .topic .arrow'; // Chunks columns, the Spaced review carousel and the Topics arrow (its dashes are clipped) move on their own
         let els = [];
         const collect = () => {
           els = [...document.querySelectorAll('body *')].filter((e) => {
