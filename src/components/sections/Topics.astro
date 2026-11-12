@@ -163,7 +163,12 @@ const stripData = topics.map((t, i) => ({ count: t.count, chapters: chapters[i] 
   }
 
   /* ---------- list ---------- */
+  /* the list is its own stacking layer under the bar, so animated rows/words (which get their own
+     compositing layers while they move) can never paint over the bar or its cover */
   .list {
+    position: relative;
+    z-index: 1;
+    isolation: isolate;
     display: flex;
     flex-direction: column;
     padding-top: 16px;
@@ -395,6 +400,24 @@ const stripData = topics.map((t, i) => ({ count: t.count, chapters: chapters[i] 
     padding: 16px 0 20px;
     border-top: 1px solid var(--outline);
     background: var(--bg);
+    /* own compositing layer: Safari otherwise sometimes skips repainting the cover until hover */
+    transform: translateZ(0);
+  }
+  /* while stuck, rows fade out as they reach the bar instead of being cut */
+  .bar::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(100% + 1px);
+    height: 56px;
+    background: linear-gradient(to bottom, transparent, var(--bg));
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .bar.stuck::before {
+    opacity: 1;
   }
   .bar::after {
     content: '';
@@ -535,9 +558,22 @@ const stripData = topics.map((t, i) => ({ count: t.count, chapters: chapters[i] 
     const free = innerHeight - wrap.offsetHeight;
     wrap.style.setProperty('--stick', `${Math.max(0, Math.round(free / 2))}px`);
   };
+  // stuck = the list still continues below the bar (rows hidden under it)
+  const checkStuck = () => {
+    const stick = parseFloat(wrap.style.getPropertyValue('--stick')) || 0;
+    bar.classList.toggle('stuck', wrap.getBoundingClientRect().bottom > innerHeight - stick + 1);
+  };
   placeBar();
-  addEventListener('resize', placeBar);
-  new ResizeObserver(placeBar).observe(wrap);
+  checkStuck();
+  addEventListener('resize', () => {
+    placeBar();
+    checkStuck();
+  });
+  addEventListener('scroll', checkStuck, { passive: true });
+  new ResizeObserver(() => {
+    placeBar();
+    checkStuck();
+  }).observe(wrap);
 
   items.forEach((item, i) => {
     const row = item.querySelector<HTMLElement>('.row')!;
