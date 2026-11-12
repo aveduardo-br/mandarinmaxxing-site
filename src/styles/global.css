@@ -133,19 +133,25 @@ p {
   border-inline: 1px solid var(--outline);
 }
 
-/* Reveal on scroll (classes set by the script in Base.astro). filter: opacity() multiplies with an
-   element's own opacity (e.g. .prose at 0.8) instead of replacing it. */
+/* Reveal on scroll (classes set by the script in Base.astro), GSAP-style: each block fades in while
+   rising 24px, with an ease-out that starts quick and settles slowly (expo out). filter: opacity()
+   multiplies with an element's own opacity (e.g. .prose at 0.8) instead of replacing it. */
 .js .rv {
   filter: opacity(0);
-  transition: filter 0.7s ease;
+  translate: 0 24px;
+  transition:
+    filter 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+    translate 0.9s cubic-bezier(0.16, 1, 0.3, 1);
   transition-delay: var(--rd, 0ms);
 }
 .js .rv.in {
   filter: none;
+  translate: none;
 }
 @media (prefers-reduced-motion: reduce) {
   .js .rv {
     filter: none;
+    translate: none;
     transition: none;
   }
 }

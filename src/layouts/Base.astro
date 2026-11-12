@@ -49,7 +49,7 @@ const {
       // Reveal on scroll: each section's title, then each block of its content, then each row of a
       // bento grid fade in (opacity 0 → 1) as they reach the screen. Items that arrive together come
       // in one after the other, in page order.
-      const STEP = 120; // ms between items arriving together
+      const STEP = 100; // ms between items arriving together
       const items: HTMLElement[] = [];
       document.querySelectorAll<HTMLElement>('[data-section]').forEach((sec) => {
         for (const child of sec.children as HTMLCollectionOf<HTMLElement>) {
