@@ -43,7 +43,25 @@ const chapters = topics.map((_, ti) => {
   owner.forEach((o, i) => o === ti && set.add(Math.floor((i / CELLS) * CHAPTERS)));
   return set.size;
 });
-const stripData = topics.map((t, i) => ({ count: t.count, chapters: chapters[i] }));
+// Each word shown in an open topic gets one square of its topic (spread along the strip); "+N more"
+// is all the topic's other squares. TODO (pendência): real positions once the word lists exist.
+const chapterOf = (cell: number) => Math.floor((cell / CELLS) * CHAPTERS) + 1;
+const stripData = topics.map((t, ti) => {
+  const mine = owner.map((o, i) => (o === ti ? i : -1)).filter((i) => i >= 0);
+  const k = t.words.length;
+  const cells = Array.from({ length: k }, (_, j) => {
+    const lo = Math.floor((j / k) * mine.length);
+    const hi = Math.max(lo, Math.floor(((j + 1) / k) * mine.length) - 1);
+    return mine[lo + Math.floor(rnd() * (hi - lo + 1))];
+  });
+  const rest = new Set(mine.filter((c) => !cells.includes(c)).map(chapterOf));
+  return {
+    count: t.count,
+    chapters: chapters[ti],
+    words: t.words.map((w, j) => ({ zh: w.hanzi, en: w.en, cell: cells[j], chapter: chapterOf(cells[j]) })),
+    moreChapters: rest.size,
+  };
+});
 ---
 
 <Section id="topics" num="02" title="Topics, not chapters">
@@ -96,12 +114,12 @@ const stripData = topics.map((t, i) => ({ count: t.count, chapters: chapters[i] 
               <div class="panel-inner">
                 <div class="words">
                   {t.words.map((w, i) => (
-                    <div class="word" style={`--i:${i}`}>
+                    <div class="word" style={`--i:${i}`} data-w={i}>
                       <span class="hanzi">{w.hanzi}</span>
                       <span class="en">{w.en}</span>
                     </div>
                   ))}
-                  <div class="word more" style={`--i:${t.words.length}`}>
+                  <div class="word more" style={`--i:${t.words.length}`} data-w="more">
                     <span class="hanzi">…</span>
                     <span class="en">+{t.count - t.words.length} more</span>
                   </div>
@@ -117,6 +135,7 @@ const stripData = topics.map((t, i) => ({ count: t.count, chapters: chapters[i] 
       <p class="bar-label" data-bar-label aria-live="polite">
         The HSK 4 book: {HSK4_TOTAL.toLocaleString('en-US')} words, in the order its chapters teach them.
       </p>
+      <span class="marker" data-marker aria-hidden="true"></span>
       <svg class="strip" viewBox={`0 0 ${COLS * 4 - 1} ${ROWS * 4 - 1}`} preserveAspectRatio="none" aria-hidden="true">
         {
           owner.map((o, i) => (
@@ -455,6 +474,30 @@ const stripData = topics.map((t, i) => ({ count: t.count, chapters: chapters[i] 
   .strip rect.on {
     fill: var(--text-80);
   }
+  .strip rect.dim {
+    fill: #3a3a3a;
+  }
+  /* small tick above the square of the word being hovered */
+  .marker {
+    position: absolute;
+    bottom: 29px;
+    width: 1px;
+    height: 8px;
+    background: var(--accent-light);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    pointer-events: none;
+  }
+  .marker.on {
+    opacity: 1;
+  }
+  .word[data-w] {
+    cursor: default;
+  }
+  .topic.open .word:hover .hanzi,
+  .topic.open .word:hover .en {
+    color: var(--accent-light);
+  }
   .strip rect.hov {
     fill: var(--accent-light);
   }
@@ -523,19 +566,54 @@ const stripData = topics.map((t, i) => ({ count: t.count, chapters: chapters[i] 
   // ---- sticky bar: open topic in white, hovered topic in light orange, summed in the label ----
   const bar = document.querySelector<HTMLElement>('[data-bar]')!;
   const label = bar.querySelector<HTMLElement>('[data-bar-label]')!;
-  const data: { count: number; chapters: number }[] = JSON.parse(bar.dataset.strip!);
-  const rects = [...bar.querySelectorAll<SVGRectElement>('rect')].map((r) => ({ r, t: Number(r.dataset.t) }));
+  type WordCell = { zh: string; en: string; cell: number; chapter: number };
+  const data: { count: number; chapters: number; words: WordCell[]; moreChapters: number }[] = JSON.parse(bar.dataset.strip!);
+  const rects = [...bar.querySelectorAll<SVGRectElement>('rect')].map((r, i) => ({ r, t: Number(r.dataset.t), i }));
+  const marker = bar.querySelector<HTMLElement>('[data-marker]')!;
+  const svg = bar.querySelector<SVGSVGElement>('.strip')!;
   const TOTAL = '1,000';
   let active = -1;
   let hover = -1;
+  let wordFocus: number | 'more' | null = null; // a word (or "+N more") hovered in the open topic
 
   function render() {
     const h = hover === active ? -1 : hover;
+    const span = (cls: string, text: string) => `<span class="${cls}">${text}</span>`;
+
+    // a word of the open topic: its square lights up, the rest of the topic dims
+    if (active >= 0 && wordFocus !== null) {
+      const d = data[active];
+      const wordCells = d.words.map((w) => w.cell);
+      const lit = (i: number) => (wordFocus === 'more' ? !wordCells.includes(i) : i === d.words[wordFocus as number].cell);
+      for (const { r, t, i } of rects) {
+        const mine = t === active;
+        r.classList.toggle('hov', mine && lit(i));
+        r.classList.toggle('dim', mine && !lit(i));
+        r.classList.toggle('on', false);
+      }
+      if (wordFocus === 'more') {
+        marker.classList.remove('on');
+        label.innerHTML =
+          `${span('o', String(d.count - d.words.length))} more words ` +
+          span('dim', `· spread across ${d.moreChapters} chapters in the book`);
+      } else {
+        const w = d.words[wordFocus];
+        const box = svg.getBoundingClientRect();
+        const vb = svg.viewBox.baseVal;
+        const col = Math.floor(w.cell / 2);
+        marker.style.left = `${((col * 4 + 1.5) / vb.width) * box.width}px`;
+        marker.classList.add('on');
+        label.innerHTML = `${span('o', w.zh)} ${w.en} ` + span('dim', `· chapter ${w.chapter} of 20 in the book`);
+      }
+      return;
+    }
+    marker.classList.remove('on');
+
     for (const { r, t } of rects) {
       r.classList.toggle('on', t === active);
       r.classList.toggle('hov', t === h);
+      r.classList.remove('dim');
     }
-    const span = (cls: string, text: string) => `<span class="${cls}">${text}</span>`;
     if (active < 0 && h < 0) {
       label.innerHTML = `The HSK 4 book: ${TOTAL} words, in the order its chapters teach them.`;
     } else if (h < 0) {
@@ -583,6 +661,7 @@ const stripData = topics.map((t, i) => ({ count: t.count, chapters: chapters[i] 
       for (const other of items) if (other !== item) setOpen(other, false);
       setOpen(item, willOpen);
       active = willOpen ? i : -1;
+      wordFocus = null;
       render();
     });
     const enter = () => {
@@ -597,5 +676,19 @@ const stripData = topics.map((t, i) => ({ count: t.count, chapters: chapters[i] 
     row.addEventListener('mouseleave', leave);
     row.addEventListener('focus', enter);
     row.addEventListener('blur', leave);
+
+    // words of the open topic → their square on the strip
+    item.querySelectorAll<HTMLElement>('[data-w]').forEach((el) => {
+      const key = el.dataset.w === 'more' ? 'more' : Number(el.dataset.w);
+      el.addEventListener('mouseenter', () => {
+        if (active !== i) return;
+        wordFocus = key;
+        render();
+      });
+      el.addEventListener('mouseleave', () => {
+        if (wordFocus === key) wordFocus = null;
+        render();
+      });
+    });
   });
 </script>
