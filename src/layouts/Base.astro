@@ -73,7 +73,7 @@ const {
             io.unobserve(el);
           });
         },
-        { rootMargin: '0px 0px -12% 0px', threshold: 0.01 },
+        { rootMargin: '0px 0px -40% 0px', threshold: 0 } // appear once they reach ~60% down the screen (reading height),
       );
       items.forEach((el) => io.observe(el));
     </script>
