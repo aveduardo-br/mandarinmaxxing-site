@@ -307,7 +307,8 @@ const slotOf = (i: number) => {
         if (w.dataset.s !== String(s)) w.dataset.s = String(s);
         // size eases from 32 (centre) to 24 (neighbour)
         w.style.setProperty('--sc', (1 - 0.25 * Math.min(a, 1)).toFixed(4));
-        w.style.setProperty('--ry', `${(-Math.max(-78, Math.min(78, d * 56))).toFixed(2)}deg`);
+        // drum: words to the right turn their right edge away from the viewer, and vice versa
+        w.style.setProperty('--ry', `${Math.max(-78, Math.min(78, d * 56)).toFixed(2)}deg`);
         w.style.opacity = String(a <= 1 ? 1 - 0.15 * a : Math.max(0, 0.85 * (2 - a)));
       });
     });
