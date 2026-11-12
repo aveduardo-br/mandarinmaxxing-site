@@ -132,3 +132,20 @@ p {
 .fieldset .body {
   border-inline: 1px solid var(--outline);
 }
+
+/* Reveal on scroll (classes set by the script in Base.astro). filter: opacity() multiplies with an
+   element's own opacity (e.g. .prose at 0.8) instead of replacing it. */
+.js .rv {
+  filter: opacity(0);
+  transition: filter 0.7s ease;
+  transition-delay: var(--rd, 0ms);
+}
+.js .rv.in {
+  filter: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .js .rv {
+    filter: none;
+    transition: none;
+  }
+}

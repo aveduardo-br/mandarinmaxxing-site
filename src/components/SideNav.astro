@@ -110,26 +110,38 @@ import { sections, faq, SKILL_REPO } from '../data/site';
     current = id;
   };
 
-  // Active = last target whose top has crossed 40% of the viewport.
+  // Active = the item that fills most of the top 40% of the screen (each item runs from its top
+  // to the next item's top). A short section scrolled to the top stays active even when the next
+  // one's top is also in that band.
   const sectionEls = [...document.querySelectorAll<HTMLElement>('[data-section]')];
   let currentSection: HTMLElement | null = null;
+  const pick = <T extends HTMLElement>(els: T[], line: number, endOf: (el: T, i: number) => number) => {
+    let best: T | null = null;
+    let bestCover = 0;
+    els.forEach((el, i) => {
+      const top = el.getBoundingClientRect().top;
+      const end = endOf(el, i);
+      const cover = Math.min(end, line) - Math.max(top, 0);
+      if (cover > 0 && cover >= bestCover) {
+        best = el;
+        bestCover = cover;
+      }
+    });
+    return best as T | null;
+  };
   const update = () => {
     const line = window.innerHeight * 0.4;
-    let active: string | null = null;
-    for (const el of targets) {
-      if (el.getBoundingClientRect().top <= line) active = el.id;
-    }
-    // At the very bottom the last items can't reach the line: pick the last one.
+    const docEnd = document.documentElement.scrollHeight - window.scrollY;
+    let activeEl = pick(targets, line, (_, i) =>
+      i + 1 < targets.length ? targets[i + 1].getBoundingClientRect().top : docEnd,
+    );
+    // At the very bottom the last items can't reach the band: pick the last one.
     const atBottom = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
-    if (atBottom && targets.length) active = targets[targets.length - 1].id;
-    setActive(active);
+    if (atBottom && targets.length) activeEl = targets[targets.length - 1];
+    setActive(activeEl ? activeEl.id : null);
 
     // Section titles light up while their section is on screen
-    let sec: HTMLElement | null = null;
-    for (const el of sectionEls) {
-      if (el.getBoundingClientRect().top <= line) sec = el;
-    }
-    if (sec && sec.getBoundingClientRect().bottom < line * 0.5) sec = null;
+    const sec = pick(sectionEls, line, (el) => el.getBoundingClientRect().bottom);
     if (sec !== currentSection) {
       currentSection?.classList.remove('is-active');
       sec?.classList.add('is-active');

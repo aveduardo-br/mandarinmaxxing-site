@@ -27,6 +27,10 @@ const {
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
 
+    <!-- reveal-on-scroll only hides content when JS is running -->
+    <script is:inline>
+      document.documentElement.classList.add('js');
+    </script>
     <!-- TODO: self-host Geist / Geist Mono in public/fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -41,6 +45,38 @@ const {
       <slot />
     </main>
     <Footer />
+    <script>
+      // Reveal on scroll: each section's title, then each block of its content, then each row of a
+      // bento grid fade in (opacity 0 → 1) as they reach the screen. Items that arrive together come
+      // in one after the other, in page order.
+      const STEP = 120; // ms between items arriving together
+      const items: HTMLElement[] = [];
+      document.querySelectorAll<HTMLElement>('[data-section]').forEach((sec) => {
+        for (const child of sec.children as HTMLCollectionOf<HTMLElement>) {
+          const rows = child.matches('.bento') ? [...child.querySelectorAll<HTMLElement>(':scope > .bento-row')] : [];
+          items.push(...(rows.length ? rows : [child]));
+        }
+      });
+      const footer = document.querySelector<HTMLElement>('body > footer');
+      if (footer) items.push(footer);
+      items.forEach((el) => el.classList.add('rv'));
+
+      const io = new IntersectionObserver(
+        (entries) => {
+          const arriving = entries
+            .filter((e) => e.isIntersecting)
+            .map((e) => e.target as HTMLElement)
+            .sort((a, b) => items.indexOf(a) - items.indexOf(b));
+          arriving.forEach((el, i) => {
+            el.style.setProperty('--rd', `${i * STEP}ms`);
+            el.classList.add('in');
+            io.unobserve(el);
+          });
+        },
+        { rootMargin: '0px 0px -12% 0px', threshold: 0.01 },
+      );
+      items.forEach((el) => io.observe(el));
+    </script>
   </body>
 </html>
 
