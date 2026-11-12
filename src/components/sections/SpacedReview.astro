@@ -120,6 +120,22 @@ const slotOf = (i: number) => {
     height: 100%;
     touch-action: pan-y pinch-zoom;
   }
+  /* landing "tchuk": slides overshoot a little past their spot and snap back (on top of Embla's
+     own transform, which moves the track) */
+  .sr-line.tchuk .sr-slide {
+    animation: sr-tchuk 0.32s cubic-bezier(0.3, 0, 0.2, 1);
+  }
+  @keyframes sr-tchuk {
+    30% {
+      translate: calc(var(--dir, 1) * 7px) 0;
+    }
+    60% {
+      translate: calc(var(--dir, 1) * -2px) 0;
+    }
+    100% {
+      translate: 0 0;
+    }
+  }
   .sr-slide {
     flex: 0 0 80px;
     min-width: 0;
@@ -250,11 +266,15 @@ const slotOf = (i: number) => {
   const n = words.length;
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  // Roulette feel: a quick fling can spin past many words (skipSnaps) and glides longer before it
+  // stops (duration); when it comes to rest it lands with a small "tchuk" (see settle below).
   const embla = EmblaCarousel(line, {
     loop: true,
     align: 'center',
     startIndex: Number(root.dataset.start),
-    duration: reduce ? 0 : 28,
+    skipSnaps: true,
+    duration: reduce ? 0 : 45,
+    dragThreshold: 4,
   });
   const slides = embla.slideNodes();
   const ws = slides.map((s) => s.querySelector<HTMLElement>('.w')!);
@@ -325,8 +345,28 @@ const slotOf = (i: number) => {
       reduce ? 0 : 230,
     );
   });
-  embla.on('scroll', fisheye);
+  // direction of travel, so the landing kicks the right way
+  let lastProgress = embla.scrollProgress();
+  let dir = 1;
+  embla.on('scroll', () => {
+    const p = embla.scrollProgress();
+    let d = p - lastProgress;
+    if (d > 0.5) d -= 1; // wrapped around the loop
+    if (d < -0.5) d += 1;
+    if (Math.abs(d) > 0.0005) dir = d > 0 ? 1 : -1;
+    lastProgress = p;
+    fisheye();
+  });
   embla.on('reInit', fisheye);
+  // landing: overshoot a few px past the word, then click back into place
+  embla.on('settle', () => {
+    if (reduce) return;
+    line.style.setProperty('--dir', String(-dir));
+    line.classList.remove('tchuk');
+    void line.offsetWidth;
+    line.classList.add('tchuk');
+  });
+  embla.on('pointerDown', () => line.classList.remove('tchuk'));
 
   // click a neighbour to bring it to the centre
   slides.forEach((slide, i) =>
