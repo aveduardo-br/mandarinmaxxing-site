@@ -2,7 +2,7 @@
 
 Ponto de partida para o chat que vai melhorar o texto e a organização dos tópicos do site. Leia este arquivo inteiro antes de começar.
 
-- **Converse com a Eduarda em português.** Todo o texto público do site é em inglês.
+- **Converse com o Eduardo em português.** Todo o texto público do site é em inglês.
 - **O site já está construído e no ar.** Esta fase é de copy e estrutura, não de design nem de animação.
 
 ## Links
@@ -16,13 +16,13 @@ Ponto de partida para o chat que vai melhorar o texto e a organização dos tóp
 
 ## Objetivo desta fase
 
-A Eduarda acha a copy atual "decente, mas pode melhorar muito". O texto não reflete bem o produto, e os tópicos podem ser mais bem organizados.
+O Eduardo acha a copy atual "decente, mas pode melhorar muito". O texto não reflete bem o produto, e os tópicos podem ser mais bem organizados.
 
 Processo combinado:
 1. **Diagnóstico.** Ler todo o texto atual (lista de arquivos abaixo) e listar o que cada seção tenta dizer, o que se repete, o que falta e o que está fora de ordem.
-2. **Fundamentos.** Fazer poucas perguntas à Eduarda: para quem é o site, a promessa principal em uma frase, o tom e um ou dois sites cuja escrita ela admira.
+2. **Fundamentos.** Fazer poucas perguntas ao Eduardo: para quem é o site, a promessa principal em uma frase, o tom e um ou dois sites cuja escrita ele admira.
 3. **Nova estrutura.** Propor a ordem e o papel de cada seção antes de escrever frases. Mudar, juntar ou cortar seções é permitido.
-4. **Reescrita num documento** (Claude Docs), seção por seção, para ela comentar. Não mexer no site ainda.
+4. **Reescrita num documento** (Claude Docs), seção por seção, para ele comentar. Não mexer no site ainda.
 5. **Aplicar no site** depois da aprovação. Conferir no navegador como o texto fica no layout.
 
 Use a skill `design:ux-copy` para revisar títulos, botões e frases curtas.
@@ -51,20 +51,20 @@ Os títulos da side nav vêm de `sections` em `site.ts`. Se um título mudar, mu
 - **Fatos sobre HSK verificados.** As palavras dos tópicos foram checadas contra a lista do New HSK 4 (HSK 3.0). A lição do livro (HSK Standard Course 4A, Lesson 1 "简单的爱情") foi checada e tem fonte. Não invente números nem palavras.
 - **Comparação com livros HSK com neutralidade.** É uma organização diferente, não "melhor".
 - **Não prometer** fluência, resultado em prova nem nada que a skill não faz (veja `docs/content-background.md`).
-- O curso pessoal da Eduarda (67 aulas, HSK 1–2) é a origem do projeto, não um número do produto.
+- O curso pessoal do Eduardo (67 aulas, HSK 1–2) é a origem do projeto, não um número do produto.
 
-## Preferências da Eduarda
+## Preferências do Eduardo
 
 - **Simples e limpo.** Frases curtas e diretas, sem jargão de marketing.
-- Ela quer ver opções antes de mudanças grandes, e valida vendo.
-- **Não mexer em design nem em animação nesta fase**, a não ser que ela peça. Ela rejeita coisas que ficam "travadas" ou coloridas demais.
-- **Fontes:** Geist Light no texto corrido, Geist 600 nos títulos (`.display`) e Ma Shan Zheng em todos os hanzi. Ela quer a mesma fonte de hanzi em todo o site.
+- Ele quer ver opções antes de mudanças grandes, e valida vendo.
+- **Não mexer em design nem em animação nesta fase**, a não ser que ele peça. Ele rejeita coisas que ficam "travadas" ou coloridas demais.
+- **Fontes:** Geist Light no texto corrido, Geist 600 nos títulos (`.display`) e Ma Shan Zheng em todos os hanzi. Ele quer a mesma fonte de hanzi em todo o site.
 
 ## Estado atual (12/11/2026)
 
 - **Último commit:** a troca do useful chunk no card de vocabulário voltou para o efeito de glitch. O teste com escrita por traços foi desfeito.
 - **Pace and audio:** os nomes 轻松 / 标准 / 强化 são escritos com animação de traços (biblioteca `hanzi-writer`), e as carinhas placeholder foram removidas.
-  - **Em aberto:** a Eduarda disse que quer a mesma fonte em tudo. Os traços animados não usam a Ma Shan Zheng. Pergunte se ela quer tirar a animação do Pace também.
+  - **Em aberto:** o Eduardo disse que quer a mesma fonte em tudo. Os traços animados não usam a Ma Shan Zheng. Pergunte se ele quer tirar a animação do Pace também.
 
 ## Pendências fora da copy (não são desta fase)
 

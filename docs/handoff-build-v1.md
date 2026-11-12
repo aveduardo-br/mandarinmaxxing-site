@@ -2,7 +2,7 @@
 
 Este arquivo é o ponto de partida para o chat que vai construir o site. Leia ele inteiro antes de começar.
 
-- **Converse com a Eduarda em português.** Todo o texto público do site é em inglês.
+- **Converse com o Eduardo em português.** Todo o texto público do site é em inglês.
 - **O que já existe:** design no Paper, um protótipo funcional do hero e screenshots de cada seção em `design/screens/`.
 - **Contexto de produto e conteúdo** (o que a skill faz, tom, o que não prometer): `docs/content-background.md`. Em caso de divergência com o design, vale o que está no Paper.
 
@@ -25,16 +25,16 @@ Um site estático de uma página para apresentar a skill **mandarinmaxxing** (HS
 2. Seções estáticas com o copy atual do Paper.
 3. Hero: portar `prototypes/rising-hanzi-hero.html` para um componente.
 4. Interações, uma por vez: Chunks, Topics e os Bentos.
-5. Responsivo. O design atual é desktop, 1440px, então precisa definir o comportamento no mobile seção por seção junto com a Eduarda.
+5. Responsivo. O design atual é desktop, 1440px, então precisa definir o comportamento no mobile seção por seção junto com o Eduardo.
 6. Pendências de conteúdo (lista no final).
 
-Trabalhe em incrementos pequenos e mande o link de preview para a Eduarda revisar. Ela prefere ver a coisa rodando e ajustar a partir daí.
+Trabalhe em incrementos pequenos e mande o link de preview para o Eduardo revisar. Ele prefere ver a coisa rodando e ajustar a partir daí.
 
 ## Fonte de verdade: Paper
 
 - **Arquivo:** `01M73ZX4CG7GXQAC76RFJZ8R94` ("Brilliant dew"), página `p-1-0`.
 - **Artboard principal:** `1-0` "Site — wireframe v1", com 1440px de largura.
-- Se o chat tiver as ferramentas do Paper (via o computador da Eduarda), use `get_jsx` em cada seção para pegar estrutura, estilos e copy exatos. Se não tiver, use os screenshots em `design/screens/` e peça a ela o que faltar.
+- Se o chat tiver as ferramentas do Paper (via o computador do Eduardo), use `get_jsx` em cada seção para pegar estrutura, estilos e copy exatos. Se não tiver, use os screenshots em `design/screens/` e peça a ela o que faltar.
 
 | Seção | Node | Screenshot |
 | --- | --- | --- |
@@ -113,7 +113,7 @@ O texto das seções fica em `--muted` ou a 80% de opacidade. Os títulos ficam 
 - **"FAQ":** links para as perguntas.
 - **No fim:** "Install ↓" e "GitHub ↗".
 - A seção ativa é destacada durante o scroll.
-- O item 04 provavelmente deve passar a acompanhar o título novo da seção. Confirme com a Eduarda.
+- O item 04 provavelmente deve passar a acompanhar o título novo da seção. Confirme com o Eduardo.
 
 ### Hero
 - **O protótipo pronto está em `prototypes/rising-hanzi-hero.html`** (canvas + SVG, `requestAnimationFrame`, glyphs em `Path2D`):
@@ -121,14 +121,14 @@ O texto das seções fica em `--muted` ou a 80% de opacidade. Os títulos ficam 
   - **Glyphs:** trocam em stagger. O de cima de cada coluna se solta e sobe flutuando, com opacidade cheia, e depois a célula reaparece.
   - **Mouse:** empurra as partículas, e quanto mais alto elas estão, mais forte o empurrão. Os glyphs do MANDARIN seguem o cursor e voltam com mola, sem delay.
   - Constantes principais: `SPRING 650`, `SPRING_DAMP 38`, partículas `RADIUS 46` e `FORCE 2600`. A mola usa substeps.
-  - **Sem efeitos de cor.** A Eduarda rejeitou gradiente, pintura e fade.
-  - **Glyphs como paths SVG, não Zpix.** Ela testou com Zpix e preferiu os paths.
+  - **Sem efeitos de cor.** O Eduardo rejeitou gradiente, pintura e fade.
+  - **Glyphs como paths SVG, não Zpix.** Ele testou com Zpix e preferiu os paths.
 - **Abaixo da arte:**
   - Abas "Claude Code / Codex" que trocam o comando, com copiar.
   - Linha "a skill for Claude".
   - A frase "A topic-based way to study Mandarin with HSK 3.0 vocabulary and phrases you can use in everyday conversations."
   - Botões "Download for Claude", que é o ZIP do release mais recente, e "Copy install command".
-  - Meta linha: `/mandarinmaxxing · HSK 3.0 · by Eduarda · v0.1.13 · Free · Install ↓`.
+  - Meta linha: `/mandarinmaxxing · HSK 3.0 · by Eduardo · v0.1.13 · Free · Install ↓`.
 - A versão e os links devem vir do repositório da skill. Confira antes de publicar.
 
 ### 02 Topics, not chapters (interativo)
@@ -137,7 +137,7 @@ O texto das seções fica em `--muted` ou a 80% de opacidade. Os títulos ficam 
   - Palavras do nível em branco, HSK 3 em `--accent-light` e HSK 5 em `--accent`, mais o "… +11 more".
   - Embaixo: a barra de quadradinhos, a legenda "■ HSK 4 · 14 ■ HSK 3 · 3 ■ HSK 5 · 3" na mesma linha e a nota "Extras from a level below or above come in when they make a useful chunk with the rest."
 - **Interação:** clicar ou passar o mouse num tópico abre a aula dele (accordion).
-  - Precisa de dados para cada tópico: palavras, níveis e contagem. Monte com a Eduarda a partir do vocabulário HSK 3.0.
+  - Precisa de dados para cada tópico: palavras, níveis e contagem. Monte com o Eduardo a partir do vocabulário HSK 3.0.
 - **Ideia aprovada para depois:** hover num quadradinho acende a palavra correspondente e vice-versa. A ordem dos quadradinhos fica agrupada por nível.
 
 ### 03 Chunks (interativo)
@@ -174,7 +174,7 @@ O texto das seções fica em `--muted` ou a 80% de opacidade. Os títulos ficam 
   - **À esquerda, o player:** uma pílula escura com o play redondo laranja, a onda com o trecho tocado em laranja e o tempo.
   - **À direita, em cima, a conversa aparecendo:** A à esquerda e mais acima, já dita, em cinza: 请问，你们有什么推荐？. B à direita e mais abaixo, sendo "escrita", com as últimas letras em gradiente sumindo: 我们的宫保鸡丁很好吃.
   - **À direita, embaixo, três perguntas:** ✓ What does she ask the waiter? / ○ What does the waiter recommend? / ○ How does he describe it?
-  - **Interação:** o play toca o áudio, e o texto e a onda acompanham. **O áudio ainda não existe.** Use um placeholder até a Eduarda subir o clipe de aproximadamente 20s.
+  - **Interação:** o play toca o áudio, e o texto e a onda acompanham. **O áudio ainda não existe.** Use um placeholder até o Eduardo subir o clipe de aproximadamente 20s.
 
 ### 05 Pace and audio
 - **Três ritmos lado a lado e centralizados:**
@@ -186,17 +186,17 @@ O texto das seções fica em `--muted` ou a 80% de opacidade. Os títulos ficam 
 - **Os dois parágrafos de texto** sobre áudio e hanzi estão no Paper.
 
 ### 06 Install e 07 Questions
-- O conteúdo está no Paper, mas **a Eduarda ainda não revisou o design dessas duas seções.** Builde como está e marque para revisão.
+- O conteúdo está no Paper, mas **o Eduardo ainda não revisou o design dessas duas seções.** Builde como está e marque para revisão.
 - Confira os comandos e os requisitos (Node 22.20.0+, `npx`) no README da skill.
 
 ### Footer
-"Made by Eduarda. Lessons taught by Claude." · "GitHub · Releases · [license]". A licença ainda está como placeholder.
+"Made by Eduardo. Lessons taught by Claude." · "GitHub · Releases · [license]". A licença ainda está como placeholder.
 
-## Preferências da Eduarda (importante)
+## Preferências do Eduardo (importante)
 
-- **Simples e limpo:** poucos elementos, sem "interface" falsa em volta do conteúdo. Bolhas de chat são a exceção, porque ela gosta.
+- **Simples e limpo:** poucos elementos, sem "interface" falsa em volta do conteúdo. Bolhas de chat são a exceção, porque ele gosta.
 - **Laranja só para destaque.** Os elementos neutros vão em cinza.
-- Ela valida vendo. Mostre preview ou screenshot a cada mudança relevante e espere o ok antes de seguir para o próximo bloco grande.
+- Ele valida vendo. Mostre preview ou screenshot a cada mudança relevante e espere o ok antes de seguir para o próximo bloco grande.
 - Quando o conteúdo de algo estiver fraco ou indefinido, proponha opções no chat antes de construir.
 - Nada de reproduzir personagens ou artes de terceiros. Por exemplo, as carinhas do Pace têm que ser originais.
 

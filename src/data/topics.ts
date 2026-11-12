@@ -1,7 +1,7 @@
 // Topics shown in section 02.
 // Every word shown is in the New HSK 4 list (HSK 3.0), checked against studycli.org's HSK 4 list.
 // `count` is how many of HSK 4's 1,000 words the topic covers. The ten counts add up to 1,000.
-// TODO (pendência): real per-topic word lists and counts, built with Eduarda from HSK 3.0.
+// TODO (pendência): real per-topic word lists and counts, built with Eduardo from HSK 3.0.
 export type Word = { hanzi: string; en: string };
 export type Topic = {
   num: string;
