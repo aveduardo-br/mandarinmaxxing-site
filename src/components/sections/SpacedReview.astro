@@ -144,8 +144,10 @@ const slotOf = (i: number) => {
   .sr-slide {
     flex: 0 0 80px;
     min-width: 0;
-    display: grid;
-    place-items: center;
+    /* flex centres a word wider than the slide on both sides (grid pushed it to the right) */
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: grab;
   }
   .sr-line:active .sr-slide {
@@ -153,6 +155,7 @@ const slotOf = (i: number) => {
   }
   /* one font for every word (no swap): size comes from the scale set by the script */
   .w {
+    flex-shrink: 0;
     white-space: pre;
     font-family: var(--f-brush);
     font-weight: 700;
