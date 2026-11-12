@@ -386,8 +386,8 @@ const stripData = topics.map((t, i) => ({ count: t.count, chapters: chapters[i] 
     overflow: clip;
     overflow-clip-margin: 0px;
   }
-  /* The bar sticks at --stick from the bottom of the screen: the script sets it so the list and the
-     bar sit centred on screen while it's stuck. Below the bar a cover hides the rows that haven't
+  /* The bar sticks at --stick from the bottom of the screen (set by the script: a little above the
+     bottom edge). Below the bar a cover hides the rows that haven't
      scrolled up yet, so the list always "closes" with the bar. */
   .bar {
     position: sticky;
@@ -552,11 +552,14 @@ const stripData = topics.map((t, i) => ({ count: t.count, chapters: chapters[i] 
     }
   }
 
-  // keep the list + bar centred on screen while the bar is stuck
+  // Where the bar sticks: centred with the list when there's room, but never more than 8% of the
+  // screen above the bottom, so the section title and most of the list (even with a topic open)
+  // fit on screen before the bar starts covering rows.
   const wrap = bar.parentElement!;
   const placeBar = () => {
-    const free = innerHeight - wrap.offsetHeight;
-    wrap.style.setProperty('--stick', `${Math.max(0, Math.round(free / 2))}px`);
+    const centred = (innerHeight - wrap.offsetHeight) / 2;
+    const stick = Math.max(16, Math.min(centred, innerHeight * 0.08));
+    wrap.style.setProperty('--stick', `${Math.round(stick)}px`);
   };
   // stuck = the list still continues below the bar (rows hidden under it)
   const checkStuck = () => {
