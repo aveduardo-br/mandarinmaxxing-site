@@ -273,7 +273,7 @@ const slotOf = (i: number) => {
     align: 'center',
     startIndex: Number(root.dataset.start),
     skipSnaps: true,
-    duration: reduce ? 0 : 45,
+    duration: reduce ? 0 : 30,
     dragThreshold: 4,
   });
   const slides = embla.slideNodes();
@@ -358,9 +358,14 @@ const slotOf = (i: number) => {
     fisheye();
   });
   embla.on('reInit', fisheye);
-  // landing: overshoot a few px past the word, then click back into place
+  // landing: after a fling, overshoot a few px past the word, then click back into place.
+  // Clicks and arrow keys move one word and just settle (no tchuk, which read as a stutter).
+  let flung = false;
+  embla.on('pointerUp', () => (flung = true));
   embla.on('settle', () => {
-    if (reduce) return;
+    const wasFling = flung;
+    flung = false;
+    if (reduce || !wasFling) return;
     line.style.setProperty('--dir', String(-dir));
     line.classList.remove('tchuk');
     void line.offsetWidth;
@@ -373,7 +378,10 @@ const slotOf = (i: number) => {
   line.addEventListener('pointerdown', (e) => (downX = e.clientX));
   slides.forEach((slide, i) =>
     slide.addEventListener('click', (e) => {
-      if (Math.abs(e.clientX - downX) < 6) embla.scrollTo(i);
+      if (Math.abs(e.clientX - downX) < 6) {
+        flung = false;
+        embla.scrollTo(i);
+      }
     }),
   );
   line.addEventListener('keydown', (e) => {
