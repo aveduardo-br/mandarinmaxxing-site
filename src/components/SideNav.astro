@@ -115,7 +115,12 @@ import { sections, faq, SKILL_REPO } from '../data/site';
   // one's top is also in that band.
   const sectionEls = [...document.querySelectorAll<HTMLElement>('[data-section]')];
   let pinned: string | null = null;
-  links.forEach((a, id) => a.addEventListener('click', () => (pinned = id)));
+  links.forEach((a, id) =>
+    a.addEventListener('click', () => {
+      pinned = id;
+      setActive(id); // the page may not scroll at all (already at the bottom)
+    }),
+  );
   const unpin = () => (pinned = null);
   for (const ev of ['wheel', 'touchstart', 'keydown', 'mousedown']) addEventListener(ev, unpin, { passive: true });
   let currentSection: HTMLElement | null = null;
