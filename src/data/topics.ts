@@ -140,8 +140,16 @@ export const topics: Topic[] = [
 // 1, 3, 4 and 5 of that lesson (checked against the lesson's full word list).
 export const bookLesson = {
   label: 'HSK Standard Course 4 · Lesson 1 · “Simple love”',
-  info:
-    'Words from HSK Standard Course 4A (Beijing Language and Culture University Press), Lesson 1, “简单的爱情” (Simple love): 法律 from text 1, 浪漫 and 缺点 from text 3, 星星 and 加班 from text 4, 脾气 from text 5. The course follows the earlier HSK 2.0 levels.',
+  info: {
+    intro: 'Words from HSK Standard Course 4A (Beijing Language and Culture University Press), Lesson 1, “简单的爱情”.',
+    rows: [
+      { where: 'Text 1', words: '法律' },
+      { where: 'Text 3', words: '浪漫 · 缺点' },
+      { where: 'Text 4', words: '星星 · 加班' },
+      { where: 'Text 5', words: '脾气' },
+    ],
+    note: 'The course follows the earlier HSK 2.0 levels.',
+  },
   source: 'https://www.mandarinai.com/article/detail/131710607257767936',
   words: [
     { hanzi: '法律', en: 'law' },

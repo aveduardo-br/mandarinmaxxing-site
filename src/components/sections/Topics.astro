@@ -74,7 +74,18 @@ const stripData = topics.map((t, ti) => {
           <svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="6.25"></circle><path d="M7 6.2v3.6M7 4.2v.01"></path></svg>
         </button>
         <span class="info-pop" id="book-info" role="tooltip">
-          <span>{bookLesson.info}</span>
+          <span class="info-intro">{bookLesson.info.intro}</span>
+          <span class="info-rows">
+            {
+              bookLesson.info.rows.map((r) => (
+                <span class="info-row">
+                  <span class="info-where">{r.where}</span>
+                  <span class="info-words hanzi">{r.words}</span>
+                </span>
+              ))
+            }
+          </span>
+          <span class="info-note">{bookLesson.info.note}</span>
           <a href={bookLesson.source} target="_blank" rel="noopener">Source ↗</a>
         </span>
       </span>
@@ -208,10 +219,10 @@ const stripData = topics.map((t, ti) => {
     z-index: 5;
     left: 50%;
     bottom: calc(100% + 10px);
-    width: 300px;
+    width: 280px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
     padding: 12px 14px;
     border: 1px solid var(--card-border);
     border-radius: 8px;
@@ -241,6 +252,35 @@ const stripData = topics.map((t, ti) => {
     opacity: 1;
     translate: -50% 0;
     pointer-events: auto;
+  }
+  .info-intro {
+    color: var(--text-dim);
+  }
+  /* borderless table: where in the lesson → which words */
+  .info-rows {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 16px;
+    row-gap: 4px;
+  }
+  .info-row {
+    display: contents;
+  }
+  .info-where {
+    font-family: var(--f-mono);
+    font-size: var(--fs-label);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted-2);
+    line-height: 22px;
+  }
+  .info-words {
+    font-size: 16px;
+    line-height: 22px;
+    color: var(--text);
+  }
+  .info-note {
+    color: var(--muted);
   }
   .info-pop a {
     align-self: flex-start;
