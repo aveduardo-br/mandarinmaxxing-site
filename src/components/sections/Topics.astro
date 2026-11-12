@@ -67,7 +67,18 @@ const stripData = topics.map((t, ti) => {
     chapter by chapter, in the order the book chose — so one lesson can look like this:
   </p>
   <div class="book">
-    <p class="label book-label">{bookLesson.label}</p>
+    <div class="book-head">
+      <p class="label book-label">{bookLesson.label}</p>
+      <span class="info" data-info>
+        <button class="info-btn" type="button" aria-label="About this lesson" aria-describedby="book-info" aria-expanded="false">
+          <svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="6.25"></circle><path d="M7 6.2v3.6M7 4.2v.01"></path></svg>
+        </button>
+        <span class="info-pop" id="book-info" role="tooltip">
+          <span>{bookLesson.info}</span>
+          <a href={bookLesson.source} target="_blank" rel="noopener">Source ↗</a>
+        </span>
+      </span>
+    </div>
     <div class="book-words">
       {
         bookLesson.words.map((w) => (
@@ -152,6 +163,91 @@ const stripData = topics.map((t, ti) => {
   }
   .book-label {
     color: var(--muted-2);
+  }
+  .book-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  /* (i) next to the lesson label: hover, focus or tap shows where the words come from */
+  .info {
+    position: relative;
+    display: inline-flex;
+  }
+  .info-btn {
+    display: grid;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--muted-2);
+    cursor: pointer;
+    transition: color 0.15s ease;
+  }
+  .info-btn svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.2;
+    stroke-linecap: round;
+  }
+  .info:hover .info-btn,
+  .info-btn:focus-visible,
+  .info.open .info-btn {
+    color: var(--text);
+  }
+  .info-btn:focus-visible {
+    outline: 1px dashed var(--outline);
+    outline-offset: 2px;
+  }
+  .info-pop {
+    position: absolute;
+    z-index: 5;
+    left: 50%;
+    bottom: calc(100% + 10px);
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    background: #181818;
+    font-size: var(--fs-caption);
+    line-height: var(--lh-caption);
+    color: var(--text-dim);
+    opacity: 0;
+    translate: -50% 4px;
+    pointer-events: none;
+    transition:
+      opacity 0.15s ease,
+      translate 0.15s ease;
+  }
+  /* invisible bridge so the pointer can travel from the (i) to the pop-up */
+  .info-pop::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    height: 12px;
+  }
+  .info:hover .info-pop,
+  .info:focus-within .info-pop,
+  .info.open .info-pop {
+    opacity: 1;
+    translate: -50% 0;
+    pointer-events: auto;
+  }
+  .info-pop a {
+    align-self: flex-start;
+    color: var(--accent-light);
+  }
+  .info-pop a:hover {
+    color: #f8b68c;
   }
   .book-words {
     display: flex;
@@ -542,6 +638,22 @@ const stripData = topics.map((t, ti) => {
         ease: 'back.out(1.70158)',
         clearProps: 'transform',
       });
+    });
+  }
+
+  // (i) next to the book lesson: tap toggles the pop-up (hover/focus already show it)
+  const info = document.querySelector<HTMLElement>('[data-info]');
+  if (info) {
+    const btn = info.querySelector<HTMLButtonElement>('.info-btn')!;
+    btn.addEventListener('click', () => {
+      const open = info.classList.toggle('open');
+      btn.setAttribute('aria-expanded', String(open));
+    });
+    document.addEventListener('click', (e) => {
+      if (!info.contains(e.target as Node)) {
+        info.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+      }
     });
   }
 

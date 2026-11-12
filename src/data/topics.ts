@@ -136,10 +136,13 @@ export const topics: Topic[] = [
 ];
 
 // Example of a textbook lesson, for the comparison in the intro.
-// HSK Standard Course 4 (上), Lesson 1 "简单的爱情" (Simple love).
-// TODO (pendência): confirm against the book (list taken from two student flashcard decks).
+// HSK Standard Course 4 (上 / 4A), Lesson 1 "简单的爱情" (Simple love). The six words come from texts
+// 1, 3, 4 and 5 of that lesson (checked against the lesson's full word list).
 export const bookLesson = {
   label: 'HSK Standard Course 4 · Lesson 1 · “Simple love”',
+  info:
+    'Words from HSK Standard Course 4A (Beijing Language and Culture University Press), Lesson 1, “简单的爱情” (Simple love): 法律 from text 1, 浪漫 and 缺点 from text 3, 星星 and 加班 from text 4, 脾气 from text 5. The course follows the earlier HSK 2.0 levels.',
+  source: 'https://www.mandarinai.com/article/detail/131710607257767936',
   words: [
     { hanzi: '法律', en: 'law' },
     { hanzi: '星星', en: 'star' },
