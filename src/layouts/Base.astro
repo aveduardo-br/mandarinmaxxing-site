@@ -46,9 +46,15 @@ const {
     </main>
     <Footer />
     <script>
-      // Reveal on scroll: each section's title, then each block of its content, then each row of a
-      // bento grid fade in (opacity 0 → 1) as they reach the screen. Items that arrive together come
-      // in one after the other, in page order.
+      // Reveal on scroll (GSAP ScrollTrigger): each section's title, then each block of its content,
+      // then each row of a bento grid fade up as they reach reading height (60% down the screen).
+      // Items that arrive together come in one after the other, in page order. The motion itself is
+      // the CSS transition on .rv / .rv.in (global.css).
+      import { gsap } from 'gsap';
+      import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+      gsap.registerPlugin(ScrollTrigger);
+
       const STEP = 100; // ms between items arriving together
       const items: HTMLElement[] = [];
       document.querySelectorAll<HTMLElement>('[data-section]').forEach((sec) => {
@@ -61,21 +67,17 @@ const {
       if (footer) items.push(footer);
       items.forEach((el) => el.classList.add('rv'));
 
-      const io = new IntersectionObserver(
-        (entries) => {
-          const arriving = entries
-            .filter((e) => e.isIntersecting)
-            .map((e) => e.target as HTMLElement)
-            .sort((a, b) => items.indexOf(a) - items.indexOf(b));
-          arriving.forEach((el, i) => {
+      ScrollTrigger.batch(items, {
+        start: 'top 60%',
+        once: true,
+        onEnter: (batch) =>
+          (batch as HTMLElement[]).forEach((el, i) => {
             el.style.setProperty('--rd', `${i * STEP}ms`);
             el.classList.add('in');
-            io.unobserve(el);
-          });
-        },
-        { rootMargin: '0px 0px -40% 0px', threshold: 0 } // appear once they reach ~60% down the screen (reading height),
-      );
-      items.forEach((el) => io.observe(el));
+          }),
+      });
+      // layout changes (fonts, opened topics) move things: keep the trigger points right
+      document.fonts?.ready.then(() => ScrollTrigger.refresh());
     </script>
   </body>
 </html>

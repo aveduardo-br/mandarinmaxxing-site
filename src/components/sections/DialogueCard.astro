@@ -27,8 +27,6 @@ const questions = [
 ];
 
 const DURATION = 8.2;
-// waveform: RMS of the audio in 26 bins, scaled to 6–26 px
-const wave = [25, 22, 26, 24, 18, 17, 7, 19, 15, 14, 16, 16, 14, 8, 23, 11, 20, 17, 14, 15, 15, 22, 17, 25, 21, 16];
 
 // each line has two checkpoints, start and end; between them it is revealed in one smooth sweep
 const lineData = lines.map((l) => ({
@@ -67,7 +65,7 @@ const fmt = (s: number) => `0:${String(Math.round(s)).padStart(2, '0')}`;
             aria-valuemax={DURATION}
             aria-valuenow="0"
           >
-            {wave.map((h) => <i style={`height:${h}px`} />)}
+            <div class="wave-ws" data-ws></div>
           </div>
           <span class="time" data-time>{fmt(DURATION)}</span>
         </div>
@@ -175,24 +173,17 @@ const fmt = (s: number) => `0:${String(Math.round(s)).padStart(2, '0')}`;
     outline: 1px dashed var(--accent-light);
     outline-offset: 3px;
   }
+  /* waveform drawn by WaveSurfer.js from the audio itself */
   .wave {
-    display: flex;
-    align-items: center;
-    gap: 2px;
+    width: 128px;
     height: 28px;
     cursor: pointer;
     touch-action: none;
     user-select: none;
   }
-  .wave i {
-    display: block;
-    width: 3px;
-    flex-shrink: 0;
-    background: #3a3a3a;
-    pointer-events: none;
-  }
-  .wave i.played {
-    background: var(--accent);
+  .wave-ws {
+    width: 100%;
+    height: 28px;
   }
   .time {
     min-width: 28px;
@@ -374,12 +365,13 @@ const fmt = (s: number) => `0:${String(Math.round(s)).padStart(2, '0')}`;
 </style>
 
 <script>
+  import WaveSurfer from 'wavesurfer.js';
+
   const root = document.querySelector<HTMLElement>('[data-dlg]');
   if (root) {
     const audio = root.querySelector<HTMLAudioElement>('[data-audio]')!;
     const playBtn = root.querySelector<HTMLButtonElement>('[data-play]')!;
     const wave = root.querySelector<HTMLElement>('[data-wave]')!;
-    const bars = [...wave.querySelectorAll<HTMLElement>('i')];
     const timeEl = root.querySelector<HTMLElement>('[data-time]')!;
     const linesEl = root.querySelector<HTMLElement>('[data-lines]')!;
     const view = linesEl.parentElement!;
@@ -425,9 +417,7 @@ const fmt = (s: number) => `0:${String(Math.round(s)).padStart(2, '0')}`;
         li.classList.toggle('current', i === currentQ);
       });
 
-      // player
-      const p = Math.min(1, t / duration);
-      bars.forEach((b, i) => b.classList.toggle('played', started && (i + 0.5) / bars.length <= p));
+      // player (the waveform's played part is drawn by WaveSurfer)
       timeEl.textContent = started ? fmt(t) : fmt(duration);
       wave.setAttribute('aria-valuenow', t.toFixed(1));
       wave.setAttribute('aria-valuetext', `${fmt(t)} of ${fmt(duration)}`);
@@ -475,27 +465,28 @@ const fmt = (s: number) => `0:${String(Math.round(s)).padStart(2, '0')}`;
       render();
     });
 
-    // scrub: click or drag on the waveform
-    const seekTo = (clientX: number) => {
-      const r = wave.getBoundingClientRect();
-      const p = Math.max(0, Math.min(1, (clientX - r.left) / r.width));
+    // Waveform: WaveSurfer.js reads the real audio and draws it as bars; clicking or dragging on it
+    // seeks the same <audio> element, so everything above stays driven by audio.currentTime.
+    WaveSurfer.create({
+      container: root.querySelector<HTMLElement>('[data-ws]')!,
+      media: audio,
+      height: 28,
+      barWidth: 3,
+      barGap: 2,
+      barRadius: 0,
+      barHeight: 0.9,
+      normalize: true,
+      waveColor: '#3a3a3a',
+      progressColor: getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#d2430e',
+      cursorWidth: 0,
+      interact: true,
+      dragToSeek: true,
+    });
+    audio.addEventListener('seeking', () => {
       started = true;
-      t = p * duration;
-      audio.currentTime = t;
+      t = audio.currentTime;
       render();
-    };
-    let dragging = false;
-    wave.addEventListener('pointerdown', (e) => {
-      dragging = true;
-      wave.setPointerCapture(e.pointerId);
-      seekTo(e.clientX);
     });
-    wave.addEventListener('pointermove', (e) => {
-      if (dragging) seekTo(e.clientX);
-    });
-    const stop = () => (dragging = false);
-    wave.addEventListener('pointerup', stop);
-    wave.addEventListener('pointercancel', stop);
 
     // keyboard: ←/→ one second, Home/End
     wave.addEventListener('keydown', (e) => {

@@ -233,17 +233,17 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
 </style>
 
 <script>
+  import { gsap } from 'gsap';
+
   const slot = document.querySelector<HTMLElement>('[data-slot]')!;
   const live = slot.querySelector<HTMLElement>('[data-live]')!;
   const START = Number(slot.dataset.start);
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // Motion: Robert Penner's easeOutBack (c1 = 1.70158), the standard overshoot curve.
+  // Motion: GSAP's back.out (Robert Penner's easeOutBack, c1 = 1.70158), the standard overshoot curve.
   // Position and size both follow it, so the chunk overshoots its spot and its scale, then settles.
   const DURATION = 380;
-  const C1 = 1.70158;
-  const C3 = C1 + 1;
-  const easeOutBack = (t: number) => 1 + C3 * Math.pow(t - 1, 3) + C1 * Math.pow(t - 1, 2);
+  const easeOutBack = gsap.parseEase('back.out(1.70158)');
   const SWAP_AT = 0.5; // font switches when the eased progress passes this point
 
   // Geometry per slot (matches the CSS): top, line height, font size
@@ -283,7 +283,7 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
     };
     const clampSlot = (s: number) => Math.max(-3, Math.min(3, s));
 
-    let anim = 0;
+    let anim: gsap.core.Tween | null = null;
     let finish: (() => void) | null = null;
 
     function animate(prev: number[], next: number[]) {
@@ -297,7 +297,8 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
         if (Math.abs(prev[i] - next[i]) > 3) it.dataset.s = String(next[i]);
       });
       const done = () => {
-        cancelAnimationFrame(anim);
+        anim?.kill();
+        anim = null;
         for (const m of moving) {
           m.it.dataset.s = String(m.to);
           m.it.style.translate = m.it.style.scale = m.it.style.opacity = '';
@@ -306,9 +307,9 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
       };
       if (reduce) return done();
       finish = done;
-      const t0 = performance.now();
-      const frame = (now: number) => {
-        const t = Math.min(1, (now - t0) / DURATION);
+      const prog = { t: 0 };
+      const frame = () => {
+        const t = prog.t;
         const e = easeOutBack(t);
         const fade = t * t * (3 - 2 * t); // opacity eases without overshoot
         for (const { it, from, to } of moving) {
@@ -320,10 +321,9 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
           it.style.scale = (size / SIZE[s]).toFixed(4);
           it.style.opacity = String(op[from] + (op[to] - op[from]) * fade);
         }
-        if (t < 1) anim = requestAnimationFrame(frame);
-        else done();
       };
-      anim = requestAnimationFrame(frame);
+      // GSAP drives the clock (linear 0 → 1); the overshoot is applied per property above
+      anim = gsap.to(prog, { t: 1, duration: DURATION / 1000, ease: 'none', onUpdate: frame, onComplete: done });
     }
 
     function render(prev?: number[]) {

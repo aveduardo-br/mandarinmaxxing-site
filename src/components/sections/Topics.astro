@@ -480,13 +480,13 @@ const stripData = topics.map((t, i) => ({ count: t.count, chapters: chapters[i] 
 </style>
 
 <script>
+  import { gsap } from 'gsap';
+
   // Accordion: click a topic to open it, click again to close. One open at a time.
-  // The header grows from h4 to h3 in place (FLIP + easeOutBack overshoot), no jump.
+  // The header grows from h4 to h3 in place (FLIP): record where the arrow, number and title are, let
+  // the class change their size, then GSAP animates each from its old spot and size (one uniform
+  // scale, so the text never stretches) with the site's overshoot (back.out = Penner's easeOutBack).
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const DURATION = 380;
-  const C1 = 1.70158;
-  const C3 = C1 + 1;
-  const easeOutBack = (t: number) => 1 + C3 * Math.pow(t - 1, 3) + C1 * Math.pow(t - 1, 2);
 
   const items = [...document.querySelectorAll<HTMLElement>('[data-topic]')];
 
@@ -494,7 +494,8 @@ const stripData = topics.map((t, i) => ({ count: t.count, chapters: chapters[i] 
     const btn = item.querySelector<HTMLButtonElement>('.row')!;
     if (item.classList.contains('open') === open) return;
     const parts = [...btn.querySelectorAll<HTMLElement>('.arrow, .num, .name')];
-    parts.forEach((p) => (p.style.transform = ''));
+    gsap.killTweensOf(parts);
+    gsap.set(parts, { clearProps: 'transform' });
     const before = parts.map((p) => p.getBoundingClientRect());
     item.classList.toggle('open', open);
     // closing: play the preview hanzi's return animation
@@ -503,23 +504,20 @@ const stripData = topics.map((t, i) => ({ count: t.count, chapters: chapters[i] 
     if (!open) item.dataset.closingTimer = String(setTimeout(() => item.classList.remove('closing'), 320));
     btn.setAttribute('aria-expanded', String(open));
     if (reduce) return;
-    const after = parts.map((p) => p.getBoundingClientRect());
-    const t0 = performance.now();
-    const frame = (now: number) => {
-      const t = Math.min(1, (now - t0) / DURATION);
-      const k = 1 - easeOutBack(t); // 1 → 0, overshooting past 0 at the end
-      parts.forEach((p, i) => {
-        const b = before[i], a = after[i];
-        if (!a.height) return;
-        const s = 1 + (b.height / a.height - 1) * k;
-        const dx = (b.left - a.left) * k;
-        const dy = (b.top + b.height / 2 - (a.top + a.height / 2)) * k;
-        p.style.transform = `translate(${dx.toFixed(2)}px, ${dy.toFixed(2)}px) scale(${s.toFixed(4)})`;
+    parts.forEach((p, i) => {
+      const b = before[i];
+      const a = p.getBoundingClientRect();
+      if (!a.height) return;
+      gsap.from(p, {
+        x: b.left - a.left,
+        y: b.top + b.height / 2 - (a.top + a.height / 2),
+        scale: b.height / a.height,
+        transformOrigin: 'left center',
+        duration: 0.38,
+        ease: 'back.out(1.70158)',
+        clearProps: 'transform',
       });
-      if (t < 1) requestAnimationFrame(frame);
-      else parts.forEach((p) => (p.style.transform = ''));
-    };
-    requestAnimationFrame(frame);
+    });
   }
 
   // ---- sticky bar: open topic in white, hovered topic in light orange, summed in the label ----

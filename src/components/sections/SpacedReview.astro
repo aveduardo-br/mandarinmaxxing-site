@@ -2,7 +2,8 @@
 // Bento card "+ Spaced review" — visual part (Paper node AM8-0).
 // An infinite carousel of three chunks seen through a fisheye: the centre chunk is big, the neighbours
 // (orange) sit close by, turned away like on a drum, and the line fades out towards both edges.
-// Clicking a neighbour moves the carousel one step with the same easeOutBack overshoot as the Chunks slot. The timeline below is
+// Embla Carousel runs the carousel (loop, drag/swipe, click a neighbour, ←/→); the fisheye is applied
+// from Embla's scroll position on every frame. The timeline below is
 // fixed (lessons 0–20); its bars change to show when the centre chunk was learned and reviewed.
 // Reviews always come +1, +3, +7 and +14 lessons after the lesson where the chunk was learned.
 
@@ -41,7 +42,17 @@ const slotOf = (i: number) => {
 >
   <div class="sr-slot">
     <div class="sr-line" tabindex="0" role="spinbutton" aria-label="Chunk" aria-valuetext={first.zh}>
-      {doubled.map((w, i) => <span class="w" data-i={i} data-s={slotOf(i)}>{w.zh}</span>)}
+      <div class="sr-track">
+        {
+          doubled.map((w, i) => (
+            <div class="sr-slide">
+              <span class="w" data-i={i} data-s={slotOf(i)}>
+                {w.zh}
+              </span>
+            </div>
+          ))
+        }
+      </div>
     </div>
     <span class="sr-en" data-en>{first.en}</span>
   </div>
@@ -91,6 +102,7 @@ const slotOf = (i: number) => {
     position: relative;
     width: 100%;
     height: 40px;
+    overflow: hidden; /* Embla viewport */
     outline: none;
     user-select: none;
     -webkit-user-select: none;
@@ -102,30 +114,32 @@ const slotOf = (i: number) => {
     outline: 1px dashed var(--outline);
     outline-offset: 2px;
   }
+  /* Embla track: every slide is 80px wide, the centre slide sits in the middle of the line */
+  .sr-track {
+    display: flex;
+    height: 100%;
+    touch-action: pan-y pinch-zoom;
+  }
+  .sr-slide {
+    flex: 0 0 80px;
+    min-width: 0;
+    display: grid;
+    place-items: center;
+    cursor: grab;
+  }
+  .sr-line:active .sr-slide {
+    cursor: grabbing;
+  }
   .w {
-    position: absolute;
-    left: 50%;
-    top: 50%;
     white-space: pre;
     font-family: var(--f-display);
     font-weight: var(--fw-display);
     font-size: 24px;
     line-height: 32px;
     color: var(--accent);
-    opacity: 0;
+    /* fisheye (set per frame by the script): neighbours turn away like on a drum */
+    transform: perspective(110px) rotateY(var(--ry, 0deg)) scale(var(--sc, 1));
     pointer-events: none;
-    translate: calc(-50% + var(--x, 0px)) -50%;
-    /* fisheye: neighbours turn away from the viewer like on a drum */
-    transform: perspective(110px) rotateY(var(--ry, 0deg));
-  }
-  .w[data-s='-2'] {
-    --x: -132px;
-    --ry: -78deg;
-  }
-  .w[data-s='-1'] {
-    --x: -80px;
-    --ry: -56deg;
-    opacity: 0.85;
   }
   .w[data-s='0'] {
     font-family: var(--f-brush);
@@ -133,25 +147,6 @@ const slotOf = (i: number) => {
     font-size: 32px;
     line-height: 40px;
     color: var(--text);
-    opacity: 1;
-  }
-  .w[data-s='1'] {
-    --x: 80px;
-    --ry: 56deg;
-    opacity: 0.85;
-  }
-  .w[data-s='2'] {
-    --x: 132px;
-    --ry: 78deg;
-  }
-  .w[data-s='-1'],
-  .w[data-s='1'] {
-    pointer-events: auto;
-    cursor: pointer;
-  }
-  .w[data-s='-1']:hover,
-  .w[data-s='1']:hover {
-    opacity: 1;
   }
 
   .sr-en {
@@ -241,6 +236,8 @@ const slotOf = (i: number) => {
 </style>
 
 <script>
+  import EmblaCarousel from 'embla-carousel';
+
   type Word = { zh: string; en: string; learned: number };
 
   const root = document.querySelector<HTMLElement>('[data-sr]')!;
@@ -248,75 +245,50 @@ const slotOf = (i: number) => {
   const enEl = root.querySelector<HTMLElement>('[data-en]')!;
   const timeline = root.querySelector<HTMLElement>('[data-timeline]')!;
   const cols = [...timeline.querySelectorAll<HTMLElement>('.tcol')];
-  const items = [...line.querySelectorAll<HTMLElement>('.w')];
   const words: Word[] = JSON.parse(root.dataset.words!);
   const GAPS: number[] = JSON.parse(root.dataset.gaps!);
   const n = words.length;
-  const N = items.length; // 2n
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // Same motion as the Chunks slot: Penner's easeOutBack, font swaps partway through.
-  const DURATION = 380;
-  const C1 = 1.70158;
-  const C3 = C1 + 1;
-  const easeOutBack = (t: number) => 1 + C3 * Math.pow(t - 1, 3) + C1 * Math.pow(t - 1, 2);
-  const X: Record<number, number> = { [-2]: -132, [-1]: -80, 0: 0, 1: 80, 2: 132 };
-  const RY: Record<number, number> = { [-2]: -78, [-1]: -56, 0: 0, 1: 56, 2: 78 };
-  const SIZE: Record<number, number> = { [-2]: 24, [-1]: 24, 0: 32, 1: 24, 2: 24 };
-  const OP: Record<number, number> = { [-2]: 0, [-1]: 0.85, 0: 1, 1: 0.85, 2: 0 };
+  const embla = EmblaCarousel(line, {
+    loop: true,
+    align: 'center',
+    startIndex: Number(root.dataset.start),
+    duration: reduce ? 0 : 28,
+  });
+  const slides = embla.slideNodes();
+  const ws = slides.map((s) => s.querySelector<HTMLElement>('.w')!);
 
-  let pos = Number(root.dataset.start);
-  const rel = (i: number) => {
-    let s = (((i - pos) % N) + N) % N;
-    if (s >= N / 2) s -= N;
-    return Math.max(-2, Math.min(2, s));
-  };
-
-  function place() {
-    items.forEach((it, i) => (it.dataset.s = String(rel(i))));
-  }
-
-  let raf = 0;
-  let finish: (() => void) | null = null;
-
-  function animate(prev: number[], next: number[]) {
-    finish?.();
-    const moving = items
-      .map((it, i) => ({ it, from: prev[i], to: next[i] }))
-      .filter((m) => m.from !== m.to && Math.abs(m.from - m.to) <= 2);
-    items.forEach((it, i) => {
-      if (Math.abs(prev[i] - next[i]) > 2) it.dataset.s = String(next[i]);
+  // Fisheye from Embla's position: d = how many slides away from the centre each word is.
+  function fisheye() {
+    const engine = embla.internalEngine();
+    const progress = embla.scrollProgress();
+    const snaps = embla.scrollSnapList();
+    snaps.forEach((snap, snapIndex) => {
+      let diff = snap - progress;
+      engine.slideRegistry[snapIndex].forEach((slideIndex) => {
+        if (engine.options.loop) {
+          engine.slideLooper.loopPoints.forEach((loopItem) => {
+            const target = loopItem.target();
+            if (slideIndex === loopItem.index && target !== 0) {
+              const sign = Math.sign(target);
+              if (sign === -1) diff = snap - (1 + progress);
+              if (sign === 1) diff = snap + (1 - progress);
+            }
+          });
+        }
+        const d = diff * snaps.length; // in slides
+        const a = Math.abs(d);
+        const w = ws[slideIndex];
+        const s = a < 0.5 ? 0 : Math.sign(d);
+        if (w.dataset.s !== String(s)) w.dataset.s = String(s);
+        // size eases from 32 (centre) to 24 (neighbour); scale compensates for the current font
+        const size = 32 - 8 * Math.min(a, 1);
+        w.style.setProperty('--sc', (size / (s === 0 ? 32 : 24)).toFixed(4));
+        w.style.setProperty('--ry', `${(-Math.max(-78, Math.min(78, d * 56))).toFixed(2)}deg`);
+        w.style.opacity = String(a <= 1 ? 1 - 0.15 * a : Math.max(0, 0.85 * (2 - a)));
+      });
     });
-    const done = () => {
-      cancelAnimationFrame(raf);
-      for (const m of moving) {
-        m.it.dataset.s = String(m.to);
-        m.it.style.removeProperty('--x');
-        m.it.style.removeProperty('--ry');
-        m.it.style.scale = m.it.style.opacity = '';
-      }
-      finish = null;
-    };
-    if (reduce) return done();
-    finish = done;
-    const t0 = performance.now();
-    const frame = (now: number) => {
-      const t = Math.min(1, (now - t0) / DURATION);
-      const e = easeOutBack(t);
-      const f = t * t * (3 - 2 * t);
-      for (const { it, from, to } of moving) {
-        const s = e < 0.5 ? from : to;
-        if (it.dataset.s !== String(s)) it.dataset.s = String(s);
-        const size = SIZE[from] + (SIZE[to] - SIZE[from]) * e;
-        it.style.setProperty('--x', `${(X[from] + (X[to] - X[from]) * e).toFixed(2)}px`);
-        it.style.setProperty('--ry', `${(RY[from] + (RY[to] - RY[from]) * e).toFixed(2)}deg`);
-        it.style.scale = (size / SIZE[s]).toFixed(4);
-        it.style.opacity = String(OP[from] + (OP[to] - OP[from]) * f);
-      }
-      if (t < 1) raf = requestAnimationFrame(frame);
-      else done();
-    };
-    raf = requestAnimationFrame(frame);
   }
 
   function updateTimeline(w: Word) {
@@ -330,22 +302,19 @@ const slotOf = (i: number) => {
       c.style.opacity = (kind === 'idle' ? fade : Math.max(fade, 0.9)).toFixed(2);
       c.querySelector('span')!.textContent = kind === 'review' ? String(i) : '·';
     });
-    timeline.setAttribute(
-      'aria-label',
-      `Learned in lesson ${w.learned}, reviewed in lessons ${reviews.join(', ')}`,
-    );
+    timeline.setAttribute('aria-label', `Learned in lesson ${w.learned}, reviewed in lessons ${reviews.join(', ')}`);
   }
 
   let enTimer = 0;
-  function step(d: number) {
-    const prev = items.map((_, i) => rel(i));
-    pos = (((pos + d) % N) + N) % N;
-    const next = items.map((_, i) => rel(i));
-    animate(prev, next);
-    const w = words[pos % n];
+  let shown = embla.selectedScrollSnap() % n;
+  embla.on('select', () => {
+    const k = embla.selectedScrollSnap() % n;
+    if (k === shown) return;
+    shown = k;
+    const w = words[k];
     line.setAttribute('aria-valuetext', w.zh);
     updateTimeline(w);
-    // English line swaps when the new chunk settles
+    // English line swaps as the new chunk settles
     clearTimeout(enTimer);
     enEl.style.opacity = '0';
     enTimer = window.setTimeout(
@@ -353,24 +322,27 @@ const slotOf = (i: number) => {
         enEl.textContent = w.en;
         enEl.style.opacity = '';
       },
-      reduce ? 0 : DURATION * 0.6,
+      reduce ? 0 : 230,
     );
-  }
-
-  line.addEventListener('click', (e) => {
-    const t = e.target as HTMLElement;
-    const w = t.closest<HTMLElement>('.w');
-    if (w && (w.dataset.s === '-1' || w.dataset.s === '1')) step(Number(w.dataset.s));
   });
+  embla.on('scroll', fisheye);
+  embla.on('reInit', fisheye);
+
+  // click a neighbour to bring it to the centre
+  slides.forEach((slide, i) =>
+    slide.addEventListener('click', () => {
+      if (embla.clickAllowed()) embla.scrollTo(i);
+    }),
+  );
   line.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight') {
       e.preventDefault();
-      step(1);
+      embla.scrollNext();
     } else if (e.key === 'ArrowLeft') {
       e.preventDefault();
-      step(-1);
+      embla.scrollPrev();
     }
   });
 
-  place();
+  fisheye();
 </script>
