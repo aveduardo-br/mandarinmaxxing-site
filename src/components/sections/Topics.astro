@@ -49,11 +49,8 @@ const chapterOf = (cell: number) => Math.floor((cell / CELLS) * CHAPTERS) + 1;
 const stripData = topics.map((t, ti) => {
   const mine = owner.map((o, i) => (o === ti ? i : -1)).filter((i) => i >= 0);
   const k = t.words.length;
-  const cells = Array.from({ length: k }, (_, j) => {
-    const lo = Math.floor((j / k) * mine.length);
-    const hi = Math.max(lo, Math.floor(((j + 1) / k) * mine.length) - 1);
-    return mine[lo + Math.floor(rnd() * (hi - lo + 1))];
-  });
+  // one square from the middle of each fifth of the topic's squares, so the words sit apart
+  const cells = Array.from({ length: k }, (_, j) => mine[Math.floor(((j + 0.5) / k) * mine.length)]);
   const rest = new Set(mine.filter((c) => !cells.includes(c)).map(chapterOf));
   return {
     count: t.count,
