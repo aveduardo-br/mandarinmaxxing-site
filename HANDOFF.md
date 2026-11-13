@@ -29,17 +29,17 @@ Use a skill `design:ux-copy` para revisar títulos, botões e frases curtas.
 
 ## Onde o texto mora no código
 
-Ordem da página (`src/pages/index.astro`): Hero, 01 What it is, 02 Topics, not chapters, 03 Chunks, 04 Every lesson follows the same four steps, 05 Pace and audio, 06 Install, 07 FAQ, Footer.
+Ordem da página (`src/pages/index.astro`): Hero, 01 What it is, 02 Situations, not chapters, 03 Chunks, 04 Every lesson follows the same four steps, 05 Your course, 06 Install, FAQ, Footer.
 
 | Parte | Arquivo |
 | --- | --- |
 | Títulos das seções, side nav, FAQ, versão e links da skill | `src/data/site.ts` |
 | Hero (frase, botões, meta linha) | `src/components/Hero.astro` |
 | 01 What it is | `src/components/sections/WhatItIs.astro` |
-| 02 Topics (intro, comparação com o livro, lista) | `src/components/sections/Topics.astro`, dados em `src/data/topics.ts` |
+| 02 Situations (intro, comparação com o livro, lista) | `src/components/sections/Topics.astro`, dados em `src/data/situations.ts` |
 | 03 Chunks | `src/components/sections/Chunks.astro` |
 | 04 Lesson (bento com 5 cards) | `src/components/sections/Lesson.astro`, mais `QuickReview`, `SpacedReview`, `TranslationChat` e `DialogueCard` |
-| 05 Pace and audio | `src/components/sections/Pace.astro` |
+| 05 Your course | `src/components/sections/Course.astro` |
 | 06 Install | `src/components/sections/Install.astro` |
 | 07 FAQ | `src/components/sections/Faq.astro` + `faq` em `site.ts` |
 | Footer | `src/components/Footer.astro` |
@@ -60,11 +60,22 @@ Os títulos da side nav vêm de `sections` em `site.ts`. Se um título mudar, mu
 - **Não mexer em design nem em animação nesta fase**, a não ser que ele peça. Ele rejeita coisas que ficam "travadas" ou coloridas demais.
 - **Fontes:** Geist Light no texto corrido, Geist 600 nos títulos (`.display`) e Ma Shan Zheng em todos os hanzi. Ele quer a mesma fonte de hanzi em todo o site.
 
-## Estado atual (12/11/2026)
+## Estado atual (13/11/2026)
 
-- **Último commit:** a troca do useful chunk no card de vocabulário voltou para o efeito de glitch. O teste com escrita por traços foi desfeito.
-- **Pace and audio:** os nomes 轻松 / 标准 / 强化 são escritos com animação de traços (biblioteca `hanzi-writer`), e as carinhas placeholder foram removidas.
-  - **Em aberto:** o Eduardo disse que quer a mesma fonte em tudo. Os traços animados não usam a Ma Shan Zheng. Pergunte se ele quer tirar a animação do Pace também.
+A copy foi reescrita para a skill v0.3.0, com o messaging de `docs/messaging.md`.
+
+- **Hero:** frase principal nova. O bloco do comando de terminal saiu; os botões são download e "How to install".
+- **02 Situations, not chapters:** mostra o mapa real do HSK 1 (22 aulas, 300 palavras), gerado do repositório da skill em `src/data/situations.ts`. A barra é a lista oficial do HSK 1, um quadrado por palavra, na ordem do syllabus. O exemplo do livro é a Lição 3 do HSK Standard Course 2, conferida na fonte.
+- **03 Chunks e 04 (bentos):** mesmos componentes, com palavras do HSK 1. As frases de Chunks só usam caracteres que existem em `public/fonts/zpix-site.woff`.
+- **05 Your course:** substitui "Pace and audio". Nível, ritmo (3 / 5 / 7 ou outro número), áudio e idioma.
+- **06 Install:** quatro passos para o app do Claude, áudio opcional e uma linha para Claude Code e Codex.
+- **FAQ:** reescrito. A primeira resposta é a única em primeira pessoa.
+
+**Em aberto**
+
+- **Card 04 do bento (áudio).** O exemplo ainda é o diálogo de duas vozes no restaurante. A skill agora gera um texto curto de uma voz (Sarah). Falta regravar o áudio e refazer os tempos em `DialogueCard.astro`.
+- O Eduardo disse que quer a mesma fonte em todos os hanzi. Os traços animados dos ritmos (轻松 / 标准 / 强化) não usam a Ma Shan Zheng.
+- Ao mudar o mapa da skill, gere `src/data/situations.ts` de novo e atualize `SKILL_VERSION` em `src/data/site.ts`.
 
 ## Pendências fora da copy (não são desta fase)
 
