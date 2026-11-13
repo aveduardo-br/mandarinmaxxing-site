@@ -1,19 +1,28 @@
 ---
-// Section 05 — Paper node 3F-0.
+// Section 05 — "Your course" (layout of the pace row from Paper node 3F-0).
 import Section from '../Section.astro';
 
 const paces = [
-  { name: 'Light', zh: '轻松', items: '1–4 items per lesson', tone: 'light' },
-  { name: 'Standard', zh: '标准', items: '5–7 items per lesson', extra: 'default', tone: 'standard' },
-  { name: 'Intensive', zh: '强化', items: '8–10 items per lesson', tone: 'intensive' },
+  { name: 'Light', zh: '轻松', items: '3 new words', tone: 'light' },
+  { name: 'Standard', zh: '标准', items: '5 new words', extra: 'recommended', tone: 'standard' },
+  { name: 'Intensive', zh: '强化', items: '7 new words', tone: 'intensive' },
 ];
 ---
 
-<Section id="pace" num="05" title="Pace and audio">
+<Section id="course" num="05" title="Your course">
   <p class="prose">
-    In the first conversation you pick your HSK 3.0 level, a pace, and whether you want audio. If you've studied
-    before, you can start further in after seeing the lesson plan.
+    The course is yours. The first message makes three suggestions, and you can change any of them, then or later.
   </p>
+
+  <h3 class="sub display">Level</h3>
+  <p class="prose">
+    New to Mandarin? Start with HSK 1, lesson 1. If you’ve studied before, name the level or the lesson you want to
+    pick up from. Before the first lesson you see the whole list for your level, and you can move lessons around: food
+    before phone calls, if that’s what you need first.
+  </p>
+
+  <h3 class="sub display">Pace</h3>
+  <p class="prose">How many new words each time you sit down to study. Any other number works too.</p>
 
   <div class="paces">
     {
@@ -44,14 +53,23 @@ const paces = [
   </div>
 
   <p class="prose">
-    Audio is optional, but recommended. Hearing the chunks in a conversation is the point of the dialogues. ElevenLabs
-    is the first suggestion for two-voice dialogues, and you can connect another compatible provider. Without audio, the
-    dialogue appears in the chat in hanzi, without pinyin, followed by the questions.
+    At the standard pace, HSK 1 is 58 sittings. One a day gets you through all 300 words in about two months.
+  </p>
+
+  <h3 class="sub display">Audio</h3>
+  <p class="prose">
+    Optional. Every lesson closes with a short text made of the words you just learned. With audio, you hear it in a
+    natural voice without seeing it written, then answer what you understood. It’s the course’s listening practice.
   </p>
   <p class="prose">
-    Hanzi you can actually see. Where the chat supports it, the vocabulary table shows characters at 2.5× the base
-    size. The system font works fine. If you want strokes closer to careful handwriting, the skill suggests Kaiti SC
-    Bold on Mac or AR PL KaitiM GB on Windows.
+    Most people use ElevenLabs, which has a free account, and you can bring another voice provider. Without audio
+    there’s nothing to set up: you read the text instead.
+  </p>
+
+  <h3 class="sub display">Your language</h3>
+  <p class="prose">
+    The skill explains, asks and corrects in the language you write in. You answer in Mandarin from the first lesson.
+    You can start by typing pinyin, and turn on your Chinese keyboard when you want the next step.
   </p>
 </Section>
 
@@ -62,7 +80,7 @@ const paces = [
   // or reduced motion is on, the characters stay as static text in the brush font.
   import HanziWriter from 'hanzi-writer';
 
-  const wrap = document.querySelector<HTMLElement>('#pace .paces');
+  const wrap = document.querySelector<HTMLElement>('#course .paces');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (wrap && !reduce) {
     wrap.classList.add('writing');
@@ -115,6 +133,12 @@ const paces = [
 </script>
 
 <style>
+  .sub {
+    margin-top: 16px;
+    font-size: var(--fs-h4);
+    line-height: var(--lh-h4);
+    color: var(--text);
+  }
   .paces {
     display: flex;
     gap: 24px;

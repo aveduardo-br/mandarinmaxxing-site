@@ -8,34 +8,35 @@ import DialogueCard from './DialogueCard.astro';
 
 // Vocabulary card: hovering a row makes it active (the last one hovered stays) and swaps the useful
 // chunk below for one that uses that word. [before, word, after] so the word can be highlighted.
+// Words from Lesson 13 of the HSK 1 map, "Shopping and paying".
 const vocab = [
   {
-    hanzi: '菜单',
-    pinyin: 'càidān',
-    meaning: 'menu',
-    zh: ['请给我', '菜单', ''],
-    en: ['The ', 'menu', ', please.'],
+    hanzi: '买',
+    pinyin: 'mǎi',
+    meaning: 'buy',
+    zh: ['我想', '买', '这个'],
+    en: ['I want to ', 'buy', ' this one.'],
   },
   {
-    hanzi: '味道',
-    pinyin: 'wèidào',
-    meaning: 'taste',
-    zh: ['', '味道', '怎么样？'],
-    en: ['How does it ', 'taste', '?'],
+    hanzi: '块',
+    pinyin: 'kuài',
+    meaning: 'kuai (yuan)',
+    zh: ['五十', '块', ''],
+    en: ['Fifty ', 'kuai', '.'],
   },
   {
-    hanzi: '推荐',
-    pinyin: 'tuījiàn',
-    meaning: 'recommend',
-    zh: ['你有什么', '推荐', '？'],
-    en: ['What do you ', 'recommend', '?'],
+    hanzi: '贵',
+    pinyin: 'guì',
+    meaning: 'expensive',
+    zh: ['太', '贵', '了'],
+    en: ['Too ', 'expensive', '!'],
   },
   {
-    hanzi: '打包',
-    pinyin: 'dǎbāo',
-    meaning: 'to go',
-    zh: ['我要', '打包', ''],
-    en: ["I'd like it ", 'to go', '.'],
+    hanzi: '便宜',
+    pinyin: 'piányi',
+    meaning: 'cheap',
+    zh: ['', '便宜', '一点儿，可以吗？'],
+    en: ['A bit ', 'cheaper', ', OK?'],
   },
 ];
 
@@ -43,8 +44,8 @@ const vocab = [
 
 <Section id="lesson" num="04" title="Every lesson follows the same four steps">
   <p class="prose">
-    Review, new words, translation, dialogue. Same order every time, so you always know what comes next, and older
-    words keep coming back along the way.
+    A lesson is one situation, studied a part at a time: a few new words per sitting. Each part goes review, new
+    words, translation, and a short text. Same order every time, so you always know what comes next.
   </p>
 
   <div class="bento">
@@ -56,7 +57,7 @@ const vocab = [
         </div>
         <footer class="foot">
           <div class="foot-head"><span class="tag display">01</span><h3>Quick review</h3></div>
-          <p>Short questions on the last lesson, mixed with older chunks that are due to come back.</p>
+          <p>A few sentences to translate with the words from your last sitting, mixed with older ones that are due to come back.</p>
         </footer>
       </article>
 
@@ -65,7 +66,7 @@ const vocab = [
         <SpacedReview />
         <footer class="foot">
           <div class="foot-head"><span class="tag display">+</span><h3>Spaced review</h3></div>
-          <p>Older words return later, so they don’t fade.</p>
+          <p>Older words return inside later lessons, so they don’t fade.</p>
         </footer>
       </article>
     </div>
@@ -98,8 +99,8 @@ const vocab = [
           </div>
         </div>
         <footer class="foot">
-          <div class="foot-head"><span class="tag display">02</span><h3>Vocabulary and chunks</h3></div>
-          <p>A table with hanzi, pinyin and meaning, then the useful phrases.</p>
+          <div class="foot-head"><span class="tag display">02</span><h3>New words and chunks</h3></div>
+          <p>A table with hanzi, pinyin and meaning, then the phrases they make.</p>
         </footer>
       </article>
 
@@ -108,7 +109,7 @@ const vocab = [
         <TranslationChat />
         <footer class="foot">
           <div class="foot-head"><span class="tag display">03</span><h3>Written translation</h3></div>
-          <p>You write in Mandarin, one sentence at a time. Claude corrects it and sends the next.</p>
+          <p>One sentence at a time, from your language into Mandarin. You see what to change and the corrected sentence.</p>
         </footer>
       </article>
     </div>
@@ -117,8 +118,8 @@ const vocab = [
     <article class="card">
       <DialogueCard />
       <footer class="foot">
-        <div class="foot-head"><span class="tag display">04</span><h3>Dialogue and comprehension</h3></div>
-        <p>One to three short dialogues, about 20 seconds each. Listen or read, answer all the questions, get corrected.</p>
+        <div class="foot-head"><span class="tag display">04</span><h3>A short text to close</h3></div>
+        <p>With audio, you listen without seeing the text and answer what you understood. Without it, you read the text and rewrite it with a few changes.</p>
       </footer>
     </article>
   </div>

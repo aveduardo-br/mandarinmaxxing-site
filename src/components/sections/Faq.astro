@@ -1,37 +1,51 @@
 ---
-// Section 07 — Paper node 4C-0. Design not reviewed yet by Eduardo (built as-is, marked for review).
+// FAQ. The first answer is the only place where Eduardo speaks in the first person.
+// Answers are plain strings; a few carry a link, so they are rendered as HTML.
+import { SKILL_ISSUES } from '../../data/site';
+
 const items = [
   {
     id: 'faq-why',
     q: 'Why did you make this?',
     a: [
-      "I made it for myself first. I'd taken classes with teachers, and the usual HSK pace felt a bit slow for me. If you have more time in your day to study, a faster plan built around topics might suit you too.",
-      "So I wrote my own course, in Portuguese: 67 lessons covering HSK 3.0 levels 1 and 2, each one built around a situation. A friend who was also studying, and having a hard time, tried it and ended up preferring it. That's when I turned it into a skill anyone can use.",
-      "For now, it's just Mandarin.",
+      'I made it for myself first. In the textbook I was using, one lesson taught the word for room next to the word for watch, because that chapter’s grammar needed them. I wanted the opposite: to learn everything around one moment, and be able to talk about it.',
+      'So I wrote my own course, in Portuguese: 67 lessons covering HSK levels 1 and 2, each one built around a situation. I felt more progress that way. I remembered words better and connected ideas faster. That’s my experience, not a promise.',
+      'A friend who was also studying tried it and ended up preferring it. That’s when I turned it into a skill anyone can use.',
+      `I keep improving it as I study. If a lesson feels off, <a href="${SKILL_ISSUES}" target="_blank" rel="noopener">tell me on GitHub ↗</a>.`,
     ],
   },
   {
-    id: 'faq-where',
-    q: 'Where does it work?',
-    a: ['Claude on the web and desktop, Claude Code and Codex. How things look can vary from one chat app to another.'],
-  },
-  {
-    id: 'faq-new-chat',
-    q: 'How do I pick up in a new chat?',
+    id: 'faq-saved',
+    q: 'Where does my course live?',
     a: [
-      "Save your lesson plan as a Markdown file. In a new chat, attach it and say which lesson you're on. You can also ask for a numbered review or more exercises on something that was hard.",
+      'In your Claude project. The skill keeps one small file there with your settings, your lesson list and what you’ve finished. Open a new chat in the same project, on any device, and say “next lesson”. There’s nothing to attach or paste.',
+      'The skill also runs in Claude Code and Codex, where the course is saved in your working folder. I test it mostly in the Claude app.',
     ],
   },
   {
-    id: 'faq-pronunciation',
-    q: 'Does it check my pronunciation?',
-    a: ['No. The skill covers vocabulary, writing and listening. Tones and pronunciation are best practiced with a teacher.'],
+    id: 'faq-levels',
+    q: 'Which levels does it cover?',
+    a: [
+      'HSK 1 is ready: all 300 words, in 22 lessons mapped by hand. The first seven are a jump start: greetings, saying what you want, saying who you are.',
+      'For HSK 2 to 6 the official word lists are included, and the skill builds the lesson map for your level when you start it. Hand-checked maps are coming, HSK 2 first.',
+      'The word list is the HSK syllabus released in November 2025.',
+    ],
+  },
+  {
+    id: 'faq-not',
+    q: 'What doesn’t it do?',
+    a: [
+      'It doesn’t check your pronunciation or tones. Speaking practice is up to you.',
+      'It doesn’t replace flashcards for long-term memory. Older words come back inside lessons, but the skill doesn’t track every word you’ve missed.',
+      'It doesn’t promise fluency or a passing score. It covers the vocabulary. The exam also tests grammar, handwriting and speaking.',
+    ],
   },
   {
     id: 'faq-free',
     q: 'Is it free? Is it official?',
     a: [
-      'The skill is free. If you connect an audio provider, it may have its own plans. mandarinmaxxing is an independent project that uses the HSK 3.0 list as a reference.',
+      'The skill is free. You need a Claude account, and a voice provider, if you connect one, has its own plans.',
+      'mandarinmaxxing is an independent project. It uses the official HSK word list and isn’t affiliated with the organization that runs the test.',
     ],
   },
 ];
@@ -45,7 +59,7 @@ const items = [
       <div id={it.id} class="item">
         <h3 class="q display">{it.q}</h3>
         {it.a.map((p) => (
-          <p class="prose">{p}</p>
+          <p class="prose" set:html={p} />
         ))}
       </div>
     ))
@@ -80,6 +94,11 @@ const items = [
   }
   .item:last-child {
     border-bottom: 1px solid var(--outline);
+  }
+  .item :global(a) {
+    color: var(--text);
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
   .q {
     font-size: var(--fs-h4);

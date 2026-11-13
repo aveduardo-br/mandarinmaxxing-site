@@ -3,10 +3,6 @@
 // Glyph data (SVG paths, deduplicated) lives in public/hero-art.json and is fetched at runtime.
 import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
 
-const commands = {
-  'claude-code': 'npx skills add aveduardo-br/mandarinmaxxing --skill mandarinmaxxing -a claude-code',
-  codex: 'npx skills add aveduardo-br/mandarinmaxxing --skill mandarinmaxxing -a codex',
-};
 ---
 
 <header class="hero">
@@ -20,36 +16,23 @@ const commands = {
   </div>
 
   <div class="cta">
-    <div class="cmd" data-cmd-box>
-      <div class="tabs" role="tablist" aria-label="Install target">
-        <button class="tab" role="tab" aria-selected="true" data-target="claude-code">Claude Code</button>
-        <button class="tab" role="tab" aria-selected="false" data-target="codex">Codex</button>
-      </div>
-      <div class="cmd-line">
-        <code data-cmd data-claude-code={commands['claude-code']} data-codex={commands.codex}
-          >{commands['claude-code']}</code
-        >
-      </div>
-    </div>
-
     <div class="text">
       <p class="kicker">a skill for Claude</p>
       <h1 class="lede">
-        A topic-based way to study Mandarin with HSK&nbsp;3.0 vocabulary and phrases you can use in everyday
-        conversations.
+        The same HSK words, reorganized around everyday conversations.
       </h1>
     </div>
 
     <div class="buttons">
       <a class="btn solid" href={SKILL_ZIP}>Download for Claude</a>
-      <button class="btn outline" type="button" data-copy>Copy install command</button>
+      <a class="btn outline" href="#install">How to install ↓</a>
     </div>
   </div>
 
   <p class="meta">
-    <span>/mandarinmaxxing</span><span>·</span><span>HSK 3.0</span><span>·</span><span>by Eduardo</span><span
-      >·</span
-    ><span>{SKILL_VERSION}</span><span>·</span><span>Free</span><span>·</span><a href="#install">Install ↓</a>
+    <span>HSK 3.0</span><span>·</span><span>by Eduardo</span><span>·</span><span>{SKILL_VERSION}</span><span>·</span><span
+      >Free</span
+    ><span>·</span><a href="#what-it-is">How it works ↓</a>
   </p>
 </header>
 
@@ -113,44 +96,10 @@ const commands = {
     gap: 12px;
   }
 
-  .cmd {
-    width: 100%;
-    border: 1px solid var(--outline);
-  }
-  .tabs {
-    display: flex;
-    gap: 20px;
-    padding: 10px 16px;
-    border-bottom: 1px solid var(--outline);
-  }
-  .tab {
-    background: none;
-    border: 0;
-    padding: 0;
-    font: 500 var(--fs-caption) / var(--lh-caption) var(--f-body);
-    color: var(--muted);
-    cursor: pointer;
-  }
-  .tab[aria-selected='true'] {
-    color: var(--text);
-  }
-  .tab:focus-visible,
   .btn:focus-visible {
     outline: 1px solid var(--accent);
     outline-offset: 3px;
   }
-  .cmd-line {
-    padding: 14px 16px;
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-  .cmd-line code {
-    font-family: var(--f-mono);
-    font-size: 13px;
-    line-height: 16px;
-    color: var(--text);
-  }
-
   .text {
     display: flex;
     flex-direction: column;
@@ -210,31 +159,6 @@ const commands = {
 </style>
 
 <script>
-  // ---------- install command tabs + copy ----------
-  const code = document.querySelector<HTMLElement>('[data-cmd]')!;
-  const tabs = document.querySelectorAll<HTMLButtonElement>('.tab');
-  const copyBtn = document.querySelector<HTMLButtonElement>('[data-copy]')!;
-  let target = 'claude-code';
-
-  tabs.forEach((t) =>
-    t.addEventListener('click', () => {
-      target = t.dataset.target!;
-      tabs.forEach((x) => x.setAttribute('aria-selected', String(x === t)));
-      code.textContent = target === 'codex' ? code.dataset.codex! : code.dataset.claudeCode!;
-    }),
-  );
-
-  const label = copyBtn.textContent;
-  copyBtn.addEventListener('click', async () => {
-    try {
-      await navigator.clipboard.writeText(code.textContent ?? '');
-      copyBtn.textContent = 'Copied';
-    } catch {
-      copyBtn.textContent = 'Copy failed';
-    }
-    setTimeout(() => (copyBtn.textContent = label), 1600);
-  });
-
   // ---------- rising hanzi art (port of the prototype) ----------
   type Art = { glyphs: string[]; cells: [number, number, number, number][]; maxxing: string };
   type Cell = {

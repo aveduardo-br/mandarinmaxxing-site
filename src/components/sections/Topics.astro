@@ -1,70 +1,33 @@
 ---
 // Section 02 — Paper "Topics — bar A v2".
-// Intro compares a textbook lesson with mandarinmaxxing's topics. Below, the ten topics: closed /
-// hover (arrow head slides in, row turns light orange) / open (accordion with the topic's words).
-// Under the list a bar sticks to the bottom of the screen while the list is in view and stays
-// attached under it afterwards. Its strip is the HSK 4 book (1,000 words) in chapter order: the open
-// topic's words show white, the hovered topic's light orange, scattered across the book.
+// Intro compares a textbook lesson with mandarinmaxxing's situations. Below, the 22 situations of the
+// HSK 1 map: closed / hover (arrow head slides in, row turns light orange) / open (accordion with the
+// lesson's words). Under the list a bar sticks to the bottom of the screen while the list is in view
+// and stays attached under it afterwards. Its strip is the official HSK 1 list, one square per word,
+// in the order the syllabus prints it: the open situation's words show white, the hovered one's
+// light orange, scattered across the list. All positions are real (src/data/situations.ts).
 import Section from '../Section.astro';
-import { topics, bookLesson, HSK4_TOTAL } from '../../data/topics';
+import { situations, bookLesson, HSK1_TOTAL } from '../../data/situations';
 
-// ---- the strip: 2 rows of squares, each square ≈ 3 words, every square owned by one topic ----
-const COLS = 170;
+const topics = situations;
 const ROWS = 2;
-const CELLS = COLS * ROWS;
-const CHAPTERS = 20; // an HSK 4 textbook has 20 lessons
-let seed = 7;
-const rnd = () => {
-  seed = (seed + 0x6d2b79f5) | 0;
-  let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-};
-// squares per topic, proportional to its word count
-const share = topics.map((t) => Math.round((t.count / HSK4_TOTAL) * CELLS));
-share[share.length - 1] += CELLS - share.reduce((a, b) => a + b, 0);
-// cut each topic into small clusters (1–3 squares), shuffle them, lay them out column by column
-const chunks: number[][] = [];
-share.forEach((n, ti) => {
-  while (n > 0) {
-    const k = Math.min(n, 1 + Math.floor(rnd() * 3));
-    chunks.push(Array(k).fill(ti));
-    n -= k;
-  }
+const COLS = HSK1_TOTAL / ROWS;
+// owner[i] = the situation that teaches official word number i + 1
+const owner: number[] = Array(HSK1_TOTAL).fill(0);
+topics.forEach((t, ti) => {
+  for (const w of t.words) owner[w.no - 1] = ti;
+  for (const n of t.rest) owner[n - 1] = ti;
 });
-for (let i = chunks.length - 1; i > 0; i--) {
-  const j = Math.floor(rnd() * (i + 1));
-  [chunks[i], chunks[j]] = [chunks[j], chunks[i]];
-}
-const owner = chunks.flat(); // index = col * ROWS + row
-// how many textbook chapters each topic's words are spread over
-const chapters = topics.map((_, ti) => {
-  const set = new Set<number>();
-  owner.forEach((o, i) => o === ti && set.add(Math.floor((i / CELLS) * CHAPTERS)));
-  return set.size;
-});
-// Each word shown in an open topic gets one square of its topic (spread along the strip); "+N more"
-// is all the topic's other squares. TODO (pendência): real positions once the word lists exist.
-const chapterOf = (cell: number) => Math.floor((cell / CELLS) * CHAPTERS) + 1;
-const stripData = topics.map((t, ti) => {
-  const mine = owner.map((o, i) => (o === ti ? i : -1)).filter((i) => i >= 0);
-  const k = t.words.length;
-  // one square from the middle of each fifth of the topic's squares, so the words sit apart
-  const cells = Array.from({ length: k }, (_, j) => mine[Math.floor(((j + 0.5) / k) * mine.length)]);
-  const rest = new Set(mine.filter((c) => !cells.includes(c)).map(chapterOf));
-  return {
-    count: t.count,
-    chapters: chapters[ti],
-    words: t.words.map((w, j) => ({ zh: w.hanzi, en: w.en, cell: cells[j], chapter: chapterOf(cells[j]) })),
-    moreChapters: rest.size,
-  };
-});
+const stripData = topics.map((t) => ({
+  count: t.count,
+  words: t.words.map((w) => ({ zh: w.hanzi, en: w.en, cell: w.no - 1, no: w.no })),
+}));
 ---
 
-<Section id="topics" num="02" title="Topics, not chapters">
+<Section id="topics" num="02" title="Situations, not chapters">
   <p class="prose">
-    HSK 3.0 is the official vocabulary list for each level of the Chinese proficiency test. A prep book teaches it
-    chapter by chapter, in the order the book chose — so one lesson can look like this:
+    The HSK syllabus is the official word list for each level of the Chinese proficiency test. A textbook teaches
+    those words chapter by chapter, around the grammar of each chapter. So one lesson can look like this:
   </p>
   <div class="book">
     <div class="book-head">
@@ -100,11 +63,12 @@ const stripData = topics.map((t, ti) => {
         ))
       }
     </div>
-    <p class="book-note">Together because they show up in the same story, not because you’d use them together.</p>
+    <p class="book-note">What ties them together is the chapter’s grammar, not a moment where you’d use them.</p>
   </div>
   <p class="prose">
-    mandarinmaxxing covers the same words, grouped by situation — getting around, eating out, at work — so each lesson
-    is words you’d actually use together. Open all ten topics and you’ve covered HSK 4.
+    mandarinmaxxing teaches the same official words in another order: by situation. Saying what you want, shopping
+    and paying, getting sick. Each situation is one lesson. Finish all {topics.length} and you’ve met every word of
+    HSK 1.
   </p>
 
   <div class="topics-wrap">
@@ -138,10 +102,12 @@ const stripData = topics.map((t, ti) => {
                       <span class="en">{w.en}</span>
                     </div>
                   ))}
-                  <div class="word more" style={`--i:${t.words.length}`} data-w="more">
-                    <span class="hanzi">…</span>
-                    <span class="en">+{t.count - t.words.length} more</span>
-                  </div>
+                  {t.count > t.words.length && (
+                    <div class="word more" style={`--i:${t.words.length}`} data-w="more">
+                      <span class="hanzi">…</span>
+                      <span class="en">+{t.count - t.words.length} more</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -152,7 +118,7 @@ const stripData = topics.map((t, ti) => {
 
     <div class="bar" data-bar data-strip={JSON.stringify(stripData)}>
       <p class="bar-label" data-bar-label aria-live="polite">
-        The HSK 4 book: {HSK4_TOTAL.toLocaleString('en-US')} words, in the order its chapters teach them.
+        The official HSK 1 list: {HSK1_TOTAL} words, in the order the syllabus prints them.
       </p>
       <svg class="strip" viewBox={`0 0 ${COLS * 4 - 1} ${ROWS * 4 - 1}`} preserveAspectRatio="none" aria-hidden="true">
         {
@@ -700,10 +666,10 @@ const stripData = topics.map((t, ti) => {
   // ---- sticky bar: open topic in white, hovered topic in light orange, summed in the label ----
   const bar = document.querySelector<HTMLElement>('[data-bar]')!;
   const label = bar.querySelector<HTMLElement>('[data-bar-label]')!;
-  type WordCell = { zh: string; en: string; cell: number; chapter: number };
-  const data: { count: number; chapters: number; words: WordCell[]; moreChapters: number }[] = JSON.parse(bar.dataset.strip!);
+  type WordCell = { zh: string; en: string; cell: number; no: number };
+  const data: { count: number; words: WordCell[] }[] = JSON.parse(bar.dataset.strip!);
   const rects = [...bar.querySelectorAll<SVGRectElement>('rect')].map((r, i) => ({ r, t: Number(r.dataset.t), i }));
-  const TOTAL = '1,000';
+  const TOTAL = '300';
   let active = -1;
   let hover = -1;
   let wordFocus: number | 'more' | null = null; // a word (or "+N more") hovered in the open topic
@@ -726,10 +692,10 @@ const stripData = topics.map((t, ti) => {
       if (wordFocus === 'more') {
         label.innerHTML =
           `${span('o', String(d.count - d.words.length))} more words ` +
-          span('dim', `· spread across ${d.moreChapters} chapters in the book`);
+          span('dim', '· elsewhere in the official list');
       } else {
         const w = d.words[wordFocus];
-        label.innerHTML = `${span('o', w.zh)} ${w.en} ` + span('dim', `· chapter ${w.chapter} of 20 in the book`);
+        label.innerHTML = `${span('o', w.zh)} ${w.en} ` + span('dim', `· word ${w.no} of ${TOTAL} in the official list`);
       }
       return;
     }
@@ -739,16 +705,16 @@ const stripData = topics.map((t, ti) => {
       r.classList.remove('dim');
     }
     if (active < 0 && h < 0) {
-      label.innerHTML = `The HSK 4 book: ${TOTAL} words, in the order its chapters teach them.`;
+      label.innerHTML = `The official HSK 1 list: ${TOTAL} words, in the order the syllabus prints them.`;
     } else if (h < 0) {
       label.innerHTML =
-        `${span('w', String(data[active].count))} of ${TOTAL} HSK 4 words ` +
-        span('dim', '· the strip is the HSK 4 book, in chapter order');
+        `${span('w', String(data[active].count))} of ${TOTAL} HSK 1 words ` +
+        span('dim', '· the strip is the official list, in pinyin order');
     } else {
       const lead = active < 0 ? span('o', String(data[h].count)) : `${span('w', String(data[active].count))} ${span('o', '+ ' + data[h].count)}`;
       label.innerHTML =
-        `${lead} of ${TOTAL} HSK 4 words ` +
-        span('dim', `· in the book, these ${data[h].count} are spread across ${data[h].chapters} chapters. Here they’re one topic.`);
+        `${lead} of ${TOTAL} HSK 1 words ` +
+        span('dim', `· in the official list, these ${data[h].count} sit far apart. Here they’re one lesson.`);
     }
   }
 
