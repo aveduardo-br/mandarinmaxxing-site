@@ -7,8 +7,9 @@
 // - Audio (listen or read) only changes the last sentence.
 // Hovering a tile shows which lesson it is, its date, and (HSK 1) the situation it belongs to.
 //
-// HSK 1 uses the real numbers of its map: 97, 58 and 42 lessons at 3, 5 and 7 words. Levels 2 to 6
-// have no hand-made map yet, so their number is the word count divided by the pace, and the text says
+// HSK 1 to 4 use the real numbers of their maps (HSK 1: 97, 58 and 42 lessons at 3, 5 and 7 words).
+// Only HSK 1 carries its situations on the tiles. HSK 5 and 6 have no hand-made map, so their number is
+// the word count divided by the pace, and the text says
 // it is an estimate. The tiles are a showcase: how many there are, and which hanzi each one carries,
 // is not meant to match the data one to one.
 import Section from '../Section.astro';
@@ -43,9 +44,16 @@ const info = situations.map((s) => ({
   end: (end += s.count),
 }));
 
-// Lessons in HSK 1 at each pace: the parts of the hand-made map. Other levels are estimated.
-const MAPPED: Record<string, number> = { '3': 97, '5': 58, '7': 42 };
-const levels = hskLevels.map((l) => ({ words: l.words, sample: l.sample, fixed: l.level === 1 ? MAPPED : null }));
+// Lessons at each pace for the levels mapped by hand (HSK 1 to 4): the parts of each map, from the
+// header of maps/hsk-N.md in the skill repository (v0.4.0). HSK 5 and 6 are estimated.
+const MAPS: Record<number, Record<string, number>> = {
+  1: { '3': 97, '5': 58, '7': 42 },
+  2: { '3': 66, '5': 38, '7': 29 },
+  3: { '3': 168, '5': 94, '7': 69 },
+  4: { '3': 319, '5': 173, '7': 130 },
+};
+const MAPPED = MAPS[1];
+const levels = hskLevels.map((l) => ({ words: l.words, sample: l.sample, fixed: MAPS[l.level] ?? null }));
 const paces = [
   { key: '3', zh: '三', words: 'three' },
   { key: '5', zh: '五', words: 'five' },
@@ -71,7 +79,7 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     <div class="live" aria-live="polite">
       <div class="word display">lessons</div>
       <p data-main>
-        HSK 1, five new words each. One a day takes about two months.
+        HSK 1, about five new words each. One a day takes about two months.
       </p>
       <p>Each lesson ends with a short text to <b data-audio>listen to</b>.</p>
       <p class="note" data-note hidden></p>
@@ -96,7 +104,7 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
           ))
         }
       </div>
-      <p>HSK 1 to 6. New? Start at one. Studied before? Pick the lesson to begin from.</p>
+      <p>HSK 1 to 4, mapped by hand. New? Start at one. Studied before? Pick where to begin.</p>
     </div>
     <div class="sel">
       <div class="tile-label">Pace</div>
@@ -405,6 +413,8 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
       const want = new Map<number, TileVal>(next.tiles.map((t) => [t.y * COLS + t.x, { ch: t.ch, bg: t.bg }]));
       const lastTile = next.tiles[next.tiles.length - 1];
       const mapped = !!D.levels[level - 1].fixed;
+      // only HSK 1 carries its situations on the tiles (names, colours, jump start)
+      const named = level === 1;
       const delay = (i: number) => ((i % COLS) + Math.floor(i / COLS)) * STEP;
 
       clearHover();
@@ -412,8 +422,8 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
       byIndex = new Map(next.tiles.map((t) => [t.y * COLS + t.x, t]));
 
       const labels = () => {
-        startTag.textContent = mapped ? 'Today · Say hello' : 'Today · Lesson 1';
-        endTag.textContent = `${dateOf(next.n, 'short')} · ${mapped ? lastTile.name : `Lesson ${next.n}`}`;
+        startTag.textContent = named ? 'Today · Say hello' : 'Today · Lesson 1';
+        endTag.textContent = `${dateOf(next.n, 'short')} · ${named ? lastTile.name : `Lesson ${next.n}`}`;
         // beside the last tile when it fits; otherwise under it, so it never covers the text
         const edge = (lastTile.x + 1) * size;
         const under = edge + endTag.offsetWidth > width + 24;
@@ -442,13 +452,13 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
 
       const finish = dateOf(next.n, 'long');
       mainEl.innerHTML =
-        `HSK ${level}, ${WORDS[pace]} new words each. One a day takes ${span(next.n)}: start today, finish ` +
+        `HSK ${level}, about ${WORDS[pace]} new words each. One a day takes ${span(next.n)}: start today, finish ` +
         `${mapped ? 'on' : 'around'} <b>${finish}</b>.`;
       noteEl.hidden = mapped;
       noteEl.textContent = mapped
         ? ''
-        : `An estimate: HSK ${level} adds ${D.levels[level - 1].words.toLocaleString('en-US')} words. Only HSK 1 is mapped by hand so far.`;
-      jumpEl.hidden = !mapped;
+        : `An estimate: HSK ${level} adds ${D.levels[level - 1].words.toLocaleString('en-US')} words. HSK 1 to 4 are mapped by hand; for 5 and 6 the skill builds the map when you start.`;
+      jumpEl.hidden = !named;
       num.setAttribute('aria-label', `${mapped ? '' : 'about '}${next.n} lessons`);
     }
 

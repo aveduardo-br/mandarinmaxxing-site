@@ -4,7 +4,7 @@ export const SKILL_RELEASES = `${SKILL_REPO}/releases`;
 export const SKILL_ISSUES = `${SKILL_REPO}/issues`;
 // Always the newest release: the skill repo publishes one automatically for each new version.
 export const SKILL_ZIP = `${SKILL_REPO}/releases/latest/download/mandarinmaxxing-claude.zip`;
-export const SKILL_VERSION = 'v0.3.0';
+export const SKILL_VERSION = 'v0.4.0';
 
 export const sections = [
   { id: 'what-it-is', num: '01', title: 'What it is' },

@@ -989,7 +989,7 @@ export const bookLesson = {
       { where: 'Text 1', words: '手表' },
       { where: 'Text 2', words: '报纸 · 牛奶' },
       { where: 'Text 3', words: '房间 · 丈夫' },
-      { where: 'Text 4', words: '杯子' },
+      { where: 'Title', words: '红色' },
     ],
     note: 'The course follows the earlier HSK 2.0 levels.',
   },
@@ -1000,6 +1000,6 @@ export const bookLesson = {
     { hanzi: '牛奶', en: 'milk' },
     { hanzi: '房间', en: 'room' },
     { hanzi: '丈夫', en: 'husband' },
-    { hanzi: '杯子', en: 'cup' },
+    { hanzi: '红色', en: 'red' },
   ],
 };

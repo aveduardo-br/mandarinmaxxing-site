@@ -47,6 +47,10 @@ Os títulos da side nav vêm de `sections` em `site.ts`. Se um título mudar, mu
 - Ele gosta das seções Situations, Chunks e dos bentos: reaproveitar, não refazer. Ele rejeita coisas que ficam "travadas" ou coloridas demais.
 - **Fontes:** Geist Light no texto corrido, Geist 600 nos títulos (`.display`) e Ma Shan Zheng em todos os hanzi. Ele quer a mesma fonte de hanzi em todo o site.
 
+## Copy v0.4.0 (14/11/2026)
+
+A copy das cópias "copy v0.4.0 (proposta)" do Paper (página "Site — atual") foi passada para o site: versão v0.4.0, HSK 1 a 4 mapeados (FAQ e seletor de nível), "lesson" no lugar de "sitting" na seção 04, intervalos 3/7/14 no Spaced review. Na 05, os níveis 2 a 4 usam o número real de aulas dos mapas da skill; só o HSK 1 mostra as situações nos ladrilhos.
+
 ## Estado atual (13/11/2026)
 
 A copy foi reescrita para a skill v0.3.0, com o messaging de `docs/messaging.md`.
