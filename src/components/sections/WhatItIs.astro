@@ -4,15 +4,198 @@ import Section from '../Section.astro';
 
 <Section id="what-it-is" num="01" title="What it is">
   <p class="prose">
-    mandarinmaxxing is a skill for Claude that teaches Mandarin right in the chat. The words are the same as the
-    official HSK. What changes is the order: instead of a list, you learn by situation. Saying hello, introducing
-    yourself, ordering food, shopping.
+    mandarinmaxxing is a skill for Claude. It turns the chat into a tutor that takes you through the HSK vocabulary one
+    lesson at a time: new words, sentences to translate, corrections, and it remembers where you stopped.
   </p>
+
+  <div class="belt">
+    <div class="heads">
+      <span class="tile-tag">The official list</span>
+      <span class="tile-tag mm">mandarinmaxxing</span>
+    </div>
+    <div class="crop">
+      <div class="board" data-belt aria-hidden="true"></div>
+    </div>
+    <p class="note">The official list, regrouped into lessons. Each color is one lesson.</p>
+  </div>
+
   <p class="prose">
-    Each lesson teaches a few words inside phrases you can use right away, has you translate from your language into
-    Mandarin with feedback on the spot, and brings older words back so you don’t forget them.
-  </p>
-  <p class="prose">
-    No method is wrong. This is one option, for people who’d rather study this way.
+    It isn’t a complete method. It’s a guide to what to study next, like an HSK textbook, with the same official words
+    in a different order.
   </p>
 </Section>
+
+<style>
+  .belt {
+    margin: 32px 0;
+  }
+  .heads {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .mm {
+    background: #d2430e;
+    color: #0e0e0e;
+  }
+  /* the board is always 680px wide; on a narrow screen it is cropped evenly on both sides, so the
+     sorting in the middle stays in view */
+  .crop {
+    overflow: hidden;
+  }
+  .board {
+    position: relative;
+    width: 680px;
+    height: 140px;
+    margin-left: calc(50% - 340px);
+    overflow: hidden;
+  }
+  .board :global(.tile) {
+    left: 0;
+    top: 0;
+    visibility: visible;
+    will-change: transform;
+  }
+  .note {
+    margin-top: 14px;
+    font-size: var(--fs-caption);
+    line-height: 20px;
+    color: var(--muted);
+  }
+</style>
+
+<script>
+  import { makeSlot, ORANGE, MUTED, TILE as C, reduceMotion } from '../../scripts/tiles';
+
+  // The first five lessons of HSK 1: word, lesson, position in the official list.
+  const RAW =
+    '你好:1:146 再见:1:270 谢谢:1:240 不客气:1:13 对不起:1:44 没关系:1:119 您:1:149 好:1:70 没事:1:120 ' +
+    '我:2:220 要:2:251 水:2:191 茶:2:16 你:2:145 吗:2:114 不:2:12 喝:2:76 吃:2:20 饭:2:49 请:2:164 想:2:232 喜欢:2:224 做:2:298 ' +
+    '叫:3:90 什么:3:181 名字:3:127 请问:3:165 是:3:187 他:3:199 她:3:203 谁:3:180 也:3:252 ' +
+    '中国:4:288 人:4:169 在:4:271 哪:4:130 国:4:65 哪儿:4:133 去:4:166 说:4:195 中文:4:289 今天:4:93 明天:4:129 昨天:4:296 会:4:81 汉语:4:68 ' +
+    '这:5:278 那:5:135 朋友:5:155 的:5:29 认识:5:170 很:5:78 高兴:5:56 先生:5:230 女士:5:154 呢:5:143 我们:5:221 你们:5:147 们:5:123 他们:5:200 她们:5:204 都:5:40';
+  type Word = { w: string; l: number; o: number };
+  type Item = { w: Word; el: HTMLElement; x: number; y: number; px?: number; py?: number };
+
+  const B = document.querySelector<HTMLElement>('[data-belt]');
+  if (B) {
+    const WORDS: Word[] = RAW.split(' ').map((s) => {
+      const [w, l, o] = s.split(':');
+      return { w, l: +l, o: +o };
+    });
+    const COLORS = [ORANGE, ...MUTED]; // one colour per lesson
+    const reduce = reduceMotion();
+    const syl = [...WORDS].sort((a, b) => a.o - b.o); // the official order
+
+    // 25 columns by 5 rows. Left of the middle the words come in the official order, mixed;
+    // between ZS and ZE each one moves to the row of its lesson; right of it the rows are lessons.
+    const BC = 25, MID = 12, ROWS = 5, ZS = MID - 2, ZE = MID + 2;
+    const TICK = 650, OX = (680 - BC * C) / 2; // cropped 10px each side to fill the 680px column
+    let tiles: Item[] = [];
+    let timer: number | null = null;
+
+    const mk = (w: Word) => {
+      const slot = makeSlot(B, 'abs');
+      slot.span.textContent = w.w[0];
+      slot.el.style.backgroundColor = COLORS[w.l - 1];
+      return slot.el;
+    };
+
+    // each row takes the next word (in official order) whose lane is at most one row away,
+    // so a word never has to cross the whole board to reach its lane
+    const rk = Array(ROWS).fill(0);
+    const nextFor = (y: number): Word => {
+      for (let i = 0; i < syl.length; i++) {
+        const w = syl[(rk[y] + i) % syl.length];
+        if (Math.abs(w.l - 1 - y) <= 1) {
+          rk[y] = (rk[y] + i + 1) % syl.length;
+          return w;
+        }
+      }
+      return syl[0];
+    };
+    // each row on the left is a strip of short "phrases" with gaps, like a textbook line mixing lessons
+    const rnd = (a: number, b: number) => a + Math.floor(Math.random() * (b - a + 1));
+    const rows = Array.from({ length: ROWS }, () => ({ left: 0, gap: rnd(0, 5), blocked: false }));
+    const at = (x: number, y: number) => tiles.find((o) => o.x === x && o.y === y);
+
+    // continuous belt: x glides linearly over a whole beat, so the motion never stops;
+    // a row change rides on top with its own ease-in-out (x uses `translate`, y uses `transform`)
+    const place = (o: Item) => {
+      const px = o.px ?? o.x, py = o.py ?? o.y, el = o.el;
+      el.style.translate = `${o.x * C + OX}px 0px`;
+      el.style.transform = `translate(0px,${o.y * C}px)`;
+      if (!reduce) {
+        if (px !== o.x)
+          el.animate([{ translate: `${px * C + OX}px 0px` }, { translate: `${o.x * C + OX}px 0px` }], { duration: TICK, easing: 'linear' });
+        if (py !== o.y)
+          el.animate([{ transform: `translate(0px,${py * C}px)` }, { transform: `translate(0px,${o.y * C}px)` }], { duration: TICK * 0.9, easing: 'cubic-bezier(.65,0,.35,1)' });
+      }
+      o.px = o.x;
+      o.py = o.y;
+    };
+
+    const tick = () => {
+      // sorted lanes (past the zone): slide on, one cell per tick
+      tiles.filter((o) => o.x >= ZE).sort((a, b) => b.x - a.x).forEach((o) => { o.x++; place(o); });
+      tiles = tiles.filter((o) => {
+        if (o.x > BC) { o.el.remove(); return false; }
+        return true;
+      });
+      // sorting zone: each step a tile goes one cell right and, when there's room, one row toward its lane
+      const free = (x: number, y: number) => y >= 0 && y < ROWS && !at(x, y);
+      const moveIn = (o: Item, belt?: boolean) => {
+        const L = o.w.l - 1, d = L - o.y, s = Math.sign(d), dy = Math.abs(d), nx = o.x + 1, room = ZE - nx;
+        const ok = (x: number, y: number) => (x < ZE || y === L) && free(x, y);
+        const opts: [number, number][] = [];
+        if (dy === 0) opts.push([nx, o.y]);
+        else {
+          const diag: [number, number] = [nx, o.y + s], straight: [number, number] = [nx, o.y], up: [number, number] = [o.x, o.y + s];
+          const canWait = dy <= room; // still enough columns left to reach the lane later
+          if (canWait && Math.random() < 0.35) opts.push(straight, diag);
+          else opts.push(diag);
+          if (canWait) opts.push(straight);
+          if (!belt) opts.push(up);
+        }
+        for (const [x, y] of opts)
+          if (ok(x, y)) {
+            o.x = x;
+            o.y = y;
+            place(o);
+            return true;
+          }
+        return false;
+      };
+      tiles
+        .filter((o) => o.x >= ZS && o.x < ZE)
+        .sort((a, b) => b.x - a.x || Math.abs(b.w.l - 1 - b.y) - Math.abs(a.w.l - 1 - a.y))
+        .forEach((o) => moveIn(o));
+      // before the zone: each row moves as a rigid belt, so the holes between bursts stay open
+      rows.forEach((r, y) => {
+        r.blocked = false;
+        const row = tiles.filter((o) => o.y === y && o.x < ZS);
+        const head = row.find((o) => o.x === ZS - 1);
+        if (head && !moveIn(head, true)) { r.blocked = true; return; }
+        row.filter((o) => o !== head).forEach((o) => { o.x++; place(o); });
+      });
+      // feed each row in bursts: 4–9 words, then a hole of 1–2 cells
+      rows.forEach((r, y) => {
+        if (r.blocked) return;
+        if (r.gap > 0) { r.gap--; return; }
+        if (at(0, y)) return;
+        if (r.left === 0) r.left = rnd(4, 9);
+        const w = nextFor(y);
+        const o: Item = { w, el: mk(w), x: 0, y, px: -1, py: y };
+        place(o);
+        tiles.push(o);
+        if (--r.left === 0) r.gap = rnd(1, 2);
+      });
+    };
+
+    for (let i = 0; i < BC + 4; i++) tick(); // start with the belt already full
+    const start = () => { if (!timer && !reduce) timer = window.setInterval(tick, TICK); };
+    const stop = () => { if (timer) clearInterval(timer); timer = null; };
+    new IntersectionObserver((es) => es.forEach((e) => (e.isIntersecting ? start() : stop()))).observe(B);
+  }
+</script>

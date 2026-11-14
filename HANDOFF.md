@@ -72,7 +72,7 @@ O Eduardo quer revisitar o site no Paper (arquivo `01M73ZX4CG7GXQAC76RFJZ8R94`) 
 Estado em 14/11/2026:
 - A página do Paper "Site — atual (v0.3.0)" tem o site seção por seção. A coluna da esquerda é a versão ativa; propostas e versões anteriores ficam ao lado.
 - **No código (branch `ladrilhos-sections`):** 02 com dez situações de exemplo, 03 Chunks em escada de ladrilhos, card 02 da seção 04 com o chunk em ladrilhos, 05 Your course com o número em ladrilhos. Decisões e regras em `docs/ladrilhos.md`.
-- **Sem mudança nesta rodada:** Hero, 01 What it is, 06 Install e FAQ. Há propostas ao lado no Paper, mas o Eduardo ainda vai fazer artes para elas.
+- **Sem mudança nesta rodada:** Hero, 06 Install e FAQ. Há propostas ao lado no Paper, mas o Eduardo ainda vai fazer artes para elas.
 
 Processo:
 1. Redesenhar no Paper, uma seção por vez, mostrando opções ao Eduardo. Não apagar quadros dele: mover para o lado e renomear.
@@ -83,7 +83,7 @@ Levantamento de 13/11/2026, feito pelo código e pelo texto renderizado, sem ver
 | Seção | Estado | O que fazer |
 | --- | --- | --- |
 | Hero | Bom | Ver se ficou vazio sem a caixa do comando; talvez uma linha de apoio sob a frase. |
-| 01 What it is | Fraco: três parágrafos de texto puro | Encurtar ou trocar por uma imagem de uma aula real no chat. |
+| 01 What it is | Feito | Esteira de ladrilhos (a lista oficial entra misturada e sai agrupada por aula) entre dois parágrafos. Protótipo: https://claude.ai/artifact/AYjc4RuLx7rzXfCKknw8jS |
 | 02 Situations | Feito | Dez situações de exemplo, numeradas de 01 a 10. |
 | 03 Chunks | Feito | Escada de ladrilhos com três chunks. |
 | 04 Bentos | Bom, com um card errado | Card 4: regravar o áudio com uma voz (Sarah) e refazer os tempos. |
