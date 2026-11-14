@@ -499,9 +499,10 @@ import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
     // ---------- rising tiles (positions in tiles) ----------
     type Part = { x: number; y: number; y0: number; ch: string; bg: string; speed: number; life: number; vx: number; vy: number; rot: number; vr: number };
     let parts: Part[] = [];
-    // short lives: a rising tile travels 2 to 5 tiles before it fades out, and few fly at once
-    const LIFE = [2, 5];
-    const MAX_PARTS = 60;
+    // a rising tile travels 6 to 14 tiles before it fades out (never past the top of the hero), and at
+    // most 90 fly at once
+    const LIFE = [6, 14];
+    const MAX_PARTS = 90;
     type E = { t: T; left: number; since: number; wait: number; speed: number };
     let emitters: E[] = [];
     // emitters: the top tile of every column (redone when the grid is rebuilt)
