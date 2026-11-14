@@ -54,10 +54,13 @@ import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
     padding-block: 40px 64px;
   }
 
-  /* Art + headroom above it for the rising tiles; as wide as the content column */
+  /* Art + headroom above it for the rising tiles. Wider than the content column (the script sets
+     --stage-w, kept clear of the side nav); the hero's align-items: center keeps it centred on the
+     column even when it is wider. */
   .stage {
     position: relative;
-    width: 100%;
+    width: var(--stage-w, 100%);
+    flex: none;
     padding-top: 120px;
   }
   /* the canvas reaches up to the top of the hero (height set by the script) */
@@ -70,6 +73,9 @@ import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
     pointer-events: none;
   }
   .art {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
     opacity: 0;
     transition: opacity 0.4s ease-out;
   }
@@ -273,18 +279,20 @@ import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
   }
 
   // ---------- grid: a cell becomes a tile when enough of it is inside the shape ----------
+  // The number of columns follows the width: tiles stay close to the 13 px seen in the lab (86
+  // columns at the lab's width), with 86 as the most and 60 as the fewest.
   type T = { slot: Slot; c: number; r: number; bg: string; until: number; cool?: number };
-  const tiles: T[] = [];
-  const at = new Map<number, T>();
+  let tiles: T[] = [];
+  let at = new Map<number, T>();
   const key = (c: number, r: number) => r * 4096 + c;
-  const COLS = CFG.cols;
-  let ROWS = 0;
+  const TARGET_TILE = 13;
+  const MIN_COLS = 60; // fewer columns and the letters stop reading as MANDARIN
+  let COLS = 0, ROWS = 0, W = 0, H = 0;
+  const M = mask();
+  const MW = M.width, MH = M.height, W1 = MW + 1;
+  const sat = new Float64Array(W1 * (MH + 1));
   {
-    const m = mask();
-    const MW = m.width, MH = m.height;
-    const d = m.getContext('2d')!.getImageData(0, 0, MW, MH).data;
-    const W1 = MW + 1;
-    const sat = new Float64Array(W1 * (MH + 1));
+    const d = M.getContext('2d')!.getImageData(0, 0, MW, MH).data;
     for (let y = 1; y <= MH; y++) {
       let row = 0;
       for (let x = 1; x <= MW; x++) {
@@ -292,12 +300,18 @@ import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
         sat[y * W1 + x] = sat[(y - 1) * W1 + x] + row;
       }
     }
-    const clamp = (v: number, hi: number) => Math.max(0, Math.min(hi, Math.round(v)));
-    const area = (ax: number, ay: number, bx: number, by: number) => {
-      ax = clamp(ax, MW); bx = clamp(bx, MW); ay = clamp(ay, MH); by = clamp(by, MH);
-      if (bx <= ax || by <= ay) return 0;
-      return sat[by * W1 + bx] - sat[ay * W1 + bx] - sat[by * W1 + ax] + sat[ay * W1 + ax];
-    };
+  }
+  const clamp = (v: number, hi: number) => Math.max(0, Math.min(hi, Math.round(v)));
+  const area = (ax: number, ay: number, bx: number, by: number) => {
+    ax = clamp(ax, MW); bx = clamp(bx, MW); ay = clamp(ay, MH); by = clamp(by, MH);
+    if (bx <= ax || by <= ay) return 0;
+    return sat[by * W1 + bx] - sat[ay * W1 + bx] - sat[by * W1 + ax] + sat[ay * W1 + ax];
+  };
+  const colsFor = (width: number) => Math.max(MIN_COLS, Math.min(CFG.cols, Math.round(width / TARGET_TILE)));
+  let onGrid: () => void = () => {};
+
+  function buildGrid(cols: number) {
+    COLS = cols;
     const cell = MW / COLS;
     const ox = (CFG.offX / 100) * cell, oy = (CFG.offY / 100) * cell;
     const need = (CFG.thr / 100) * cell * cell;
@@ -314,10 +328,9 @@ import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
         }
       }
     ROWS = maxR - minR + 1;
-    for (const [c, r] of cand) tiles.push({ slot: null as unknown as Slot, c, r: r - minR, bg: '', until: 0 });
-  }
-  // colour runs in reading order, cycling the muted colours with an orange run now and then
-  {
+    tiles.forEach((t) => clearTimeout(t.cool));
+    tiles = cand.map(([c, r]) => ({ slot: null as unknown as Slot, c, r: r - minR, bg: '', until: 0 }));
+    // colour runs in reading order, cycling the muted colours with an orange run now and then
     let seed = CFG.seed;
     const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
     const order = [...tiles].sort((a, b) => a.c - b.c || a.r - b.r);
@@ -330,30 +343,34 @@ import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
       t.bg = bg;
       left--;
     }
+    // laid out at the natural 28 px tile; the whole art is scaled to the stage
+    W = COLS * TILE;
+    H = ROWS * TILE;
+    board.replaceChildren();
+    Object.assign(board.style, { width: `${W}px`, height: `${H}px` });
+    inner.style.width = `${W}px`;
+    at = new Map();
+    for (const t of tiles) {
+      t.slot = makeSlot(board, 'abs');
+      t.slot.el.style.left = `${t.c * TILE}px`;
+      t.slot.el.style.top = `${t.r * TILE}px`;
+      applyTile(t.slot, { ch: pick(), bg: t.bg });
+      at.set(key(t.c, t.r), t);
+    }
+    onGrid();
   }
 
-  // ---------- lay out at the natural 28 px tile; the whole art is scaled to the stage ----------
-  const W = COLS * TILE, H = ROWS * TILE;
-  const MXS = CFG.mxSize * TILE;
-  const mxTop = H + CFG.mxGap * TILE;
-  const NATURAL_H = Math.max(H, mxTop + MXS) + 36; // room for the easter egg's line
-  Object.assign(inner.style, { width: `${W}px`, height: `${NATURAL_H}px` });
-  Object.assign(board.style, { width: `${W}px`, height: `${H}px` });
-  mxEl.style.top = `${mxTop}px`;
-  for (const t of tiles) {
-    t.slot = makeSlot(board, 'abs');
-    t.slot.el.style.left = `${t.c * TILE}px`;
-    t.slot.el.style.top = `${t.r * TILE}px`;
-    applyTile(t.slot, { ch: pick(), bg: t.bg });
-    at.set(key(t.c, t.r), t);
-  }
+  // MAXXING keeps its size on screen (about 26 px a tile) whatever the number of columns; it overlaps
+  // the bottom of MANDARIN by the same share of its height as in the lab (2 of 2.8 tiles)
+  let MXS = CFG.mxSize * TILE;
+  const MX_PX = 26;
+  const MX_OVERLAP = -CFG.mxGap / CFG.mxSize;
 
   // MAXXING: one black tile per letter, each hiding one character of the phrase
   type M = { el: HTMLElement; span: HTMLElement; letter: string; han: string; isHan: boolean; target: boolean; gen: number; back?: number; lock: number };
   const mx: M[] = [...'MAXXING'].map((letter, i) => {
     const el = document.createElement('div');
     el.className = 'mxt';
-    el.style.width = el.style.height = `${MXS}px`;
     const span = document.createElement('span');
     el.appendChild(span);
     mxRow.appendChild(el);
@@ -370,17 +387,21 @@ import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
   function mxSet(m: M, han: boolean) {
     m.isHan = han;
     m.el.classList.toggle('han', han);
-    const s = m.span.style;
     if (han) {
       m.span.textContent = m.han;
       m.el.style.backgroundColor = egg ? ORANGE : newColor('');
-      const fs = (MXS * 24) / 28;
-      Object.assign(s, { fontSize: `${fs}px`, lineHeight: `${fs}px`, left: `${(MXS * 3) / 28}px`, top: `${MXS / 28}px` });
     } else {
       m.span.textContent = m.letter;
       m.el.style.backgroundColor = '#000';
-      Object.assign(s, { fontSize: `${MXS * 0.62}px`, lineHeight: `${MXS}px`, left: '0', top: '0' });
     }
+    mxFont(m);
+  }
+  function mxFont(m: M) {
+    const s = m.span.style;
+    if (m.isHan) {
+      const fs = (MXS * 24) / 28;
+      Object.assign(s, { fontSize: `${fs}px`, lineHeight: `${fs}px`, left: `${(MXS * 3) / 28}px`, top: `${MXS / 28}px` });
+    } else Object.assign(s, { fontSize: `${MXS * 0.62}px`, lineHeight: `${MXS}px`, left: '0', top: '0' });
   }
   function mxFlip(m: M, han: boolean, delay = 0) {
     const gen = ++m.gen;
@@ -436,10 +457,35 @@ import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
   }
 
   let k = 1;
+  // as wide as possible up to 1120 px, centred on the column, never under the side nav
+  const nav = document.querySelector<HTMLElement>('.sidenav');
+  function stageWidth() {
+    const col = hero.getBoundingClientRect();
+    const vw = document.documentElement.clientWidth;
+    const nr = nav && getComputedStyle(nav).display !== 'none' ? nav.getBoundingClientRect().right + 24 : 24;
+    const half = Math.min(col.left + col.width / 2 - nr, vw - 24 - (col.left + col.width / 2));
+    return Math.max(col.width, Math.min(1120, 2 * half));
+  }
   function fit() {
+    const sw = stageWidth();
+    stage.style.setProperty('--stage-w', `${sw}px`);
+    const want = colsFor(sw);
+    if (!COLS || Math.abs(want - COLS) >= 3) buildGrid(want);
     k = fitEl.clientWidth / W;
     inner.style.transform = `scale(${k})`;
-    fitEl.style.height = `${NATURAL_H * k}px`;
+    MXS = Math.min(MX_PX, sw / 30) / k;
+    const mxTop = H - MX_OVERLAP * MXS;
+    mxEl.style.top = `${mxTop}px`;
+    for (const m of mx) {
+      m.el.style.width = m.el.style.height = `${MXS}px`;
+      mxFont(m);
+    }
+    const naturalH = Math.max(H, mxTop + MXS) + 36 / k; // room for the easter egg's line
+    inner.style.height = `${naturalH}px`;
+    fitEl.style.height = `${naturalH * k}px`;
+    mxCap.style.fontSize = `${13 / k}px`;
+    mxCap.style.lineHeight = `${18 / k}px`;
+    mxCap.style.marginTop = `${8 / k}px`;
   }
   fit();
   artEl.classList.add('ready');
@@ -453,12 +499,22 @@ import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
     // ---------- rising tiles (positions in tiles) ----------
     type Part = { x: number; y: number; y0: number; ch: string; bg: string; speed: number; life: number; vx: number; vy: number; rot: number; vr: number };
     let parts: Part[] = [];
-    const tops = new Map<number, T>();
-    for (const t of tiles) {
-      const o = tops.get(t.c);
-      if (!o || t.r < o.r) tops.set(t.c, t);
-    }
-    const emitters = [...tops.values()].map((t) => ({ t, left: 0, since: 0, wait: rnd(0, 8), speed: 0 }));
+    // short lives: a rising tile travels 2 to 5 tiles before it fades out, and few fly at once
+    const LIFE = [2, 5];
+    const MAX_PARTS = 60;
+    type E = { t: T; left: number; since: number; wait: number; speed: number };
+    let emitters: E[] = [];
+    // emitters: the top tile of every column (redone when the grid is rebuilt)
+    onGrid = () => {
+      const tops = new Map<number, T>();
+      for (const t of tiles) {
+        const o = tops.get(t.c);
+        if (!o || t.r < o.r) tops.set(t.c, t);
+      }
+      emitters = [...tops.values()].map((t) => ({ t, left: 0, since: 0, wait: rnd(0, 8), speed: 0 }));
+      parts = [];
+    };
+    onGrid();
     const pointer = { x: 0, y: 0, vx: 0, vy: 0, active: false, t: 0 };
 
     let ts = TILE, bx = 0, by = 0, dpr = 1; // screen size of a tile, board origin in the canvas
@@ -488,7 +544,7 @@ import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
             e.since -= gap;
             e.left--;
             const t = e.t;
-            parts.push({ x: t.c, y: t.r, y0: t.r, ch: t.slot.val?.ch ?? pick(), bg: t.bg, speed: e.speed, life: t.r + (by / ts) * rnd(0.7, 1), vx: 0, vy: 0, rot: 0, vr: 0 });
+            if (parts.length < MAX_PARTS) parts.push({ x: t.c, y: t.r, y0: t.r, ch: t.slot.val?.ch ?? pick(), bg: t.bg, speed: e.speed, life: rnd(LIFE[0], LIFE[1]), vx: 0, vy: 0, rot: 0, vr: 0 });
             if (warming) applyTile(t.slot, { ch: pick(), bg: t.bg });
             else {
               applyTile(t.slot, null);
