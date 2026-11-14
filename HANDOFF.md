@@ -14,19 +14,6 @@ Ponto de partida para o próximo chat que mexer no site. Leia este arquivo intei
 - **Contexto de produto e conteúdo:** `docs/content-background.md`. Cobre o que a skill faz, a primeira conversa, como é uma aula, o tom e o que não prometer.
 - **Design original:** Paper, arquivo `01M73ZX4CG7GXQAC76RFJZ8R94`. O site já evoluiu além dele, então para o texto vale o que está no código.
 
-## Objetivo desta fase
-
-O Eduardo acha a copy atual "decente, mas pode melhorar muito". O texto não reflete bem o produto, e os tópicos podem ser mais bem organizados.
-
-Processo combinado:
-1. **Diagnóstico.** Ler todo o texto atual (lista de arquivos abaixo) e listar o que cada seção tenta dizer, o que se repete, o que falta e o que está fora de ordem.
-2. **Fundamentos.** Fazer poucas perguntas ao Eduardo: para quem é o site, a promessa principal em uma frase, o tom e um ou dois sites cuja escrita ele admira.
-3. **Nova estrutura.** Propor a ordem e o papel de cada seção antes de escrever frases. Mudar, juntar ou cortar seções é permitido.
-4. **Reescrita num documento** (Claude Docs), seção por seção, para ele comentar. Não mexer no site ainda.
-5. **Aplicar no site** depois da aprovação. Conferir no navegador como o texto fica no layout.
-
-Use a skill `design:ux-copy` para revisar títulos, botões e frases curtas.
-
 ## Onde o texto mora no código
 
 Ordem da página (`src/pages/index.astro`): Hero, 01 What it is, 02 Situations, not chapters, 03 Chunks, 04 Every lesson follows the same four steps, 05 Your course, 06 Install, FAQ, Footer.
@@ -57,7 +44,7 @@ Os títulos da side nav vêm de `sections` em `site.ts`. Se um título mudar, mu
 
 - **Simples e limpo.** Frases curtas e diretas, sem jargão de marketing.
 - Ele quer ver opções antes de mudanças grandes, e valida vendo.
-- **Não mexer em design nem em animação nesta fase**, a não ser que ele peça. Ele rejeita coisas que ficam "travadas" ou coloridas demais.
+- Ele gosta das seções Situations, Chunks e dos bentos: reaproveitar, não refazer. Ele rejeita coisas que ficam "travadas" ou coloridas demais.
 - **Fontes:** Geist Light no texto corrido, Geist 600 nos títulos (`.display`) e Ma Shan Zheng em todos os hanzi. Ele quer a mesma fonte de hanzi em todo o site.
 
 ## Estado atual (13/11/2026)
