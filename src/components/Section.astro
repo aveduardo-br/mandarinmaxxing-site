@@ -1,17 +1,42 @@
 ---
 // Numbered section: pixel numeral (orange) + display title (white).
+// With `zh`, the title is drawn in tiles instead (docs/ladrilhos.md), like MAXXING in the hero: an
+// orange number tile, then the title in hanzi on orange tiles. Hovering flips the row, in a wave,
+// to the English title in white letters on black tiles (and the number to its digit); leaving
+// flips it back. Being tried on section 01 first.
 import { numerals } from '../data/numerals';
 
 interface Props {
   id: string;
   num: string;
   title: string;
+  zh?: string;
 }
-const { id, num, title } = Astro.props;
+const { id, num, title, zh } = Astro.props;
 const n = numerals[num];
+const NUM_ZH = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
+const tileTitle = zh
+  ? { zh: [NUM_ZH[Number(num)], ...zh], en: [String(Number(num)), ...title.toUpperCase()] }
+  : null;
 ---
 
 <section id={id} class="section" data-section>
+  {
+    tileTitle ? (
+      <h2 class="title-row tiled" data-tile-title={JSON.stringify(tileTitle)}>
+        <span class="sr">{title}</span>
+        <span class="trow" aria-hidden="true">
+          {Array.from({ length: Math.max(tileTitle.zh.length, tileTitle.en.length) }, (_, i) => {
+            const ch = tileTitle.zh[i];
+            return (
+              <span class:list={['tt', { num: i === 0, off: !ch }]}>
+                <span>{ch ?? ''}</span>
+              </span>
+            );
+          })}
+        </span>
+      </h2>
+    ) : (
   <h2 class="title-row">
     {
       n && (
@@ -26,6 +51,8 @@ const n = numerals[num];
     }
     <span class="title display">{title}</span>
   </h2>
+    )
+  }
   <slot />
 </section>
 
@@ -62,4 +89,104 @@ const n = numerals[num];
     color: var(--text);
   }
 
+  /* ---- title in tiles ---- */
+  .sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .trow {
+    display: flex;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .tt {
+    position: relative;
+    flex: none;
+    width: 28px;
+    height: 28px;
+    background: var(--accent);
+  }
+  .tt.off {
+    visibility: hidden;
+  }
+  /* hanzi: Zpix like every tile, 3 px from the left and 1 px from the top */
+  .tt > span {
+    position: absolute;
+    left: 3px;
+    top: 1px;
+    font-family: 'Zpix', var(--f-display);
+    font-size: 24px;
+    line-height: 24px;
+    font-weight: 500;
+    color: #161616;
+    white-space: pre;
+  }
+  /* English: white letters on black tiles, like MAXXING in the hero (the number stays orange) */
+  .tt.lat > span {
+    left: 0;
+    right: 0;
+    top: 0;
+    text-align: center;
+    font-family: var(--f-body);
+    font-size: 17px;
+    line-height: 28px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .tt.lat:not(.num) {
+    background: #000;
+  }
+  .tt.num.lat > span {
+    color: #161616;
+  }
+
 </style>
+
+<script>
+  // Section titles in tiles: hanzi by default, English on hover. Same flap as every tile on the site.
+  const DUR = 110, EASE = 'steps(3, end)', WAVE = 28;
+  const OUT = [{ transform: 'scaleY(1)' }, { transform: 'scaleY(0)' }];
+  const IN = [{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }];
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  document.querySelectorAll<HTMLElement>('[data-tile-title]').forEach((h) => {
+    const data = JSON.parse(h.dataset.tileTitle!) as { zh: string[]; en: string[] };
+    const tiles = [...h.querySelectorAll<HTMLElement>('.tt')].map((el) => ({ el, span: el.firstElementChild as HTMLElement, gen: 0 }));
+    const set = (t: (typeof tiles)[number], i: number, en: boolean) => {
+      // no character: no tile; a space in the English title: an empty black tile, so the row reads as
+      // one black label like MAXXING
+      const ch = (en ? data.en : data.zh)[i];
+      t.el.classList.toggle('lat', en);
+      t.el.classList.toggle('off', ch === undefined);
+      t.span.textContent = ch === undefined || ch === ' ' ? '' : ch;
+    };
+    const show = (en: boolean) =>
+      tiles.forEach((t, i) => {
+        const now = (en ? data.en : data.zh)[i];
+        if (now === undefined && t.el.classList.contains('off')) return;
+        const gen = ++t.gen;
+        window.setTimeout(() => {
+          if (t.gen !== gen) return;
+          if (reduce) return set(t, i, en);
+          const visible = !t.el.classList.contains('off');
+          const comeIn = () => {
+            set(t, i, en);
+            if (!t.el.classList.contains('off')) t.el.animate(IN, { duration: DUR, easing: EASE });
+          };
+          if (!visible) return comeIn();
+          const a = t.el.animate(OUT, { duration: DUR, easing: EASE, fill: 'forwards' });
+          a.onfinish = () => {
+            a.cancel();
+            if (t.gen === gen) comeIn();
+          };
+        }, i * WAVE);
+      });
+    const row = h.querySelector<HTMLElement>('.trow')!;
+    row.addEventListener('pointerenter', () => show(true));
+    row.addEventListener('pointerleave', () => show(false));
+  });
+</script>
