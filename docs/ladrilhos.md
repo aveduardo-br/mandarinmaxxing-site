@@ -106,7 +106,7 @@ Em aberto:
 
 - Fazer num branch e conferir pelo link de prévia da Vercel antes de ir para o `main`.
 - Usar o GSAP, que o site já carrega, para a troca de número.
-- **A fonte Zpix precisa de um recorte novo.** O `public/fonts/zpix-site.woff` só tem os hanzi da seção Chunks. O `assets/fonts/zpix-cjk-subset.woff` é maior, mas ainda faltam 26 hanzi do HSK 1, entre eles 一, 二 e 年. É preciso gerar um recorte com todos os hanzi usados, a partir do `zpix.ttf` completo (`scripts/subset-zpix.py`).
+- **Fonte Zpix.** O `public/fonts/zpix-site.woff` é um recorte com os hanzi que aparecem em `src/`. Ao mudar qualquer hanzi em ladrilho, gere de novo com `python3 scripts/subset-zpix.py caminho/zpix.ttf`.
 - Os hanzi e as cores de cada ladrilho podem sair de `src/data/situations.ts`.
 
 ## Dicas para trabalhar no Paper
@@ -116,3 +116,26 @@ Em aberto:
 - Ao clonar um ladrilho com `x-paper-clone` e mudar `left` e `top`, o clone perde o `position: absolute`. Depois de clonar, aplique `position: absolute` e a posição com `update_styles`.
 - Para desenhar um estado novo de um quadro, duplique o quadro inteiro e troque só o que muda.
 - Não apagar quadros do Eduardo. Mover para o lado e renomear.
+
+## Decisões de 14/11/2026 (segunda rodada)
+
+**Transição padrão.** Toda troca de ladrilho no site usa a mesma transição, a "virada": o ladrilho fecha e abre no lugar, em passos secos, e um grupo troca em onda a partir do canto de cima à esquerda. O código está em `src/scripts/tiles.ts` (`flipTile`, `setRow`). Não criar outra transição para ladrilhos.
+
+**Onde os ladrilhos entraram, e onde não.**
+
+| Seção | Decisão |
+| --- | --- |
+| 02 Situations | Sem ladrilhos. Ficou simples: dez situações de exemplo, numeradas de 01 a 10, com o mesmo funcionamento. Três versões com ladrilhos foram testadas e descartadas ("poluído"). |
+| 03 Chunks | Escada de ladrilhos: um chunk repetido em cinco degraus, cada um com uma palavra diferente no encaixe. Laranja é o chunk, a cor é a palavra que troca, etiquetas pretas dão a tradução. Clicar passa ao próximo chunk (太▢了, 我想▢一下, 你什么时候▢). À direita, o bloco "THE CHUNK" mostra o chunk com o encaixe vazio. A escada fica entre os dois parágrafos. |
+| 04, card 02 | O "Useful chunk" manteve a moldura antiga, com o chunk em ladrilhos dentro: a palavra da linha ativa em laranja, o resto apagado. A linha 块 virou 钱 (money). |
+| 04, Spaced review | Mantido o original. Um calendário de ladrilhos foi testado em três versões e não ficou. |
+| 05 Your course | Como descrito acima, agora no código. |
+
+**Regras que saíram dessa rodada.**
+
+- Cada degrau da escada começa no mesmo lugar em todos os chunks. Assim os ladrilhos só trocam no lugar e a ponta do degrau cresce ou encolhe.
+- Ladrilhos não levam pontuação. A linha em inglês mantém.
+- Quando o hanzi é conteúdo para ler (um chunk), o resto usa o ladrilho apagado e só a palavra em foco é laranja.
+- Legenda só quando ensina a ler a forma, e feita com os próprios ladrilhos. Bloco de texto extra ao lado foi rejeitado.
+
+Protótipo da escada: https://claude.ai/artifact/BCoCSgbnHf9z9eBnR8TVY1

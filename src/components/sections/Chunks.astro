@@ -1,29 +1,52 @@
 ---
-// Section 03 — Paper node 2C-0.
-// Slot with two independent, infinite columns. Each click, wheel swipe, drag or ↑/↓ moves a column
-// exactly one item (click above the centre = up, below = down). The English tags follow the combination.
+// Section 03 — Paper "03 Chunks" (tiles). See docs/ladrilhos.md.
+// A staircase of tiles: one chunk repeated on five steps, each with a different word in its slot.
+// The orange tiles are the chunk (they stay), the coloured ones are the word that changes. Black
+// labels give the English. Clicking the staircase moves to the next chunk: every tile flips in place,
+// in a wave, and the steps grow or shrink. The small block on the right shows the chunk on its own,
+// with the slot empty, and changes with it.
 import Section from '../Section.astro';
 
-// Every word here is in the HSK 1 list, and every character is in public/fonts/zpix-site.woff
-// (the pixel font of the neighbour items). Check both before changing a phrase.
-const left = [
-  { zh: '我们去', en: 'We’re going to' },
-  { zh: '我坐出租车去', en: 'I take a taxi to' },
-  { zh: '我开车去', en: 'I drive to' },
-  { zh: '我可以去', en: 'I can go to' },
-  { zh: '我会去', en: 'I’ll go to' },
+// Every word here is in the HSK 1 list. The tiles use the pixel font: after changing a phrase,
+// regenerate public/fonts/zpix-site.woff with scripts/subset-zpix.py.
+const chunks = [
+  {
+    pre: '太',
+    post: '了',
+    label: 'So …!',
+    words: [
+      ['贵', 'expensive'],
+      ['热', 'hot'],
+      ['早', 'early'],
+      ['好吃', 'delicious'],
+      ['漂亮', 'pretty'],
+    ],
+  },
+  {
+    pre: '我想',
+    post: '一下',
+    label: 'I’d like to …',
+    words: [
+      ['看', 'have a look'],
+      ['问', 'ask something'],
+      ['找', 'look for it'],
+      ['听', 'have a listen'],
+      ['休息', 'rest a bit'],
+    ],
+  },
+  {
+    pre: '你什么时候',
+    post: '',
+    label: 'When do you …?',
+    words: [
+      ['来', 'come'],
+      ['下班', 'get off work'],
+      ['回家', 'go home'],
+      ['起床', 'get up'],
+      ['睡觉', 'go to bed'],
+    ],
+  },
 ];
-const right = [
-  { zh: '医院', en: 'the hospital' },
-  { zh: '学校', en: 'school' },
-  { zh: '公司', en: 'the office' },
-  { zh: '同学家', en: 'a classmate’s place' },
-  { zh: '超市', en: 'the supermarket' },
-];
-const START = 2; // 我开车去 + 公司
-
-// Each list is rendered twice so the column can wrap around without items flying across.
-const doubled = <T,>(a: T[]) => [...a, ...a];
 ---
 
 <Section id="chunks" num="03" title="Chunks">
@@ -31,194 +54,84 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
     Words are only half of it. Every lesson also teaches chunks: short phrases you can lift out and reuse in another
     situation, with one word swapped.
   </p>
-  <p class="prose">
+
+  <div class="viz" data-chunks={JSON.stringify(chunks)}>
+    <div class="fit" data-fit>
+      <div class="stage" data-stage role="button" tabindex="0" aria-label="Show the next chunk"></div>
+    </div>
+    <div class="legend" aria-hidden="true">
+      <div class="tile-label">The chunk</div>
+      <div class="lrow" data-legend></div>
+      <p>It <b>stays the same</b>. Only the word in the slot changes.</p>
+    </div>
+    <p class="sr-only" aria-live="polite" data-live>
+      {chunks[0].label} {chunks[0].words.map((w) => `${chunks[0].pre}${w[0]}${chunks[0].post} (${w[1]})`).join(', ')}
+    </p>
+  </div>
+
+  <p class="prose after">
     You see how the words work together, use them in your own translations, then meet them again in the text that
     closes the lesson. Chunks from earlier lessons come back later, in new sentences.
   </p>
-
-  <div class="slot" data-slot data-start={START}>
-    <div class="half left">
-    <div class="tag left" data-tag="left" aria-hidden="true">{left[START].en}</div>
-
-    <div
-      class="col left"
-      data-col="left"
-      tabindex="0"
-      role="spinbutton"
-      aria-label="First half of the sentence"
-      aria-valuetext={left[START].zh}
-      data-en={JSON.stringify(left.map((x) => x.en))}
-      data-zh={JSON.stringify(left.map((x) => x.zh))}
-    >
-      {doubled(left).map((x, i) => <span class="item" data-i={i}>{x.zh}</span>)}
-    </div>
-    </div>
-
-    <div class="half right">
-    <div
-      class="col right"
-      data-col="right"
-      tabindex="0"
-      role="spinbutton"
-      aria-label="Second half of the sentence"
-      aria-valuetext={right[START].zh}
-      data-en={JSON.stringify(right.map((x) => x.en))}
-      data-zh={JSON.stringify(right.map((x) => x.zh))}
-    >
-      {doubled(right).map((x, i) => <span class="item" data-i={i}>{x.zh}</span>)}
-    </div>
-
-    <div class="tag right" data-tag="right" aria-hidden="true">{right[START].en}</div>
-    </div>
-
-    <p class="sr-only" aria-live="polite" data-live></p>
-  </div>
 </Section>
 
 <style>
-  /* The seam between the two columns never moves: the left column is always right-aligned
-     against it and the right column always left-aligned. The English tags sit next to their
-     column and get pushed outwards when a chunk is longer. */
-  .slot {
-    --seam: 430px;
+  .viz {
     position: relative;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding-block: 32px;
+    margin-top: 40px;
+  }
+  /* 20px of room above the tiles for the label that sits on the first step */
+  .fit {
+    height: 160px;
+    padding-top: 20px;
+    margin-top: -20px;
+    overflow: hidden;
+  }
+  .stage {
+    position: relative;
+    width: 680px;
+    height: 140px;
+    transform-origin: 0 0;
+    cursor: pointer;
     user-select: none;
-    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
   }
-  .half {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    min-width: 0; /* let a long phrase overflow outwards instead of moving the seam */
+  .stage:focus-visible {
+    outline: 2px solid var(--text);
+    outline-offset: 4px;
   }
-  .half.left {
-    flex: 0 0 calc(var(--seam) - 8px);
-    justify-content: flex-end;
-  }
-  .half.right {
-    flex: 1 1 0;
-    justify-content: flex-start;
-  }
-  .tag {
-    flex: none;
-    font-size: var(--fs-caption);
-    line-height: 18px;
-    white-space: nowrap;
-    transition: opacity 0.12s ease;
-  }
-  .tag.left {
-    color: var(--text-dim);
-  }
-  .tag.right {
-    color: var(--accent);
-    text-align: right;
+  .stage :global(.tile-tag) {
+    position: absolute;
+    transition: opacity 0.12s linear;
   }
 
-  /* Column: 5 visible slots (32 / 44 / 64 / 44 / 32 px, 10px gaps) = 256px tall */
-  .col {
-    position: relative;
-    flex-shrink: 0;
-    height: 256px;
-    cursor: pointer;
-    outline: none;
-    transition: width 0.22s ease;
-    touch-action: none;
+  .legend {
+    position: absolute;
+    left: 512px;
+    top: 0;
+    width: 168px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
-  .col.left {
+  .lrow {
+    display: flex;
+    height: 28px;
+  }
+  .legend p {
+    font-size: 15px;
+    line-height: 22px;
+    color: var(--text-80);
+  }
+  .legend b {
+    font-weight: 500;
     color: var(--text);
   }
-  .col.right {
-    color: var(--accent);
-  }
-  .col:focus-visible {
-    outline: 1px dashed var(--outline);
-    outline-offset: 8px;
-  }
 
-  .item {
-    position: absolute;
-    top: 0;
-    white-space: pre;
-    /* neighbours in the pixel font; the centre chunk switches to the brush font (data-s="0") */
-    font-family: var(--f-pixel);
-    font-weight: 500;
-    -webkit-font-smoothing: none;
-    font-size: 24px;
-    line-height: 32px;
-    opacity: 0;
-    pointer-events: none;
-    /* Movement is animated in JS (easeOutBack): position and scale overshoot together, and
-       the font swaps (Zpix ↔ Kaiti) partway through the move. */
+  .after {
+    margin-top: 40px;
   }
-  .col.left .item {
-    right: 0;
-    transform-origin: right center;
-  }
-  .col.right .item {
-    left: 0;
-    transform-origin: left center;
-  }
-
-  /* slot positions (set by data-s) */
-  .item[data-s='-3'] {
-    translate: 0 -42px;
-  }
-  .item[data-s='-2'] {
-    translate: 0 0px;
-  }
-  .item[data-s='-1'] {
-    translate: 0 42px;
-    font-size: 36px;
-    line-height: 44px;
-  }
-  .item[data-s='0'] {
-    translate: 0 96px;
-    font-family: var(--f-brush);
-    font-weight: var(--fw-brush);
-    -webkit-font-smoothing: antialiased;
-    font-size: 56px;
-    line-height: 64px;
-    opacity: 1;
-  }
-  .item[data-s='1'] {
-    translate: 0 170px;
-    font-size: 36px;
-    line-height: 44px;
-  }
-  .item[data-s='2'] {
-    translate: 0 224px;
-  }
-  .item[data-s='3'] {
-    translate: 0 266px;
-  }
-  .item[data-s='-1'],
-  .item[data-s='1'],
-  .item[data-s='-2'],
-  .item[data-s='2'] {
-    pointer-events: auto;
-    cursor: pointer;
-  }
-  .col.left .item[data-s='-1'],
-  .col.left .item[data-s='1'] {
-    opacity: 0.18;
-  }
-  .col.left .item[data-s='-2'],
-  .col.left .item[data-s='2'] {
-    opacity: 0.07;
-  }
-  .col.right .item[data-s='-1'],
-  .col.right .item[data-s='1'] {
-    opacity: 0.25;
-  }
-  .col.right .item[data-s='-2'],
-  .col.right .item[data-s='2'] {
-    opacity: 0.1;
-  }
-
   .sr-only {
     position: absolute;
     width: 1px;
@@ -228,227 +141,145 @@ const doubled = <T,>(a: T[]) => [...a, ...a];
     white-space: nowrap;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .item,
-    .col,
-    .tag {
-      transition: none;
+  @media (max-width: 760px) {
+    .legend {
+      position: static;
+      width: auto;
+      margin-top: 28px;
     }
   }
 </style>
 
 <script>
-  import { gsap } from 'gsap';
+  import { makeSlot, applyTile, flipTile, reduceMotion, TILE, ORANGE, MUTED, WAVE, FLIP } from '../../scripts/tiles';
+  import type { Slot, TileVal } from '../../scripts/tiles';
 
-  const slot = document.querySelector<HTMLElement>('[data-slot]')!;
-  const live = slot.querySelector<HTMLElement>('[data-live]')!;
-  const START = Number(slot.dataset.start);
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  type Chunk = { pre: string; post: string; label: string; words: [string, string][] };
 
-  // Motion: GSAP's back.out (Robert Penner's easeOutBack, c1 = 1.70158), the standard overshoot curve.
-  // Position and size both follow it, so the chunk overshoots its spot and its scale, then settles.
-  const DURATION = 380;
-  const easeOutBack = gsap.parseEase('back.out(1.70158)');
-  const SWAP_AT = 0.5; // font switches when the eased progress passes this point
+  const viz = document.querySelector<HTMLElement>('[data-chunks]');
+  if (viz) {
+    const chunks: Chunk[] = JSON.parse(viz.dataset.chunks!);
+    const stage = viz.querySelector<HTMLElement>('[data-stage]')!;
+    const fit = viz.querySelector<HTMLElement>('[data-fit]')!;
+    const legendRow = viz.querySelector<HTMLElement>('[data-legend]')!;
+    const live = viz.querySelector<HTMLElement>('[data-live]')!;
+    const ROWS = 5;
+    const MAXC = Math.max(...chunks.flatMap((c) => c.words.map((w) => [...c.pre, ...w[0], ...c.post].length)));
+    const LEGEND = Math.max(...chunks.map((c) => [...c.pre, ...c.post].length + 1));
 
-  // Geometry per slot (matches the CSS): top, line height, font size
-  const TOP: Record<number, number> = { [-3]: -42, [-2]: 0, [-1]: 42, 0: 96, 1: 170, 2: 224, 3: 266 };
-  const LH: Record<number, number> = { [-3]: 32, [-2]: 32, [-1]: 44, 0: 64, 1: 44, 2: 32, 3: 32 };
-  const SIZE: Record<number, number> = { [-3]: 24, [-2]: 24, [-1]: 36, 0: 56, 1: 36, 2: 24, 3: 24 };
-  const OPACITY = {
-    left: { [-3]: 0, [-2]: 0.07, [-1]: 0.18, 0: 1, 1: 0.18, 2: 0.07, 3: 0 } as Record<number, number>,
-    right: { [-3]: 0, [-2]: 0.1, [-1]: 0.25, 0: 1, 1: 0.25, 2: 0.1, 3: 0 } as Record<number, number>,
-  };
-  const centre = (s: number) => TOP[s] + LH[s] / 2;
-
-  type Col = { el: HTMLElement; items: HTMLElement[]; en: string[]; zh: string[]; tag: HTMLElement; idx: number; step: (d: number) => void };
-
-  const cols: Record<string, Col> = {};
-
-  function sentence() {
-    const l = cols.left, r = cols.right;
-    live.textContent = `${l.zh[l.idx]}${r.zh[r.idx]} — ${l.en[l.idx]} ${r.en[r.idx]}`;
-  }
-
-  for (const side of ['left', 'right'] as const) {
-    const el = slot.querySelector<HTMLElement>(`[data-col="${side}"]`)!;
-    const tag = slot.querySelector<HTMLElement>(`[data-tag="${side}"]`)!;
-    const items = [...el.querySelectorAll<HTMLElement>('.item')];
-    const en: string[] = JSON.parse(el.dataset.en!);
-    const zh: string[] = JSON.parse(el.dataset.zh!);
-    const N = items.length; // 2 × list length
-    const n = en.length;
-    let pos = START; // index into the doubled list, kept in [0, N)
-
-    // relative slot of item i for the current position, in [-N/2, N/2)
-    const rel = (i: number) => {
-      let s = (((i - pos) % N) + N) % N;
-      if (s >= N / 2) s -= N;
-      return s;
+    // every step keeps its left edge in all chunks, so the tiles only ever change in place
+    const rowsOf = (k: number): TileVal[][] => {
+      const c = chunks[k];
+      return c.words.map((w, r) => [
+        ...[...c.pre].map((ch) => ({ ch, bg: ORANGE })),
+        ...[...w[0]].map((ch) => ({ ch, bg: MUTED[r % MUTED.length] })),
+        ...[...c.post].map((ch) => ({ ch, bg: ORANGE })),
+      ]);
     };
-    const clampSlot = (s: number) => Math.max(-3, Math.min(3, s));
+    const legendOf = (k: number): TileVal[] => {
+      const c = chunks[k];
+      return [
+        ...[...c.pre].map((ch) => ({ ch, bg: ORANGE })),
+        { ch: '', bg: '#1E1E1E' },
+        ...[...c.post].map((ch) => ({ ch, bg: ORANGE })),
+      ];
+    };
 
-    let anim: gsap.core.Tween | null = null;
-    let finish: (() => void) | null = null;
+    const slots: Slot[][] = [];
+    const tips: HTMLElement[] = [];
+    for (let r = 0; r < ROWS; r++) {
+      slots.push([]);
+      for (let c = 0; c < MAXC; c++) {
+        const slot = makeSlot(stage, 'abs');
+        slot.el.style.left = `${(2 * r + c) * TILE}px`;
+        slot.el.style.top = `${r * TILE}px`;
+        slots[r].push(slot);
+      }
+      const tip = document.createElement('div');
+      tip.className = 'tile-tag';
+      tip.style.top = `${r * TILE + 4}px`;
+      stage.appendChild(tip);
+      tips.push(tip);
+    }
+    const startTag = document.createElement('div');
+    startTag.className = 'tile-tag';
+    startTag.style.left = '0px';
+    startTag.style.top = '-20px';
+    stage.appendChild(startTag);
+    const legendSlots: Slot[] = Array.from({ length: LEGEND }, () => makeSlot(legendRow));
 
-    function animate(prev: number[], next: number[]) {
-      finish?.();
-      const op = OPACITY[side];
-      const moving = items
-        .map((it, i) => ({ it, from: prev[i], to: next[i] }))
-        .filter((m) => m.from !== m.to && Math.abs(m.from - m.to) <= 3);
-      // items that wrap between the hidden ends jump straight there
-      items.forEach((it, i) => {
-        if (Math.abs(prev[i] - next[i]) > 3) it.dataset.s = String(next[i]);
+    const setTip = (r: number, k: number, len: number) => {
+      tips[r].textContent = chunks[k].words[r][1];
+      tips[r].style.left = `${(2 * r + len) * TILE}px`;
+    };
+
+    let cur = 0;
+    let busy = false;
+
+    function render(k: number) {
+      const rows = rowsOf(k);
+      rows.forEach((row, r) => {
+        slots[r].forEach((slot, c) => applyTile(slot, row[c] ?? null));
+        setTip(r, k, row.length);
+        tips[r].style.opacity = '1';
       });
-      const done = () => {
-        anim?.kill();
-        anim = null;
-        for (const m of moving) {
-          m.it.dataset.s = String(m.to);
-          m.it.style.translate = m.it.style.scale = m.it.style.opacity = '';
-        }
-        finish = null;
-      };
-      if (reduce) return done();
-      finish = done;
-      const prog = { t: 0 };
-      const frame = () => {
-        const t = prog.t;
-        const e = easeOutBack(t);
-        const fade = t * t * (3 - 2 * t); // opacity eases without overshoot
-        for (const { it, from, to } of moving) {
-          const s = e < SWAP_AT ? from : to;
-          if (it.dataset.s !== String(s)) it.dataset.s = String(s);
-          const c = centre(from) + (centre(to) - centre(from)) * e;
-          const size = SIZE[from] + (SIZE[to] - SIZE[from]) * e;
-          it.style.translate = `0 ${(c - LH[s] / 2).toFixed(2)}px`;
-          it.style.scale = (size / SIZE[s]).toFixed(4);
-          it.style.opacity = String(op[from] + (op[to] - op[from]) * fade);
-        }
-      };
-      // GSAP drives the clock (linear 0 → 1); the overshoot is applied per property above
-      anim = gsap.to(prog, { t: 1, duration: DURATION / 1000, ease: 'none', onUpdate: frame, onComplete: done });
+      startTag.textContent = chunks[k].label;
+      const lr = legendOf(k);
+      legendSlots.forEach((slot, i) => applyTile(slot, lr[i] ?? null));
     }
 
-    function render(prev?: number[]) {
-      const next = items.map((_, i) => clampSlot(rel(i)));
-      if (prev) animate(prev, next);
-      else items.forEach((it, i) => (it.dataset.s = String(next[i])));
-      const mid = items[next.indexOf(0)];
-      if (mid) {
-        // column width follows the centre chunk so the tags have room
-        el.style.width = `${measure(mid)}px`;
-      }
-      const k = pos % n;
-      el.setAttribute('aria-valuetext', zh[k]);
-      if (!prev) tag.dataset.text = en[k];
-      else if (tag.dataset.text !== en[k]) typeTag(tag, en[k]);
+    function go(k: number) {
+      if (busy || k === cur) return;
+      cur = k;
+      const c = chunks[k];
+      live.textContent = `${c.label} ${c.words.map((w) => `${c.pre}${w[0]}${c.post} (${w[1]})`).join(', ')}`;
+      if (reduceMotion()) return render(k);
+      busy = true;
+      const rows = rowsOf(k);
+      let last = 0;
+      startTag.style.opacity = '0';
+      window.setTimeout(() => {
+        startTag.textContent = c.label;
+        startTag.style.opacity = '1';
+      }, 130);
+      rows.forEach((row, r) => {
+        tips[r].style.opacity = '0';
+        let rowEnd = 0;
+        slots[r].forEach((slot, col) => {
+          const v = row[col] ?? null;
+          if (!slot.val && !v) return;
+          const d = (2 * r + col) * WAVE;
+          rowEnd = Math.max(rowEnd, d);
+          flipTile(slot, v, d);
+        });
+        window.setTimeout(() => {
+          setTip(r, k, row.length);
+          tips[r].style.opacity = '1';
+        }, rowEnd + FLIP * 0.6);
+        last = Math.max(last, rowEnd + FLIP);
+      });
+      const lr = legendOf(k);
+      legendSlots.forEach((slot, i) => flipTile(slot, lr[i] ?? null, 120 + i * WAVE));
+      window.setTimeout(() => (busy = false), last + 40);
     }
 
-    // The English tag is cleared and typed in again once the new chunk has settled.
-    function typeTag(t: HTMLElement, text: string) {
-      t.dataset.text = text;
-      clearTimeout(Number(t.dataset.timer));
-      t.textContent = '';
-      let i = 0;
-      const tick = () => {
-        if (t.dataset.text !== text) return;
-        t.textContent = text.slice(0, ++i);
-        if (i < text.length) t.dataset.timer = String(setTimeout(tick, 28));
-      };
-      t.dataset.timer = String(setTimeout(tick, reduce ? 0 : DURATION));
-    }
-
-    // width the item will have once it sits in the centre slot
-    function measure(it: HTMLElement) {
-      const probe = it.cloneNode(true) as HTMLElement;
-      probe.style.cssText = 'position:absolute;visibility:hidden;translate:none;scale:none';
-      probe.dataset.s = '0';
-      el.appendChild(probe);
-      const w = Math.ceil(probe.getBoundingClientRect().width);
-      probe.remove();
-      return w;
-    }
-
-    function step(d: number) {
-      const prev = items.map((_, i) => clampSlot(rel(i)));
-      pos = (((pos + d) % N) + N) % N;
-      col.idx = pos % n;
-      render(prev);
-      sentence();
-    }
-
-    const col: Col = { el, items, en, zh, tag, idx: START % n, step };
-    cols[side] = col;
-
-    // One gesture = one step. A wheel/trackpad swipe moves exactly one item, then waits until the
-    // gesture ends (no wheel events for a moment) before accepting the next.
-    let wheelLocked = false;
-    let wheelIdle = 0;
-    el.addEventListener(
-      'wheel',
-      (e) => {
+    const next = () => go((cur + 1) % chunks.length);
+    stage.addEventListener('click', next);
+    stage.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        if (!wheelLocked && Math.abs(e.deltaY) >= 4) {
-          step(e.deltaY > 0 ? 1 : -1);
-          wheelLocked = true;
-        }
-        clearTimeout(wheelIdle);
-        wheelIdle = window.setTimeout(() => (wheelLocked = false), 220);
-      },
-      { passive: false },
-    );
-
-    // Drag: one step per drag.
-    let dragY: number | null = null;
-    let moved = false;
-    el.addEventListener('pointerdown', (e) => {
-      dragY = e.clientY;
-      moved = false;
-      el.setPointerCapture(e.pointerId);
-    });
-    el.addEventListener('pointermove', (e) => {
-      if (dragY === null || moved) return;
-      const dy = e.clientY - dragY;
-      if (Math.abs(dy) >= 24) {
-        step(dy < 0 ? 1 : -1);
-        moved = true;
+        next();
       }
     });
-    const endDrag = () => {
-      dragY = null;
+
+    // on narrow screens the staircase scales down to fit the column
+    const fitStage = () => {
+      const s = Math.min(1, fit.clientWidth / 560);
+      stage.style.transform = s < 1 ? `scale(${s})` : '';
+      fit.style.height = `${140 * s + 20}px`;
     };
-    el.addEventListener('pointerup', endDrag);
-    el.addEventListener('pointercancel', endDrag);
-
-    // Click: above the centre goes up one, below goes down one.
-    el.addEventListener('click', (e) => {
-      if (moved) return;
-      const r = el.getBoundingClientRect();
-      const centreTop = r.top + 96;
-      const centreBottom = centreTop + 64;
-      if (e.clientY < centreTop) step(-1);
-      else if (e.clientY > centreBottom) step(1);
-    });
-
-    // keyboard
-    el.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        step(1);
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        step(-1);
-      }
-    });
-
-    render();
+    addEventListener('resize', fitStage);
+    fitStage();
+    render(0);
   }
-
-  // fonts change item widths: re-measure once they're in
-  document.fonts?.ready.then(() => {
-    cols.left.step(0);
-    cols.right.step(0);
-  });
 </script>

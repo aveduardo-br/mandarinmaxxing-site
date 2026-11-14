@@ -61,7 +61,6 @@ A copy foi reescrita para a skill v0.3.0, com o messaging de `docs/messaging.md`
 **Em aberto**
 
 - **Card 04 do bento (áudio).** O exemplo ainda é o diálogo de duas vozes no restaurante. A skill agora gera um texto curto de uma voz (Sarah). Falta regravar o áudio e refazer os tempos em `DialogueCard.astro`.
-- O Eduardo disse que quer a mesma fonte em todos os hanzi. Os traços animados dos ritmos (轻松 / 标准 / 强化) não usam a Ma Shan Zheng.
 - Ao mudar o mapa da skill, gere `src/data/situations.ts` de novo e atualize `SKILL_VERSION` em `src/data/site.ts`.
 
 ## Próxima fase: design, com o Paper como fonte da verdade
@@ -71,9 +70,9 @@ O Eduardo quer revisitar o site no Paper (arquivo `01M73ZX4CG7GXQAC76RFJZ8R94`) 
 **Leia `docs/ladrilhos.md` antes de desenhar.** Ele guarda a identidade visual de ladrilhos que o Eduardo aprovou na seção 05 (medidas, cores, etiquetas, seletores) e o raciocínio para aplicar o mesmo formato às outras seções.
 
 Estado em 14/11/2026:
-- A página do Paper "Site — atual (v0.3.0)" já tem o site atual, seção por seção, e propostas ao lado de várias delas.
-- **05 Your course está redesenhada e aprovada no Paper** (o número de aulas feito de ladrilhos, com três estados). Ainda não foi para o código.
-- O Eduardo vai redesenhar as outras seções no mesmo formato.
+- A página do Paper "Site — atual (v0.3.0)" tem o site seção por seção. A coluna da esquerda é a versão ativa; propostas e versões anteriores ficam ao lado.
+- **No código (branch `ladrilhos-sections`):** 02 com dez situações de exemplo, 03 Chunks em escada de ladrilhos, card 02 da seção 04 com o chunk em ladrilhos, 05 Your course com o número em ladrilhos. Decisões e regras em `docs/ladrilhos.md`.
+- **Sem mudança nesta rodada:** Hero, 01 What it is, 06 Install e FAQ. Há propostas ao lado no Paper, mas o Eduardo ainda vai fazer artes para elas.
 
 Processo:
 1. Redesenhar no Paper, uma seção por vez, mostrando opções ao Eduardo. Não apagar quadros dele: mover para o lado e renomear.
@@ -85,10 +84,10 @@ Levantamento de 13/11/2026, feito pelo código e pelo texto renderizado, sem ver
 | --- | --- | --- |
 | Hero | Bom | Ver se ficou vazio sem a caixa do comando; talvez uma linha de apoio sob a frase. |
 | 01 What it is | Fraco: três parágrafos de texto puro | Encurtar ou trocar por uma imagem de uma aula real no chat. |
-| 02 Situations | Forte | A lista de 22 linhas ficou longa: mostrar as 7 do jump start e um "ver as 22". |
-| 03 Chunks | Bom | Nada urgente. |
+| 02 Situations | Feito | Dez situações de exemplo, numeradas de 01 a 10. |
+| 03 Chunks | Feito | Escada de ladrilhos com três chunks. |
 | 04 Bentos | Bom, com um card errado | Card 4: regravar o áudio com uma voz (Sarah) e refazer os tempos. |
-| 05 Your course | Redesenhada no Paper (ladrilhos) | Levar para o código com a troca animada de número. Ver `docs/ladrilhos.md`. |
+| 05 Your course | Feito | Número em ladrilhos com seletores. Falta decidir o que os níveis 2 a 6 fazem ao clicar. |
 | 06 Install | Funcional, sem revisão de design | Uma captura da tela do Claude em cada passo. |
 | FAQ | Texto bom, layout simples | Acordeão. |
 | Footer | Incompleto | Licença e link para reportar problema. |

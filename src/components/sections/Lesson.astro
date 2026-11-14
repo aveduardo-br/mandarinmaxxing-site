@@ -8,6 +8,8 @@ import DialogueCard from './DialogueCard.astro';
 
 // Vocabulary card: hovering a row makes it active (the last one hovered stays) and swaps the useful
 // chunk below for one that uses that word. [before, word, after] so the word can be highlighted.
+// The chunk is shown in tiles (docs/ladrilhos.md): the row's word in orange, the rest dimmed.
+// Punctuation is left out of the tiles; the English line keeps it.
 // Words from Lesson 13 of the HSK 1 map, "Shopping and paying".
 const vocab = [
   {
@@ -18,11 +20,11 @@ const vocab = [
     en: ['I want to ', 'buy', ' this one.'],
   },
   {
-    hanzi: '块',
-    pinyin: 'kuài',
-    meaning: 'kuai (yuan)',
-    zh: ['五十', '块', ''],
-    en: ['Fifty ', 'kuai', '.'],
+    hanzi: '钱',
+    pinyin: 'qián',
+    meaning: 'money',
+    zh: ['我没有', '钱', ''],
+    en: ['I don’t have ', 'money', '.'],
   },
   {
     hanzi: '贵',
@@ -91,7 +93,9 @@ const vocab = [
             <div class="edge top">
               <span class="line"></span><span class="cap label cap-label">USEFUL CHUNK</span><span class="line"></span>
             </div>
-            <div class="body chunk-body"><span class="hanzi" data-chunk-zh>{vocab[0].zh[0]}<span class="hl">{vocab[0].zh[1]}</span>{vocab[0].zh[2]}</span></div>
+            <div class="body chunk-body">
+              <div class="chunk-tiles" data-chunk-zh lang="zh-Hans" aria-label={vocab[0].zh.join('')}></div>
+            </div>
             <div class="edge bottom">
               <span class="line"></span><span class="cap cap-en" data-chunk-en>{vocab[0].en[0]}<span class="hl">{vocab[0].en[1]}</span>{vocab[0].en[2]}</span><span
                 class="line"></span>
@@ -326,7 +330,7 @@ const vocab = [
     color: var(--muted-2);
   }
   .chunk {
-    width: 200px;
+    width: 252px;
     margin-top: 24px;
   }
   .cap-label {
@@ -350,18 +354,21 @@ const vocab = [
     justify-content: center;
     padding-block: 14px;
   }
-  .chunk-body .hanzi {
-    font-size: 24px;
-    line-height: 30px;
-    color: var(--text);
-    white-space: pre;
+  /* a centred row of tiles; its length changes with the chunk (src/scripts/tiles.ts) */
+  .chunk-tiles {
+    position: relative;
+    width: 100%;
+    height: 28px;
   }
 
 </style>
 
 <script>
-  // Vocabulary card: last hovered (or focused) row is active; the useful chunk swaps with a glitch,
-  // scrambling characters before they settle left to right.
+  import { makeSlot, setRow, ORANGE, DIM } from '../../scripts/tiles';
+  import type { TileVal } from '../../scripts/tiles';
+
+  // Vocabulary card: last hovered (or focused) row is active. The chunk's tiles flip to the new chunk;
+  // the English line swaps with a glitch, scrambling characters before they settle left to right.
   type Parts = [string, string, string];
   const table = document.querySelector<HTMLElement>('[data-vocab]');
   if (table) {
@@ -370,8 +377,15 @@ const vocab = [
     const zhEl = document.querySelector<HTMLElement>('[data-chunk-zh]')!;
     const enEl = document.querySelector<HTMLElement>('[data-chunk-en]')!;
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const HANZI =
-      '的一是不了人我在有他这中大来上个到说们为子和你地出道也时年得就那要下以生会自着去过家学对可里后小么心多天能好都没日起还发成事只作当想看开手用主行方又如前本见经头面公同三老从动两长知样现分外但身些高意进把法回二理美点月明种声全工己话者向情部正名定女问力机给等几很最间新什打便位因重走电四门相次东海口西再平真听世气信北少关先山五水万市眼体别处才场书比住九笑通目报立马命张活难数件安表原车白应路期叫常提感金何更反合放做系计或司利受光王果亲界今京务解各任至清物台记边共风干接许特觉望直服林题建南度色字请交爱让认算百吃义怎元功指思流每青管夫连远资队跟带花快条院变言往展该领近留红决周保达办运半候七必城父强步完深区求品转量空众轻程告江语基派满式写呢识极令黄收脸钱倒未持取设始双越商千片容像找友孩站广改议形早房音火则首单据导影失拿网香似专石若兵弟谁校读飞观争究包组造落视喜离虽坏兴切团夜鸡';
+    const PUNCT = /[\s,.?!？，。、！]/;
+    const tilesOf = (parts: Parts): TileVal[] => [
+      ...[...parts[0]].filter((c) => !PUNCT.test(c)).map((ch) => ({ ch, bg: DIM.bg, fg: DIM.fg })),
+      ...[...parts[1]].map((ch) => ({ ch, bg: ORANGE })),
+      ...[...parts[2]].filter((c) => !PUNCT.test(c)).map((ch) => ({ ch, bg: DIM.bg, fg: DIM.fg })),
+    ];
+    const longest = Math.max(...data.map((d) => tilesOf(d.zh).length));
+    const chunkSlots = Array.from({ length: longest }, () => makeSlot(zhEl, 'abs'));
+    setRow(zhEl, chunkSlots, tilesOf(data[0].zh), false);
     const LATIN = 'abcdefghijklmnopqrstuvwxyz';
     const DURATION = 460;
     const TICK = 34;
@@ -413,7 +427,8 @@ const vocab = [
       rows[active].classList.remove('active');
       rows[i].classList.add('active');
       active = i;
-      glitch(zhEl, data[i].zh, HANZI);
+      setRow(zhEl, chunkSlots, tilesOf(data[i].zh));
+      zhEl.setAttribute('aria-label', data[i].zh.join(''));
       glitch(enEl, data[i].en, LATIN);
     };
     rows.forEach((row, i) => {

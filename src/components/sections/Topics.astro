@@ -1,7 +1,8 @@
 ---
 // Section 02 — Paper "Topics — bar A v2".
-// Intro compares a textbook lesson with mandarinmaxxing's situations. Below, the 22 situations of the
-// HSK 1 map: closed / hover (arrow head slides in, row turns light orange) / open (accordion with the
+// Intro compares a textbook lesson with mandarinmaxxing's situations. Below, ten of the 22 situations
+// of the HSK 1 map, as an example of how the level goes (renumbered 01-10, so the numbers here are not
+// the map's): closed / hover (arrow head slides in, row turns light orange) / open (accordion with the
 // lesson's words). Under the list a bar sticks to the bottom of the screen while the list is in view
 // and stays attached under it afterwards. Its strip is the official HSK 1 list, one square per word,
 // in the order the syllabus prints it: the open situation's words show white, the hovered one's
@@ -9,11 +10,18 @@
 import Section from '../Section.astro';
 import { situations, bookLesson, HSK1_TOTAL } from '../../data/situations';
 
-const topics = situations;
+// Ten examples, spread from the start of the level to the end. `num` is the map's number.
+const SAMPLE = ['01', '02', '05', '07', '08', '12', '13', '16', '18', '22'];
+const topics = SAMPLE.map((num, i) => ({
+  ...situations.find((s) => s.num === num)!,
+  num: String(i + 1).padStart(2, '0'),
+}));
 const ROWS = 2;
 const COLS = HSK1_TOTAL / ROWS;
-// owner[i] = the situation that teaches official word number i + 1
-const owner: number[] = Array(HSK1_TOTAL).fill(0);
+// owner[i] = the example situation that teaches official word number i + 1; NONE for the words of
+// the situations that are not shown (they stay grey in the strip)
+const NONE = -9;
+const owner: number[] = Array(HSK1_TOTAL).fill(NONE);
 topics.forEach((t, ti) => {
   for (const w of t.words) owner[w.no - 1] = ti;
   for (const n of t.rest) owner[n - 1] = ti;
@@ -66,9 +74,8 @@ const stripData = topics.map((t) => ({
     <p class="book-note">What ties them together is the chapter’s grammar, not a moment where you’d use them.</p>
   </div>
   <p class="prose">
-    mandarinmaxxing teaches the same official words in another order: by situation. Saying what you want, shopping
-    and paying, getting sick. Each situation is one lesson. Finish all {topics.length} and you’ve met every word of
-    HSK 1.
+    mandarinmaxxing teaches the same official HSK words in a different order: by situation. It looks something like
+    this:
   </p>
 
   <div class="topics-wrap">
@@ -714,7 +721,7 @@ const stripData = topics.map((t) => ({
       const lead = active < 0 ? span('o', String(data[h].count)) : `${span('w', String(data[active].count))} ${span('o', '+ ' + data[h].count)}`;
       label.innerHTML =
         `${lead} of ${TOTAL} HSK 1 words ` +
-        span('dim', `· in the official list, these ${data[h].count} sit far apart. Here they’re one lesson.`);
+        span('dim', `· in the official list, these ${data[h].count} sit far apart. Here they’re one situation.`);
     }
   }
 

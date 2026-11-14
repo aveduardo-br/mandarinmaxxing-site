@@ -1,217 +1,363 @@
 ---
-// Section 05 — "Your course" (layout of the pace row from Paper node 3F-0).
+// Section 05 — Paper "05 Your course" (tiles). See docs/ladrilhos.md.
+// The number of lessons in HSK 1 is drawn with tiles: 58 at five words a lesson, 97 at three, 42 at
+// seven. Below it, three tile selectors (level, pace, audio). Changing the pace flips the tiles into
+// the new number; the text beside it and the finish date change with it. Audio only changes the last
+// sentence. Only level 1 has a map, so the other levels are shown but cannot be picked yet.
+//
+// The numbers 97, 58 and 42 are real (the parts of the HSK 1 map at each pace). The tiles are a
+// showcase: how many there are, and which hanzi each one carries, is not meant to match the data.
 import Section from '../Section.astro';
+import { situations, HSK1_TOTAL } from '../../data/situations';
+
+const ORANGE = '#D2430E';
+const MUTED = ['#7FA3B0', '#9A9C5C', '#C29A5B', '#A0938B', '#E8835A'];
+
+// Digits on a 7 × 11 grid, one tile thick, outer corners left out so the shape reads as rounded.
+const DIGITS: Record<string, string[]> = {
+  '2': ['.XXXXX.', 'X.....X', '......X', '......X', '......X', '.XXXXX.', 'X......', 'X......', 'X......', 'X......', 'XXXXXXX'],
+  '4': ['X....X.', 'X....X.', 'X....X.', 'X....X.', 'X....X.', 'X....X.', 'XXXXXXX', '.....X.', '.....X.', '.....X.', '.....X.'],
+  '5': ['XXXXXXX', 'X......', 'X......', 'X......', 'X......', 'XXXXXX.', '......X', '......X', '......X', 'X.....X', '.XXXXX.'],
+  '7': ['XXXXXXX', '......X', '......X', '.....X.', '.....X.', '....X..', '....X..', '...X...', '...X...', '...X...', '...X...'],
+  '8': ['.XXXXX.', 'X.....X', 'X.....X', 'X.....X', 'X.....X', '.XXXXX.', 'X.....X', 'X.....X', 'X.....X', 'X.....X', '.XXXXX.'],
+  '9': ['.XXXXX.', 'X.....X', 'X.....X', 'X.....X', 'X.....X', '.XXXXXX', '......X', '......X', '......X', '......X', '.XXXXX.'],
+};
+const COLS = 15; // two digits of 7 with one empty column between them
+const ROWS = 11;
+
+// Tiles follow reading order (top to bottom, left to right, first digit then the second) and walk
+// through the level: the jump start in orange at the beginning, then one muted colour per situation.
+let end = 0;
+let muted = 0;
+const info = situations.map((s) => ({
+  bg: s.jumpStart ? ORANGE : MUTED[muted++ % MUTED.length],
+  chars: [...s.words.map((w) => w.hanzi).join('')],
+  end: (end += s.count),
+}));
+function tilesFor(n: number) {
+  const cells = [...String(n)].flatMap((d, di) =>
+    DIGITS[d].flatMap((row, y) => [...row].flatMap((c, x) => (c === 'X' ? [{ x: di * 8 + x, y }] : []))),
+  );
+  const used = new Map<number, number>();
+  return cells.map((cell, t) => {
+    const word = Math.floor((t * (HSK1_TOTAL - 1)) / (cells.length - 1)); // first tile = first word, last = last
+    const si = info.findIndex((i) => word < i.end);
+    const k = used.get(si) ?? 0;
+    used.set(si, k + 1);
+    return { ...cell, ch: info[si].chars[k % info[si].chars.length], bg: info[si].bg };
+  });
+}
 
 const paces = [
-  { name: 'Light', zh: '轻松', items: '3 new words', tone: 'light' },
-  { name: 'Standard', zh: '标准', items: '5 new words', extra: 'recommended', tone: 'standard' },
-  { name: 'Intensive', zh: '强化', items: '7 new words', tone: 'intensive' },
+  { key: '3', zh: '三', n: 97, words: 'three', span: 'about three months' },
+  { key: '5', zh: '五', n: 58, words: 'five', span: 'about two months' },
+  { key: '7', zh: '七', n: 42, words: 'seven', span: 'about six weeks' },
 ];
+const START = '5';
+const states = Object.fromEntries(paces.map((p) => [p.key, { n: p.n, words: p.words, span: p.span, tiles: tilesFor(p.n) }]));
+const first = paces.find((p) => p.key === START)!;
+const levels = ['一', '二', '三', '四', '五', '六'];
+const lastName = situations[situations.length - 1].name;
 ---
 
 <Section id="course" num="05" title="Your course">
   <p class="prose">
-    The course is yours. The first message makes three suggestions, and you can change any of them, then or later.
+    The course is yours. Pick a level, a pace and whether you want audio, and watch it take shape. Every tile is one
+    lesson.
   </p>
 
-  <h3 class="sub display">Level</h3>
-  <p class="prose">
-    New to Mandarin? Start with HSK 1, lesson 1. If you’ve studied before, name the level or the lesson you want to
-    pick up from. Before the first lesson you see the whole list for your level, and you can move lessons around: food
-    before phone calls, if that’s what you need first.
-  </p>
-
-  <h3 class="sub display">Pace</h3>
-  <p class="prose">How many new words each time you sit down to study. Any other number works too.</p>
-
-  <div class="paces">
-    {
-      paces.map((p) => (
-        <div class={`pace ${p.tone}`}>
-          <div class="txt">
-            <span class="zh" lang="zh-Hans" aria-label={p.zh}>
-              {[...p.zh].map((c) => (
-                <span class="ch" data-ch={c} aria-hidden="true">
-                  <span class="static">{c}</span>
-                </span>
-              ))}
-            </span>
-            <span class="name display">{p.name}</span>
-            <span class="items">
-              {p.items}
-              {p.extra && (
-                <>
-                  <br />
-                  {p.extra}
-                </>
-              )}
-            </span>
-          </div>
+  <div class="shape" data-course={JSON.stringify(states)} data-start={START} data-last={lastName}>
+    <div class="num" data-num role="img" aria-label={`${first.n} lessons`}>
+      <div class="tile-tag start">Today · Say hello</div>
+      <div class="tile-tag end" data-end></div>
+    </div>
+    <div class="live" aria-live="polite">
+      <div class="word display">lessons</div>
+      <p>
+        HSK 1, <span data-words>{first.words}</span> new words each. One a day takes <span data-span>{first.span}</span>:
+        start today, finish on <b data-date>the date below</b>.
+      </p>
+      <p>Each lesson ends with a short text to <b data-audio>listen to</b>.</p>
+      <div class="legend">
+        <div class="lg"><span class="sw" style={`background:${ORANGE}`}></span>Jump start: the basics first</div>
+        <div class="lg">
+          <span class="sw3">{MUTED.slice(0, 3).map((c) => <i style={`background:${c}`} />)}</span>Then one color per situation
         </div>
-      ))
-    }
+      </div>
+    </div>
   </div>
 
-  <p class="prose">
-    At the standard pace, HSK 1 is 58 sittings. One a day gets you through all 300 words in about two months.
-  </p>
-
-  <h3 class="sub display">Audio</h3>
-  <p class="prose">
-    Optional. Every lesson closes with a short text made of the words you just learned. With audio, you hear it in a
-    natural voice without seeing it written, then answer what you understood. It’s the course’s listening practice.
-  </p>
-  <p class="prose">
-    Most people use ElevenLabs, which has a free account, and you can bring another voice provider. Without audio
-    there’s nothing to set up: you read the text instead.
-  </p>
-
-  <h3 class="sub display">Your language</h3>
-  <p class="prose">
-    The skill explains, asks and corrects in the language you write in. You answer in Mandarin from the first lesson.
-    You can start by typing pinyin, and turn on your Chinese keyboard when you want the next step.
-  </p>
+  <div class="selectors">
+    <div class="sel">
+      <div class="tile-label">Level</div>
+      <div class="tiles" role="group" aria-label="Level">
+        {
+          levels.map((zh, i) => (
+            <button
+              class="st"
+              type="button"
+              aria-pressed={i === 0 ? 'true' : 'false'}
+              aria-label={`HSK ${i + 1}`}
+              disabled={i > 0}
+              title={i > 0 ? 'HSK 1 is the level mapped so far' : undefined}
+            >
+              <span aria-hidden="true">{zh}</span>
+            </button>
+          ))
+        }
+      </div>
+      <p>HSK 1 to 6. New? Start at one. Studied before? Pick the lesson to begin from.</p>
+    </div>
+    <div class="sel">
+      <div class="tile-label">Pace</div>
+      <div class="tiles" role="group" aria-label="Pace" data-pace-group>
+        {
+          paces.map((p) => (
+            <button class="st" type="button" data-pace={p.key} aria-pressed={p.key === START ? 'true' : 'false'} aria-label={`${p.words} new words a lesson`}>
+              <span aria-hidden="true">{p.zh}</span>
+            </button>
+          ))
+        }
+      </div>
+      <p>Three, five or seven new words a lesson. Any other number works too.</p>
+    </div>
+    <div class="sel">
+      <div class="tile-label">Audio</div>
+      <div class="tiles" role="group" aria-label="Audio" data-audio-group>
+        <button class="st" type="button" data-mode="listen to" aria-pressed="true" aria-label="Listen"><span aria-hidden="true">听</span></button>
+        <button class="st" type="button" data-mode="read" aria-pressed="false" aria-label="Read"><span aria-hidden="true">读</span></button>
+      </div>
+      <p>Listen or read. Every lesson ends with a short text. Hearing it is optional.</p>
+    </div>
+  </div>
 </Section>
 
-<script>
-  // Each pace's name is written in real stroke order (Hanzi Writer, SVG). When the row reaches reading
-  // height the three columns appear one after another, and each writes itself as it appears: Light,
-  // then Standard, then Intensive. Stroke data comes from the hanzi-writer-data CDN; if it fails to load,
-  // or reduced motion is on, the characters stay as static text in the brush font.
-  import HanziWriter from 'hanzi-writer';
-
-  const wrap = document.querySelector<HTMLElement>('#course .paces');
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (wrap && !reduce) {
-    wrap.classList.add('writing');
-    const SIZE = 44;
-    const paces = [...wrap.querySelectorAll<HTMLElement>('.pace')];
-    const writers = paces.map((pace) => {
-      const color = getComputedStyle(pace).color;
-      return [...pace.querySelectorAll<HTMLElement>('.ch')].map((el) => {
-        const w = HanziWriter.create(el, el.dataset.ch!, {
-          width: SIZE,
-          height: SIZE,
-          padding: 2,
-          showCharacter: false,
-          showOutline: false,
-          strokeColor: color,
-          strokeAnimationSpeed: 9,
-          delayBetweenStrokes: 0,
-          onLoadCharDataSuccess: () => el.classList.add('drawn'),
-          onLoadCharDataError: () => el.classList.add('failed'),
-        });
-        return { el, w };
-      });
-    });
-
-    // Each column appears and starts writing; the next one follows shortly after, so they overlap.
-    const NEXT = 350; // ms between columns
-    const write = async (i: number) => {
-      paces[i].classList.add('on');
-      if (i + 1 < paces.length) setTimeout(() => write(i + 1), NEXT);
-      for (const { el, w } of writers[i]) {
-        try {
-          await w.animateCharacter();
-        } catch {
-          el.classList.add('failed');
-        }
-      }
-    };
-
-    // Start when the row's reveal fires (Base.astro adds .in to the block).
-    const start = () => {
-      if (!wrap.classList.contains('in')) return false;
-      mo.disconnect();
-      write(0);
-      return true;
-    };
-    const mo = new MutationObserver(start);
-    mo.observe(wrap, { attributes: true, attributeFilter: ['class'] });
-    start();
-  }
-</script>
-
 <style>
-  .sub {
-    margin-top: 16px;
-    font-size: var(--fs-h4);
-    line-height: var(--lh-h4);
+  .shape {
+    display: flex;
+    align-items: flex-start;
+    gap: 32px;
+    margin-top: 12px;
+    padding-top: 20px; /* room for the label on the first tile */
+  }
+  .num {
+    position: relative;
+    flex: none;
+    width: 420px;
+    height: 308px;
+  }
+  .num .tile-tag {
+    position: absolute;
+    transition: opacity 0.12s linear;
+  }
+  .num .start {
+    left: 0;
+    top: -20px;
+  }
+
+  .live {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 228px;
+    padding-top: 4px;
+  }
+  .word {
+    font-size: var(--fs-h2);
+    line-height: var(--lh-h2);
     color: var(--text);
   }
-  .paces {
+  .live p {
+    font-size: 15px;
+    line-height: 24px;
+    color: var(--text-80);
+  }
+  .live b {
+    font-weight: 500;
+    color: var(--text);
+  }
+  .legend {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-top: 4px;
+  }
+  .lg {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--fs-caption);
+    line-height: 16px;
+    font-weight: 400;
+    color: var(--text-dim);
+  }
+  .sw {
+    flex: none;
+    width: 12px;
+    height: 12px;
+  }
+  .sw3 {
+    display: flex;
+    flex: none;
+  }
+  .sw3 i {
+    width: 4px;
+    height: 12px;
+  }
+
+  .selectors {
     display: flex;
     gap: 24px;
-    padding-block: 16px;
+    margin-top: 40px;
   }
-  .pace {
+  .sel {
     flex: 1 1 0;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 14px;
+    gap: 10px;
+    min-width: 0;
   }
-  .pace.light {
-    color: var(--text);
-  }
-  .pace.standard {
-    color: var(--accent-light);
-  }
-  .pace.intensive {
-    color: var(--accent);
-  }
-  .txt {
+  .tiles {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    text-align: center;
   }
-  .zh {
-    display: flex;
-    gap: 2px;
-    margin-bottom: 4px;
-  }
-  .ch {
-    position: relative;
-    display: block;
-    width: 44px;
-    height: 44px;
-  }
-  .ch :global(svg) {
-    position: absolute;
-    inset: 0;
-  }
-  .static {
-    display: block;
-    font-family: var(--f-brush);
-    font-weight: var(--fw-brush);
-    font-size: 40px;
-    line-height: 44px;
-    text-align: center;
-  }
-  /* While writing, the static text hides once the stroke data is in (it stays if loading failed). */
-  .writing .ch.drawn:not(.failed) .static {
-    visibility: hidden;
-  }
-  .writing .pace {
-    opacity: 0;
-    translate: 0 10px;
-    transition:
-      opacity 0.4s cubic-bezier(0.65, 0, 0.35, 1),
-      translate 0.4s cubic-bezier(0.65, 0, 0.35, 1);
-  }
-  .writing .pace.on {
-    opacity: 1;
-    translate: 0 0;
-  }
-  .name {
-    font-size: var(--fs-h3);
-    line-height: var(--lh-h3);
-  }
-  .items {
+  .sel p {
     font-size: var(--fs-small);
-    line-height: var(--lh-small);
-    opacity: 0.7;
+    line-height: 22px;
+    color: var(--text-soft);
+    opacity: 0.8;
+  }
+  /* a tile you can pick: dimmed until chosen, orange when it is */
+  .st {
+    position: relative;
+    flex: none;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    background: #1e1e1e;
+    cursor: pointer;
+  }
+  .st span {
+    position: absolute;
+    left: 3px;
+    top: 1px;
+    font-family: 'Zpix', var(--f-display);
+    font-size: 24px;
+    line-height: 24px;
+    font-weight: 500;
+    color: #8a8a8a;
+  }
+  .st[aria-pressed='true'] {
+    background: var(--accent);
+  }
+  .st[aria-pressed='true'] span {
+    color: #161616;
+  }
+  .st:disabled {
+    cursor: default;
+  }
+  .st:focus-visible {
+    outline: 2px solid var(--text);
+    outline-offset: 2px;
+    z-index: 1;
+  }
+
+  @media (max-width: 760px) {
+    .shape {
+      flex-direction: column;
+    }
+    .num {
+      zoom: 0.75;
+    }
+    .live {
+      width: auto;
+    }
+    .selectors {
+      flex-direction: column;
+    }
   }
 </style>
+
+<script>
+  import { makeSlot, applyTile, flipTile, reduceMotion, TILE, FLIP } from '../../scripts/tiles';
+  import type { Slot, TileVal } from '../../scripts/tiles';
+
+  type State = { n: number; words: string; span: string; tiles: { x: number; y: number; ch: string; bg: string }[] };
+
+  const root = document.querySelector<HTMLElement>('[data-course]');
+  if (root) {
+    const states: Record<string, State> = JSON.parse(root.dataset.course!);
+    const num = root.querySelector<HTMLElement>('[data-num]')!;
+    const endTag = root.querySelector<HTMLElement>('[data-end]')!;
+    const wordsEl = root.querySelector<HTMLElement>('[data-words]')!;
+    const spanEl = root.querySelector<HTMLElement>('[data-span]')!;
+    const dateEl = root.querySelector<HTMLElement>('[data-date]')!;
+    const audioEl = root.querySelector<HTMLElement>('[data-audio]')!;
+    const COLS = 15;
+    const ROWS = 11;
+    const STEP = 14; // the wave runs diagonally across the whole number
+
+    const slots: Slot[] = [];
+    for (let i = 0; i < COLS * ROWS; i++) {
+      const slot = makeSlot(num, 'abs');
+      slot.el.style.left = `${(i % COLS) * TILE}px`;
+      slot.el.style.top = `${Math.floor(i / COLS) * TILE}px`;
+      slots.push(slot);
+    }
+
+    function show(key: string, animate: boolean) {
+      const st = states[key];
+      const want = new Map<number, TileVal>(st.tiles.map((t) => [t.y * COLS + t.x, { ch: t.ch, bg: t.bg }]));
+      const moving = animate && !reduceMotion();
+      slots.forEach((slot, i) => {
+        const v = want.get(i) ?? null;
+        if (moving) flipTile(slot, v, ((i % COLS) + Math.floor(i / COLS)) * STEP);
+        else applyTile(slot, v);
+      });
+
+      // finishing one lesson a day, starting today
+      const finish = new Date(Date.now() + (st.n - 1) * 864e5);
+      const short = finish.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const long = finish.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+      const last = st.tiles[st.tiles.length - 1];
+      const place = () => {
+        endTag.textContent = `${short} · ${root!.dataset.last}`;
+        endTag.style.left = `${(last.x + 1) * TILE}px`;
+        endTag.style.top = `${last.y * TILE + 4}px`;
+        endTag.style.opacity = '1';
+      };
+      if (moving) {
+        endTag.style.opacity = '0';
+        window.setTimeout(place, (last.x + last.y) * STEP + FLIP);
+      } else place();
+
+      wordsEl.textContent = st.words;
+      spanEl.textContent = st.span;
+      dateEl.textContent = long;
+      num.setAttribute('aria-label', `${st.n} lessons`);
+    }
+
+    const press = (group: HTMLElement, btn: HTMLElement) =>
+      group.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+
+    const paceGroup = document.querySelector<HTMLElement>('[data-pace-group]')!;
+    let pace = root.dataset.start!;
+    paceGroup.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLElement>('button[data-pace]');
+      if (!btn || btn.dataset.pace === pace) return;
+      pace = btn.dataset.pace!;
+      press(paceGroup, btn);
+      show(pace, true);
+    });
+
+    const audioGroup = document.querySelector<HTMLElement>('[data-audio-group]')!;
+    audioGroup.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLElement>('button[data-mode]');
+      if (!btn) return;
+      press(audioGroup, btn);
+      audioEl.textContent = btn.dataset.mode!;
+    });
+
+    show(pace, false);
+  }
+</script>
