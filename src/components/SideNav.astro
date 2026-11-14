@@ -8,7 +8,9 @@ import { sections, faq, SKILL_REPO } from '../data/site';
   <ul>
     {sections.map((s) => (
       <li>
-        <a href={`#${s.id}`} data-nav={s.id}>{s.num} {s.title}</a>
+        <a class="numbered" href={`#${s.id}`} data-nav={s.id} data-num={Number(s.num)}>
+          <span class="ntile" aria-hidden="true"></span><span>{s.title}</span>
+        </a>
       </li>
     ))}
   </ul>
@@ -84,6 +86,36 @@ import { sections, faq, SKILL_REPO } from '../data/site';
     color: var(--text);
   }
 
+  /* Numbered sections: the number is a small tile (docs/ladrilhos.md). Grey with the digit while
+     inactive; when the section becomes active it flips to orange with the number in hanzi. */
+  a.numbered {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .ntile {
+    position: relative;
+    flex: none;
+    width: 20px;
+    height: 20px;
+  }
+  .ntile :global(.tile) {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 20px;
+    height: 20px;
+  }
+  /* centred, so the narrow digit and the wide hanzi both sit in the middle */
+  .ntile :global(.tile > span) {
+    left: 0;
+    right: 0;
+    text-align: center;
+    top: 1px;
+    font-size: 17px;
+    line-height: 17px;
+  }
+
   /* Desktop-first; mobile behavior to be defined with Eduardo. */
   @media (max-width: 1180px) {
     .sidenav {
@@ -93,6 +125,23 @@ import { sections, faq, SKILL_REPO } from '../data/site';
 </style>
 
 <script>
+  import { makeSlot, applyTile, flipTile, ORANGE, DIM, type Slot } from '../scripts/tiles';
+
+  // number tiles: digit on grey while inactive, hanzi on orange while active
+  const HANZI_NUM = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
+  const numTiles = new Map<string, { slot: Slot; n: number }>();
+  document.querySelectorAll<HTMLAnchorElement>('a.numbered').forEach((a) => {
+    const n = Number(a.dataset.num);
+    const slot = makeSlot(a.querySelector<HTMLElement>('.ntile')!);
+    applyTile(slot, { ch: String(n), bg: DIM.bg, fg: DIM.fg });
+    numTiles.set(a.dataset.nav!, { slot, n });
+  });
+  const tileFor = (id: string | null, on: boolean) => {
+    const t = id ? numTiles.get(id) : undefined;
+    if (!t) return;
+    flipTile(t.slot, on ? { ch: HANZI_NUM[t.n] ?? String(t.n), bg: ORANGE } : { ch: String(t.n), bg: DIM.bg, fg: DIM.fg });
+  };
+
   const links = new Map<string, HTMLAnchorElement>();
   document.querySelectorAll<HTMLAnchorElement>('[data-nav]').forEach((a) => {
     links.set(a.dataset.nav!, a);
@@ -107,6 +156,8 @@ import { sections, faq, SKILL_REPO } from '../data/site';
     if (id === current) return;
     if (current) links.get(current)?.classList.remove('active');
     if (id) links.get(id)?.classList.add('active');
+    tileFor(current, false);
+    tileFor(id, true);
     current = id;
   };
 
