@@ -1,19 +1,25 @@
 ---
-// Hero. MANDARIN is written in tiles (docs/ladrilhos.md), with the pixel word "maxxing" under it.
-// Some tiles flip to another hanzi on their own; hovering flips the tile under the cursor and its
-// neighbours in a short wave, with the same flap transition as the rest of the site. The top tile of
-// each column now and then lets go and rises, already opaque, fading near the top; the cursor pushes
-// the rising tiles away, more strongly the higher they are. The page opens with tiles already rising.
+// Hero. MANDARIN is written in tiles (docs/ladrilhos.md) over the outline of the old hanzi hero, with
+// MAXXING in black tiles overlapping its bottom edge. Settings come from the lab artifact
+// "Hero em ladrilhos — laboratório". Tiles flip on their own; the cursor flips MANDARIN tiles orange
+// (they go back to a colour a moment later) and turns MAXXING letters into hanzi for a while. The top
+// tile of each column lets go and rises, pushed by the cursor. All seven MAXXING letters turned at
+// once read 学汉语很有意思, "Learning Chinese is fun".
 import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
-import art from '../../public/hero-art.json';
-const maxxing = (art as { maxxing: string }).maxxing;
 ---
 <header class="hero">
   <div class="stage" id="hero-stage">
     <canvas aria-hidden="true"></canvas>
-    <div class="art" role="img" aria-label="mandarinmaxxing: the word MANDARIN written in tiles with Chinese characters, above the pixel word maxxing">
-      <div class="board-box"><div class="board" data-board aria-hidden="true"></div></div>
-      <svg class="maxxing" aria-hidden="true" data-maxxing><path d={maxxing}></path></svg>
+    <div class="art" role="img" aria-label="mandarinmaxxing: the word MANDARIN written in tiles with Chinese characters, and MAXXING in black tiles">
+      <div class="fit" data-fit>
+        <div class="inner" data-inner aria-hidden="true">
+          <div class="board" data-board></div>
+          <div class="mx" data-mx>
+            <div class="mx-row" data-mx-row></div>
+            <p class="mx-cap" data-mx-cap lang="zh-Hans">学汉语很有意思 <span lang="en">· Learning Chinese is fun.</span></p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
   <div class="cta">
@@ -67,37 +73,73 @@ const maxxing = (art as { maxxing: string }).maxxing;
     pointer-events: none;
   }
   .art {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 28px;
     opacity: 0;
     transition: opacity 0.4s ease-out;
   }
   .art.ready {
     opacity: 1;
   }
-  /* the board is drawn with the standard 28 px tile and scaled to the stage width (--k set by the script) */
-  .board-box {
+  /* the art is laid out with the standard 28 px tile and scaled to the stage width (by the script) */
+  .fit {
     position: relative;
     width: 100%;
-    aspect-ratio: 1260 / 196;
   }
-  .board {
+  .inner {
     position: absolute;
     left: 0;
     top: 0;
-    width: 1260px;
-    height: 196px;
-    transform: scale(var(--k, 1));
     transform-origin: 0 0;
   }
-  .maxxing {
-    display: block;
-    width: 40%;
-    height: auto;
-    fill: var(--text);
-    overflow: visible;
+  .board {
+    position: relative;
+  }
+  .mx {
+    position: absolute;
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 2;
+  }
+  .mx-row {
+    display: flex;
+  }
+  .mx-row :global(.mxt) {
+    position: relative;
+    flex: none;
+    background: #000;
+  }
+  .mx-row :global(.mxt > span) {
+    position: absolute;
+    right: 0;
+    white-space: pre;
+    text-align: center;
+    font-family: var(--f-body);
+    font-weight: 600;
+    color: var(--text);
+  }
+  /* hanzi sit like on every other tile: 3/28 from the left, 1/28 from the top */
+  .mx-row :global(.mxt.han > span) {
+    right: auto;
+    text-align: left;
+    font-family: 'Zpix', var(--f-display);
+    font-weight: 500;
+    color: #161616;
+  }
+  .mx-cap {
+    margin-top: 10px;
+    font-size: 26px;
+    line-height: 32px;
+    font-weight: 300;
+    color: var(--text-dim);
+    white-space: pre;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .mx-cap :global(.on),
+  .mx-cap.on {
+    opacity: 1;
   }
 
   .cta {
@@ -172,80 +214,135 @@ const maxxing = (art as { maxxing: string }).maxxing;
 
 <script>
   import { makeSlot, applyTile, flipTile, ORANGE, MUTED, WAVE, TILE, type Slot } from '../scripts/tiles';
+  import CELLS from '../data/hero-cells.json';
 
-  // ---------- the letters: 5 × 7 (I is 3 wide), one empty column between letters ----------
-  const LETTERS: Record<string, string[]> = {
-    M: ['X...X', 'XX.XX', 'X.X.X', 'X.X.X', 'X...X', 'X...X', 'X...X'],
-    A: ['.XXX.', 'X...X', 'X...X', 'XXXXX', 'X...X', 'X...X', 'X...X'],
-    N: ['X...X', 'XX..X', 'XX..X', 'X.X.X', 'X..XX', 'X..XX', 'X...X'],
-    D: ['XXXX.', 'X...X', 'X...X', 'X...X', 'X...X', 'X...X', 'XXXX.'],
-    R: ['XXXX.', 'X...X', 'X...X', 'XXXX.', 'X.X..', 'X..X.', 'X...X'],
-    I: ['XXX', '.X.', '.X.', '.X.', '.X.', '.X.', 'XXX'],
+  // Settings approved in the lab artifact "Hero em ladrilhos — laboratório" (14/11/2026).
+  const CFG = {
+    cols: 86, thr: 45, offX: 0, offY: 0, // grid over the shape
+    run: 6, orange: 14, seed: 7, // colour runs
+    swaps: 40, hover: 2.5, rise: 40, // motion
+    mxSize: 2.8, mxBack: 1.9, mxGap: -2, // MAXXING tiles (in MANDARIN tiles)
   };
-  const WORD = 'MANDARIN';
-  const ROWS = 7;
-  // hanzi from the HSK 1 situations, all present in the site's Zpix subset
   const HANZI = [
     ...'你好谢再见对不起没关系要喝吃茶喜欢叫名字什么谁请问中国哪儿去今天文朋友认识高兴我们他岁几年十大家爸妈哥妹电话手机打给喂孩子女狗猫月号星期明现在点床睡觉时间早饭米饺水果买钱贵便宜超市衣服穿看新漂亮住房找桌里来回火车出租飞影听唱玩视气冷热下雨雪学写汉题知道校老师生上课同工作公司忙班脑病医院得左边那个红色的是',
   ];
-
-  const SWAPS_PER_SEC = 4; // tiles that flip on their own
-  const HOVER_R = 1.6; // wave radius around the cursor, in tiles
-  const COOLDOWN = 380; // ms before the same tile can flip again from the cursor
-  const RADIUS = 3 * TILE, FORCE = 9000; // cursor push on the rising tiles (board units)
+  // the easter egg: all seven MAXXING tiles turned at once read 学汉语很有意思, "Learning Chinese is fun"
+  const MX_PHRASE = [...'学汉语很有意思'];
+  const DUR = 110, EASE = 'steps(3, end)';
+  const OUT = [{ transform: 'scaleY(1)' }, { transform: 'scaleY(0)' }];
+  const IN = [{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }];
 
   const stage = document.getElementById('hero-stage')!;
   const hero = stage.closest<HTMLElement>('.hero') ?? stage;
   const artEl = stage.querySelector<HTMLElement>('.art')!;
+  const fitEl = stage.querySelector<HTMLElement>('[data-fit]')!;
+  const inner = stage.querySelector<HTMLElement>('[data-inner]')!;
   const board = stage.querySelector<HTMLElement>('[data-board]')!;
-  const mx = stage.querySelector<SVGSVGElement>('[data-maxxing]')!;
+  const mxEl = stage.querySelector<HTMLElement>('[data-mx]')!;
+  const mxRow = stage.querySelector<HTMLElement>('[data-mx-row]')!;
+  const mxCap = stage.querySelector<HTMLElement>('[data-mx-cap]')!;
   const canvas = stage.querySelector('canvas')!;
   const ctx = canvas.getContext('2d')!;
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const rnd = (a: number, b: number) => a + Math.random() * (b - a);
   const pick = () => HANZI[(Math.random() * HANZI.length) | 0];
 
-  // fit the pixel word's own outline
-  const mp = mx.querySelector('path')!;
-  const bb = mp.getBBox();
-  mx.setAttribute('viewBox', `${bb.x} ${bb.y} ${bb.width} ${bb.height}`);
+  // ---------- the shape: the 750 hanzi cells of the old hero, as a mask cropped to the ink ----------
+  const MASK_W = 2400;
+  function mask(): HTMLCanvasElement {
+    const P = 8.53, W = 742, H = 162, k = MASK_W / W;
+    const cv = document.createElement('canvas');
+    cv.width = MASK_W;
+    cv.height = Math.round(H * k);
+    const c = cv.getContext('2d')!;
+    c.fillStyle = '#000';
+    for (const [x, y] of CELLS as [number, number][]) c.fillRect((x - P / 2) * k, (y - P / 2) * k, P * k + 0.5, P * k + 0.5);
+    const d = c.getImageData(0, 0, cv.width, cv.height).data;
+    let x0 = cv.width, y0 = cv.height, x1 = -1, y1 = -1;
+    for (let y = 0; y < cv.height; y++)
+      for (let x = 0; x < cv.width; x++)
+        if (d[(y * cv.width + x) * 4 + 3] > 127) {
+          if (x < x0) x0 = x;
+          if (x > x1) x1 = x;
+          if (y < y0) y0 = y;
+          if (y > y1) y1 = y;
+        }
+    const out = document.createElement('canvas');
+    const cw = x1 - x0 + 1, ch = y1 - y0 + 1, s = MASK_W / cw;
+    out.width = MASK_W;
+    out.height = Math.max(1, Math.round(ch * s));
+    out.getContext('2d')!.drawImage(cv, x0, y0, cw, ch, 0, 0, out.width, out.height);
+    return out;
+  }
 
-  // ---------- build the board ----------
-  type T = { slot: Slot; c: number; r: number; bg: string; until: number };
+  // ---------- grid: a cell becomes a tile when enough of it is inside the shape ----------
+  type T = { slot: Slot; c: number; r: number; bg: string; until: number; cool?: number };
   const tiles: T[] = [];
   const at = new Map<number, T>();
-  const key = (c: number, r: number) => r * 1000 + c;
-  let COLS = 0;
+  const key = (c: number, r: number) => r * 4096 + c;
+  const COLS = CFG.cols;
+  let ROWS = 0;
   {
-    let x = 0;
-    for (const ch of WORD) {
-      const g = LETTERS[ch];
-      g.forEach((row, r) =>
-        [...row].forEach((v, c) => {
-          if (v === 'X') tiles.push({ slot: null as unknown as Slot, c: x + c, r, bg: '', until: 0 });
-        }),
-      );
-      x += g[0].length + 1;
+    const m = mask();
+    const MW = m.width, MH = m.height;
+    const d = m.getContext('2d')!.getImageData(0, 0, MW, MH).data;
+    const W1 = MW + 1;
+    const sat = new Float64Array(W1 * (MH + 1));
+    for (let y = 1; y <= MH; y++) {
+      let row = 0;
+      for (let x = 1; x <= MW; x++) {
+        row += d[((y - 1) * MW + (x - 1)) * 4 + 3] / 255;
+        sat[y * W1 + x] = sat[(y - 1) * W1 + x] + row;
+      }
     }
-    COLS = x - 1;
+    const clamp = (v: number, hi: number) => Math.max(0, Math.min(hi, Math.round(v)));
+    const area = (ax: number, ay: number, bx: number, by: number) => {
+      ax = clamp(ax, MW); bx = clamp(bx, MW); ay = clamp(ay, MH); by = clamp(by, MH);
+      if (bx <= ax || by <= ay) return 0;
+      return sat[by * W1 + bx] - sat[ay * W1 + bx] - sat[by * W1 + ax] + sat[ay * W1 + ax];
+    };
+    const cell = MW / COLS;
+    const ox = (CFG.offX / 100) * cell, oy = (CFG.offY / 100) * cell;
+    const need = (CFG.thr / 100) * cell * cell;
+    const rows = Math.ceil(MH / cell) + 1;
+    const cand: [number, number][] = [];
+    let minR = Infinity, maxR = -1;
+    for (let r = -1; r < rows; r++)
+      for (let c = -1; c <= COLS; c++) {
+        const x0 = c * cell - ox, y0 = r * cell - oy;
+        if (area(x0, y0, x0 + cell, y0 + cell) >= need) {
+          cand.push([c, r]);
+          minR = Math.min(minR, r);
+          maxR = Math.max(maxR, r);
+        }
+      }
+    ROWS = maxR - minR + 1;
+    for (const [c, r] of cand) tiles.push({ slot: null as unknown as Slot, c, r: r - minR, bg: '', until: 0 });
   }
-  // colours: runs of 3 to 6 tiles in reading order (left to right), cycling the muted colours with
-  // an orange run now and then, like the official list regrouped into lessons in section 01.
-  // A fixed seed keeps the same pattern on every visit.
+  // colour runs in reading order, cycling the muted colours with an orange run now and then
   {
-    let seed = 7;
-    const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    let seed = CFG.seed;
+    const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
     const order = [...tiles].sort((a, b) => a.c - b.c || a.r - b.r);
     let left = 0, m = 0, bg = MUTED[0];
     for (const t of order) {
       if (left <= 0) {
-        left = 3 + ((rand() * 4) | 0);
-        bg = rand() < 0.14 ? ORANGE : MUTED[m++ % MUTED.length];
+        left = Math.max(1, Math.round(CFG.run * (0.5 + rand())));
+        bg = rand() < CFG.orange / 100 ? ORANGE : MUTED[m++ % MUTED.length];
       }
       t.bg = bg;
       left--;
     }
   }
+
+  // ---------- lay out at the natural 28 px tile; the whole art is scaled to the stage ----------
+  const W = COLS * TILE, H = ROWS * TILE;
+  const MXS = CFG.mxSize * TILE;
+  const mxTop = H + CFG.mxGap * TILE;
+  const NATURAL_H = Math.max(H, mxTop + MXS) + 36; // room for the easter egg's line
+  Object.assign(inner.style, { width: `${W}px`, height: `${NATURAL_H}px` });
+  Object.assign(board.style, { width: `${W}px`, height: `${H}px` });
+  mxEl.style.top = `${mxTop}px`;
   for (const t of tiles) {
     t.slot = makeSlot(board, 'abs');
     t.slot.el.style.left = `${t.c * TILE}px`;
@@ -254,89 +351,174 @@ const maxxing = (art as { maxxing: string }).maxxing;
     at.set(key(t.c, t.r), t);
   }
 
+  // MAXXING: one black tile per letter, each hiding one character of the phrase
+  type M = { el: HTMLElement; span: HTMLElement; letter: string; han: string; isHan: boolean; target: boolean; gen: number; back?: number; lock: number };
+  const mx: M[] = [...'MAXXING'].map((letter, i) => {
+    const el = document.createElement('div');
+    el.className = 'mxt';
+    el.style.width = el.style.height = `${MXS}px`;
+    const span = document.createElement('span');
+    el.appendChild(span);
+    mxRow.appendChild(el);
+    const m = { el, span, letter, han: MX_PHRASE[i], isHan: false, target: false, gen: 0, lock: 0 };
+    mxSet(m, false);
+    return m;
+  });
+  let egg = false;
+  function newColor(old: string) {
+    if (old !== ORANGE && Math.random() < CFG.orange / 100) return ORANGE;
+    const opts = MUTED.filter((c) => c !== old);
+    return opts[(Math.random() * opts.length) | 0];
+  }
+  function mxSet(m: M, han: boolean) {
+    m.isHan = han;
+    m.el.classList.toggle('han', han);
+    const s = m.span.style;
+    if (han) {
+      m.span.textContent = m.han;
+      m.el.style.backgroundColor = egg ? ORANGE : newColor('');
+      const fs = (MXS * 24) / 28;
+      Object.assign(s, { fontSize: `${fs}px`, lineHeight: `${fs}px`, left: `${(MXS * 3) / 28}px`, top: `${MXS / 28}px` });
+    } else {
+      m.span.textContent = m.letter;
+      m.el.style.backgroundColor = '#000';
+      Object.assign(s, { fontSize: `${MXS * 0.62}px`, lineHeight: `${MXS}px`, left: '0', top: '0' });
+    }
+  }
+  function mxFlip(m: M, han: boolean, delay = 0) {
+    const gen = ++m.gen;
+    m.target = han;
+    window.setTimeout(() => {
+      if (m.gen !== gen) return;
+      if (reduce) return mxSet(m, han);
+      const a = m.el.animate(OUT, { duration: DUR, easing: EASE, fill: 'forwards' });
+      a.onfinish = () => {
+        a.cancel();
+        if (m.gen !== gen) return;
+        mxSet(m, han);
+        m.el.animate(IN, { duration: DUR, easing: EASE });
+      };
+    }, delay);
+  }
+  mx.forEach((m, i) =>
+    m.el.addEventListener('pointerenter', () => {
+      if (egg) return;
+      for (const [j, d] of [[i, 0], [i - 1, 1], [i + 1, 1]]) {
+        const n = mx[j];
+        // locked while it shows the hanzi and until it has turned back into the letter
+        if (!n || n.target || performance.now() < n.lock) continue;
+        mxFlip(n, true, d * WAVE * 1.5);
+        n.back = window.setTimeout(() => {
+          mxFlip(n, false);
+          n.lock = performance.now() + 2 * DUR + 60;
+        }, CFG.mxBack * 1000 + d * WAVE * 1.5);
+      }
+      window.setTimeout(checkEgg, 3 * WAVE + 2 * DUR + 20);
+    }),
+  );
+  function checkEgg() {
+    if (egg || !mx.every((m) => m.target)) return;
+    egg = true;
+    mx.forEach((m, i) => {
+      clearTimeout(m.back);
+      m.gen++;
+      window.setTimeout(() => {
+        const a = m.el.animate(OUT, { duration: DUR, easing: EASE, fill: 'forwards' });
+        a.onfinish = () => { a.cancel(); mxSet(m, true); m.el.animate(IN, { duration: DUR, easing: EASE }); };
+      }, i * WAVE * 1.5);
+    });
+    mxCap.classList.add('on');
+    window.setTimeout(() => {
+      mxCap.classList.remove('on');
+      egg = false;
+      mx.forEach((m, i) => {
+        mxFlip(m, false, i * WAVE * 1.5);
+        m.lock = performance.now() + i * WAVE * 1.5 + 2 * DUR + 60;
+      });
+    }, 3200);
+  }
+
+  let k = 1;
   function fit() {
-    board.style.setProperty('--k', String(board.parentElement!.clientWidth / (COLS * TILE)));
+    k = fitEl.clientWidth / W;
+    inner.style.transform = `scale(${k})`;
+    fitEl.style.height = `${NATURAL_H * k}px`;
   }
   fit();
   artEl.classList.add('ready');
 
   if (!reduce) run();
+  else new ResizeObserver(fit).observe(hero);
 
   function run() {
-    const flip = (t: T, delay = 0) => flipTile(t.slot, { ch: pick(), bg: t.bg }, delay);
+    const flip = (t: T, bg: string, delay = 0) => flipTile(t.slot, { ch: pick(), bg }, delay);
 
-    // ---------- rising tiles ----------
+    // ---------- rising tiles (positions in tiles) ----------
     type Part = { x: number; y: number; y0: number; ch: string; bg: string; speed: number; life: number; vx: number; vy: number; rot: number; vr: number };
     let parts: Part[] = [];
-    // emitters: the top tile of every column
     const tops = new Map<number, T>();
     for (const t of tiles) {
       const o = tops.get(t.c);
       if (!o || t.r < o.r) tops.set(t.c, t);
     }
-    const emitters = [...tops.values()].map((t) => ({ t, left: 0, since: 0, wait: rnd(0, 6), speed: 0 }));
-    const PITCH = TILE * 1.5;
+    const emitters = [...tops.values()].map((t) => ({ t, left: 0, since: 0, wait: rnd(0, 8), speed: 0 }));
+    const pointer = { x: 0, y: 0, vx: 0, vy: 0, active: false, t: 0 };
 
-    let k = 1, ox = 0, oy = 0, dpr = 1, headroom = 200;
+    let ts = TILE, bx = 0, by = 0, dpr = 1; // screen size of a tile, board origin in the canvas
     function layout() {
       fit();
+      ts = TILE * k;
       const st = stage.getBoundingClientRect();
       const extra = Math.max(0, st.top - hero.getBoundingClientRect().top);
       canvas.style.height = `${st.height + extra}px`;
       const cr = canvas.getBoundingClientRect();
-      const br = board.parentElement!.getBoundingClientRect();
+      const br = board.getBoundingClientRect();
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = Math.round(cr.width * dpr);
       canvas.height = Math.round(cr.height * dpr);
-      k = br.width / (COLS * TILE);
-      ox = br.left - cr.left;
-      oy = br.top - cr.top;
-      headroom = oy / k;
+      bx = br.left - cr.left;
+      by = br.top - cr.top;
     }
 
-    let warming = false;
-    function step(dt: number) {
+    let swapClock = 0;
+    function step(dt: number, warming: boolean) {
+      const rate = CFG.rise / 100;
       for (const e of emitters) {
         if (e.left > 0) {
           e.since += dt;
-          const gap = PITCH / e.speed;
+          const gap = 1.5 / e.speed;
           if (e.since >= gap) {
             e.since -= gap;
             e.left--;
             const t = e.t;
-            const y = t.r * TILE;
-            parts.push({ x: t.c * TILE, y, y0: y, ch: t.slot.val?.ch ?? pick(), bg: t.bg, speed: e.speed, life: y + headroom * rnd(0.7, 1), vx: 0, vy: 0, rot: 0, vr: 0 });
+            parts.push({ x: t.c, y: t.r, y0: t.r, ch: t.slot.val?.ch ?? pick(), bg: t.bg, speed: e.speed, life: t.r + (by / ts) * rnd(0.7, 1), vx: 0, vy: 0, rot: 0, vr: 0 });
             if (warming) applyTile(t.slot, { ch: pick(), bg: t.bg });
             else {
-              // the tile lets go and comes back with another hanzi
               applyTile(t.slot, null);
-              flipTile(t.slot, { ch: pick(), bg: t.bg }, gap * 1000 * 0.85);
+              flip(t, t.bg, gap * 850);
             }
           }
-        } else {
-          e.wait -= dt;
+        } else if (rate > 0) {
+          e.wait -= dt * rate;
           if (e.wait <= 0) {
             e.left = 1 + ((Math.random() * 3) | 0);
-            e.speed = rnd(1.1, 1.8) * TILE;
-            e.since = PITCH / e.speed;
-            e.wait = rnd(4, 14);
+            e.speed = rnd(1.1, 1.8) * (28 / ts) ** 0.5;
+            e.since = 1.5 / e.speed;
+            e.wait = rnd(2, 8);
           }
         }
       }
-
+      const R = 3 * (28 / ts) ** 0.6, FORCE = 320 * (28 / ts) ** 0.4;
       const damp = Math.exp(-6 * dt), dampR = Math.exp(-3 * dt);
       for (const p of parts) {
         if (pointer.active) {
-          const dx = p.x + TILE / 2 - pointer.x, dy = p.y + TILE / 2 - pointer.y;
-          const d = Math.hypot(dx, dy);
-          if (d < RADIUS && d > 0.001) {
+          const dx = p.x + 0.5 - pointer.x, dy = p.y + 0.5 - pointer.y, d = Math.hypot(dx, dy);
+          if (d < R && d > 0.001) {
             const h = Math.min(1, (p.y0 - p.y) / (p.life * 0.75));
-            const lift = 0.25 + 0.75 * h * h;
-            const fall = 1 - d / RADIUS;
-            const f = FORCE * fall * fall * lift;
+            const lift = 0.25 + 0.75 * h * h, fall = 1 - d / R, f = FORCE * fall * fall * lift;
             p.vx += (dx / d) * f * dt + pointer.vx * 0.02 * fall * lift;
             p.vy += (dy / d) * f * dt + pointer.vy * 0.02 * fall * lift;
-            p.vr += (dx / d) * f * dt * 0.004 * (Math.random() < 0.5 ? -1 : 1);
+            p.vr += (dx / d) * f * dt * 0.1 * (Math.random() < 0.5 ? -1 : 1);
           }
         }
         p.vx *= damp; p.vy *= damp; p.vr *= dampR;
@@ -344,72 +526,78 @@ const maxxing = (art as { maxxing: string }).maxxing;
         p.y += (p.vy - p.speed) * dt;
         p.rot += p.vr * dt;
       }
-      const W = COLS * TILE;
-      parts = parts.filter((p) => p.y0 - p.y < p.life && p.y > -headroom - TILE && p.y < ROWS * TILE && p.x > -3 * TILE && p.x < W + 3 * TILE);
+      parts = parts.filter((p) => p.y0 - p.y < p.life && p.y > -by / ts - 1 && p.x > -4 && p.x < COLS + 4);
       if (warming) return;
 
       pointer.vx *= Math.exp(-10 * dt);
       pointer.vy *= Math.exp(-10 * dt);
-      swapClock += dt * SWAPS_PER_SEC;
+      swapClock += dt * CFG.swaps;
       while (swapClock >= 1) {
         swapClock--;
         const t = tiles[(Math.random() * tiles.length) | 0];
-        if (t.slot.el.style.visibility === 'visible') flip(t);
+        if (t.slot.el.style.visibility === 'visible') flip(t, t.bg);
       }
     }
-    let swapClock = 0;
 
     function draw() {
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const s = k * dpr;
       ctx.textBaseline = 'top';
-      ctx.font = `500 24px Zpix, sans-serif`;
+      ctx.font = '500 24px Zpix, sans-serif';
+      const s = (ts / 28) * dpr;
       for (const p of parts) {
         // opaque while rising, fading out over the last part of the way
         const a = Math.max(0, 1 - Math.pow((p.y0 - p.y) / p.life, 2.2));
         if (a <= 0.01) continue;
         ctx.globalAlpha = a;
         const cs = Math.cos(p.rot) * s, sn = Math.sin(p.rot) * s;
-        const cx = (ox + (p.x + TILE / 2) * k) * dpr, cy = (oy + (p.y + TILE / 2) * k) * dpr;
-        ctx.setTransform(cs, sn, -sn, cs, cx, cy);
+        ctx.setTransform(cs, sn, -sn, cs, (bx + (p.x + 0.5) * ts) * dpr, (by + (p.y + 0.5) * ts) * dpr);
         ctx.fillStyle = p.bg;
-        ctx.fillRect(-TILE / 2, -TILE / 2, TILE, TILE);
+        ctx.fillRect(-14, -14, 28.4, 28.4);
         ctx.fillStyle = '#161616';
-        ctx.fillText(p.ch, -TILE / 2 + 3, -TILE / 2 + 1);
+        ctx.fillText(p.ch, -11, -13);
       }
       ctx.globalAlpha = 1;
     }
 
-    // ---------- cursor: flip the tile under it and its neighbours ----------
-    const pointer = { x: 0, y: 0, vx: 0, vy: 0, active: false, t: 0 };
+    // ---------- cursor over MANDARIN: the tile and its neighbours turn orange, then go back to colour ----------
     let lastCell = -1;
     hero.addEventListener('pointermove', (ev) => {
-      const cr = canvas.getBoundingClientRect();
-      const x = (ev.clientX - cr.left - ox) / k, y = (ev.clientY - cr.top - oy) / k;
-      const now = ev.timeStamp || performance.now(), dt = Math.max(8, now - pointer.t) / 1000;
-      if (pointer.active) { pointer.vx = (x - pointer.x) / dt; pointer.vy = (y - pointer.y) / dt; }
-      pointer.vx = Math.max(-900, Math.min(900, pointer.vx));
-      pointer.vy = Math.max(-900, Math.min(900, pointer.vy));
+      const br = board.getBoundingClientRect();
+      const x = (ev.clientX - br.left) / ts, y = (ev.clientY - br.top) / ts;
+      const now = performance.now(), dt = Math.max(8, now - pointer.t) / 1000;
+      if (pointer.active) {
+        pointer.vx = Math.max(-60, Math.min(60, (x - pointer.x) / dt));
+        pointer.vy = Math.max(-60, Math.min(60, (y - pointer.y) / dt));
+      }
       Object.assign(pointer, { x, y, t: now, active: true });
-
-      const c = Math.floor(x / TILE), r = Math.floor(y / TILE);
-      const cell = key(c, r);
+      const c = Math.floor(x), r = Math.floor(y), cell = key(c, r);
       if (cell === lastCell) return;
       lastCell = cell;
       if (!at.has(cell)) return;
-      const R = Math.ceil(HOVER_R);
-      for (let dr = -R; dr <= R; dr++)
-        for (let dc = -R; dc <= R; dc++) {
+      const RR = Math.ceil(CFG.hover);
+      for (let dr = -RR; dr <= RR; dr++)
+        for (let dc = -RR; dc <= RR; dc++) {
           const d = Math.hypot(dc, dr);
-          if (d > HOVER_R) continue;
+          if (d > CFG.hover) continue;
           const t = at.get(key(c + dc, r + dr));
           if (!t || now < t.until || t.slot.el.style.visibility !== 'visible') continue;
-          t.until = now + COOLDOWN;
-          flip(t, Math.round(d * WAVE * 1.5));
+          t.until = now + 380;
+          t.bg = ORANGE;
+          const delay = Math.round(d * WAVE * 1.5);
+          flip(t, ORANGE, delay);
+          clearTimeout(t.cool);
+          t.cool = window.setTimeout(() => {
+            t.bg = newColor(ORANGE);
+            flip(t, t.bg);
+          }, delay + rnd(1500, 4000));
         }
     });
-    hero.addEventListener('pointerleave', () => { pointer.active = false; pointer.vx = pointer.vy = 0; lastCell = -1; });
+    hero.addEventListener('pointerleave', () => {
+      pointer.active = false;
+      pointer.vx = pointer.vy = 0;
+      lastCell = -1;
+    });
 
     let visible = true;
     new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(stage);
@@ -417,16 +605,16 @@ const maxxing = (art as { maxxing: string }).maxxing;
     layout();
 
     // start mid-flow, so the page opens with tiles already rising
-    warming = true;
-    const warmFor = (ROWS * TILE + headroom) / (1.1 * TILE) + 6;
-    for (let t = 0; t < warmFor; t += 1 / 20) step(1 / 20);
-    warming = false;
+    for (let t = 0; t < 30; t += 1 / 20) step(1 / 20, true);
 
     let last = performance.now();
     function frame(now: number) {
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
-      if (visible && !document.hidden) { step(dt); draw(); }
+      if (visible && !document.hidden) {
+        step(dt, false);
+        draw();
+      }
       requestAnimationFrame(frame);
     }
     // the canvas draws text in Zpix: wait for the font so the first frames are not in a fallback
