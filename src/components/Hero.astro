@@ -54,13 +54,10 @@ import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
     padding-block: 40px 64px;
   }
 
-  /* Art + headroom above it for the rising tiles. The art is wider than the text column, so the
-     stage breaks out of it and stays centred on the page. */
+  /* Art + headroom above it for the rising tiles; as wide as the content column */
   .stage {
     position: relative;
-    width: min(1120px, 100vw - 48px);
-    margin-left: 50%;
-    transform: translateX(-50%);
+    width: 100%;
     padding-top: 120px;
   }
   /* the canvas reaches up to the top of the hero (height set by the script) */
