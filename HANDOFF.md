@@ -1,9 +1,9 @@
-# Handoff: reescrever a copy do site mandarinmaxxing
+# Handoff: site mandarinmaxxing
 
-Ponto de partida para o chat que vai melhorar o texto e a organização dos tópicos do site. Leia este arquivo inteiro antes de começar.
+Ponto de partida para o próximo chat que mexer no site. Leia este arquivo inteiro antes de começar.
 
 - **Converse com o Eduardo em português.** Todo o texto público do site é em inglês.
-- **O site já está construído e no ar.** Esta fase é de copy e estrutura, não de design nem de animação.
+- **O site já está construído e no ar**, com a copy reescrita para a skill v0.3.0. A próxima fase é de design.
 
 ## Links
 
@@ -77,14 +77,38 @@ A copy foi reescrita para a skill v0.3.0, com o messaging de `docs/messaging.md`
 - O Eduardo disse que quer a mesma fonte em todos os hanzi. Os traços animados dos ritmos (轻松 / 标准 / 强化) não usam a Ma Shan Zheng.
 - Ao mudar o mapa da skill, gere `src/data/situations.ts` de novo e atualize `SKILL_VERSION` em `src/data/site.ts`.
 
-## Pendências fora da copy (não são desta fase)
+## Próxima fase: design, com o Paper como fonte da verdade
 
-- Responsivo / mobile.
-- Licença no footer.
-- Revisão de design de Install e FAQ.
-- Listas reais de palavras por tópico e posições na barra do HSK 4.
-- Domínio próprio.
+O Eduardo quer revisitar o site no Paper (arquivo `01M73ZX4CG7GXQAC76RFJZ8R94`) e deixar o Paper como fonte da verdade do design. Hoje o código está à frente do Paper: a copy e três seções mudaram só no código.
+
+Processo sugerido:
+1. Trazer para o Paper o estado atual do site (texto novo, seções Your course e Install).
+2. Redesenhar no Paper, seção por seção, mostrando opções ao Eduardo.
+3. Só depois levar para o código.
+
+Levantamento de 13/11/2026, feito pelo código e pelo texto renderizado, sem ver o layout. Confirme olhando o site antes de agir.
+
+| Seção | Estado | O que fazer |
+| --- | --- | --- |
+| Hero | Bom | Ver se ficou vazio sem a caixa do comando; talvez uma linha de apoio sob a frase. |
+| 01 What it is | Fraco: três parágrafos de texto puro | Encurtar ou trocar por uma imagem de uma aula real no chat. |
+| 02 Situations | Forte | A lista de 22 linhas ficou longa: mostrar as 7 do jump start e um "ver as 22". |
+| 03 Chunks | Bom | Nada urgente. |
+| 04 Bentos | Bom, com um card errado | Card 4: regravar o áudio com uma voz (Sarah) e refazer os tempos. |
+| 05 Your course | Fraco no visual | Mostrar a mensagem de setup e a lista de aulas como aparecem no chat. |
+| 06 Install | Funcional, sem revisão de design | Uma captura da tela do Claude em cada passo. |
+| FAQ | Texto bom, layout simples | Acordeão. |
+| Footer | Incompleto | Licença e link para reportar problema. |
+
+Na página inteira:
+- **Celular.** Não há versão para tela pequena; só a side nav se adapta. É o problema mais grave.
+- **Imagem de compartilhamento e favicon.** Não existem.
+- **Uma aula de verdade.** Em nenhum lugar aparece a tabela real da skill, com a fonte Kaiti.
+- **Domínio próprio.**
+- Listas reais já existem para o HSK 1. Quando houver mapa do HSK 2, decidir se o site mostra os dois níveis.
+
+Prioridade sugerida: celular, imagem de compartilhamento e favicon, card 4, Your course e Install, What it is e FAQ.
 
 ## Mensagem para abrir o novo chat
 
-> Quero reescrever a copy do site mandarinmaxxing e organizar melhor os tópicos. O repositório é `aveduardo-br/mandarinmaxxing-site` e o site está em https://mandarinmaxxing-site.vercel.app. Leia o `HANDOFF.md` e siga o processo de lá: diagnóstico, perguntas, estrutura, reescrita num documento e só depois aplicar no site. Converse comigo em português; o texto do site é em inglês.
+> Quero revisar o design do site mandarinmaxxing no Paper e deixar o Paper como fonte da verdade. O repositório é `aveduardo-br/mandarinmaxxing-site` e o site está em https://mandarinmaxxing-site.vercel.app. Leia o `HANDOFF.md`, principalmente a seção "Próxima fase", abra o site no navegador para ver o layout e me mostre opções antes de mudar. Converse comigo em português; o texto do site é em inglês.
