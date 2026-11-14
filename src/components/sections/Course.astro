@@ -133,8 +133,18 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
   .num {
     position: relative;
     flex: none;
-    width: 420px;
+    width: 420px; /* two digits; the script widens it for three, which pushes the text right */
     height: 308px;
+    transition: width 0.22s steps(4, end);
+  }
+  /* three digits: the text runs past the column on wide screens, and drops below on narrower ones */
+  @media (max-width: 1160px) {
+    .shape.wide {
+      flex-direction: column;
+    }
+    .shape.wide .live {
+      width: auto;
+    }
   }
   .num .tile-tag {
     position: absolute;
@@ -143,17 +153,6 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
   .num .start {
     left: 0;
     top: -20px;
-  }
-  /* three digits: smaller tiles, so the number still fits beside the text */
-  .num.compact :global(.tile) {
-    width: 18px;
-    height: 18px;
-  }
-  .num.compact :global(.tile > span) {
-    left: 3px;
-    top: 3px;
-    font-size: 12px;
-    line-height: 12px;
   }
   /* hovering a tile: its situation stays lit, the rest steps back, and a label names the lesson */
   .num :global(.tile) {
@@ -182,6 +181,7 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     display: flex;
     flex-direction: column;
     gap: 12px;
+    flex: none;
     width: 228px;
     padding-top: 4px;
   }
@@ -294,6 +294,9 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     .num {
       zoom: 0.75;
     }
+    .shape.wide .num {
+      zoom: 0.5;
+    }
     .live {
       width: auto;
     }
@@ -334,15 +337,12 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
       slot.el.dataset.i = String(i);
       slots.push(slot);
     }
-    let size = 28;
-    const place = (compact: boolean) => {
-      size = compact ? 18 : 28;
-      num.classList.toggle('compact', compact);
-      slots.forEach((slot, i) => {
-        slot.el.style.left = `${(i % COLS) * size}px`;
-        slot.el.style.top = `${Math.floor(i / COLS) * size}px`;
-      });
-    };
+    const size = 28;
+    slots.forEach((slot, i) => {
+      slot.el.style.left = `${(i % COLS) * size}px`;
+      slot.el.style.top = `${Math.floor(i / COLS) * size}px`;
+    });
+    let width = 420;
 
     const lessonsOf = (level: number, pace: string) => {
       const L = D.levels[level - 1];
@@ -397,8 +397,10 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
 
     function show(animate: boolean) {
       const next = build(level, pace);
-      const compact = String(next.n).length > 2;
-      const wasCompact = num.classList.contains('compact');
+      const digits = String(next.n).length;
+      width = (digits * 8 - 1) * size;
+      num.style.width = `${width}px`;
+      root.classList.toggle('wide', digits > 2);
       const moving = animate && !reduceMotion();
       const want = new Map<number, TileVal>(next.tiles.map((t) => [t.y * COLS + t.x, { ch: t.ch, bg: t.bg }]));
       const lastTile = next.tiles[next.tiles.length - 1];
@@ -414,7 +416,7 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
         endTag.textContent = `${dateOf(next.n, 'short')} · ${mapped ? lastTile.name : `Lesson ${next.n}`}`;
         // beside the last tile when it fits; otherwise under it, so it never covers the text
         const edge = (lastTile.x + 1) * size;
-        const under = edge + endTag.offsetWidth > num.offsetWidth + 24;
+        const under = edge + endTag.offsetWidth > width + 24;
         endTag.style.left = `${edge}px`;
         endTag.style.transform = under ? 'translateX(-100%)' : '';
         endTag.style.top = under ? `${(lastTile.y + 1) * size + 4}px` : `${lastTile.y * size + (size - 20) / 2}px`;
@@ -429,27 +431,13 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
         });
 
       if (!moving) {
-        place(compact);
         fill(0);
         labels();
       } else {
         const token = ++busy;
         endTag.style.opacity = '0';
-        if (compact !== wasCompact) {
-          // the tile size changes: clear the old number first, then draw the new one
-          startTag.style.opacity = '0';
-          slots.forEach((slot, i) => flipTile(slot, null, delay(i)));
-          const cleared = (COLS + ROWS) * STEP + FLIP;
-          window.setTimeout(() => {
-            if (token !== busy) return;
-            place(compact);
-            fill(0);
-            window.setTimeout(() => token === busy && labels(), delay(lastTile.y * COLS + lastTile.x) + FLIP);
-          }, cleared);
-        } else {
-          fill(0);
-          window.setTimeout(() => token === busy && labels(), delay(lastTile.y * COLS + lastTile.x) + FLIP);
-        }
+        fill(0);
+        window.setTimeout(() => token === busy && labels(), delay(lastTile.y * COLS + lastTile.x) + FLIP);
       }
 
       const finish = dateOf(next.n, 'long');
@@ -482,7 +470,7 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
       // above the tile; flipped to the left when it would run into the text beside the number
       const left = t.x * size;
       const w = hoverTag.offsetWidth;
-      hoverTag.style.left = `${left + w > 452 ? Math.max(0, (t.x + 1) * size - w) : left}px`;
+      hoverTag.style.left = `${left + w > width + 32 ? Math.max(0, (t.x + 1) * size - w) : left}px`;
       hoverTag.style.top = `${t.y * size - 20}px`;
     });
     num.addEventListener('pointerleave', clearHover);
