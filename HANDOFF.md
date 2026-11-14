@@ -68,10 +68,16 @@ A copy foi reescrita para a skill v0.3.0, com o messaging de `docs/messaging.md`
 
 O Eduardo quer revisitar o site no Paper (arquivo `01M73ZX4CG7GXQAC76RFJZ8R94`) e deixar o Paper como fonte da verdade do design. Hoje o código está à frente do Paper: a copy e três seções mudaram só no código.
 
-Processo sugerido:
-1. Trazer para o Paper o estado atual do site (texto novo, seções Your course e Install).
-2. Redesenhar no Paper, seção por seção, mostrando opções ao Eduardo.
-3. Só depois levar para o código.
+**Leia `docs/ladrilhos.md` antes de desenhar.** Ele guarda a identidade visual de ladrilhos que o Eduardo aprovou na seção 05 (medidas, cores, etiquetas, seletores) e o raciocínio para aplicar o mesmo formato às outras seções.
+
+Estado em 14/11/2026:
+- A página do Paper "Site — atual (v0.3.0)" já tem o site atual, seção por seção, e propostas ao lado de várias delas.
+- **05 Your course está redesenhada e aprovada no Paper** (o número de aulas feito de ladrilhos, com três estados). Ainda não foi para o código.
+- O Eduardo vai redesenhar as outras seções no mesmo formato.
+
+Processo:
+1. Redesenhar no Paper, uma seção por vez, mostrando opções ao Eduardo. Não apagar quadros dele: mover para o lado e renomear.
+2. Só depois levar para o código, num branch, conferindo pelo link de prévia da Vercel.
 
 Levantamento de 13/11/2026, feito pelo código e pelo texto renderizado, sem ver o layout. Confirme olhando o site antes de agir.
 
@@ -82,7 +88,7 @@ Levantamento de 13/11/2026, feito pelo código e pelo texto renderizado, sem ver
 | 02 Situations | Forte | A lista de 22 linhas ficou longa: mostrar as 7 do jump start e um "ver as 22". |
 | 03 Chunks | Bom | Nada urgente. |
 | 04 Bentos | Bom, com um card errado | Card 4: regravar o áudio com uma voz (Sarah) e refazer os tempos. |
-| 05 Your course | Fraco no visual | Mostrar a mensagem de setup e a lista de aulas como aparecem no chat. |
+| 05 Your course | Redesenhada no Paper (ladrilhos) | Levar para o código com a troca animada de número. Ver `docs/ladrilhos.md`. |
 | 06 Install | Funcional, sem revisão de design | Uma captura da tela do Claude em cada passo. |
 | FAQ | Texto bom, layout simples | Acordeão. |
 | Footer | Incompleto | Licença e link para reportar problema. |
@@ -98,4 +104,4 @@ Prioridade sugerida: celular, imagem de compartilhamento e favicon, card 4, Your
 
 ## Mensagem para abrir o novo chat
 
-> Quero revisar o design do site mandarinmaxxing no Paper e deixar o Paper como fonte da verdade. O repositório é `aveduardo-br/mandarinmaxxing-site` e o site está em https://mandarinmaxxing-site.vercel.app. Leia o `HANDOFF.md`, principalmente a seção "Próxima fase", abra o site no navegador para ver o layout e me mostre opções antes de mudar. Converse comigo em português; o texto do site é em inglês.
+> Quero continuar o redesenho do site mandarinmaxxing no Paper, no formato de ladrilhos que aprovei na seção 05. O repositório é `aveduardo-br/mandarinmaxxing-site`, o site está em https://mandarinmaxxing-site.vercel.app e o arquivo do Paper é https://app.paper.design/file/01M73ZX4CG7GXQAC76RFJZ8R94/p-2-0. Leia o `HANDOFF.md` e o `docs/ladrilhos.md`, olhe no Paper os quadros "05 Your course" e "ref", e me mostre opções antes de mudar. Converse comigo em português; o texto do site é em inglês.
