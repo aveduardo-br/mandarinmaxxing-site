@@ -106,14 +106,18 @@ import { sections, faq, SKILL_REPO } from '../data/site';
     width: 20px;
     height: 20px;
   }
-  /* centred, so the narrow digit and the wide hanzi both sit in the middle */
+  /* Zpix draws every glyph from the left of its box with a gap on the right (4 px at 24 px), and
+     hanzi and digits share the same vertical centre (13/24 of the size from the top). So: centre the
+     box, push it right by half that gap, and set top so the ink's centre lands on the tile's centre. */
   .ntile :global(.tile > span) {
-    left: 0;
-    right: 0;
+    /* a box wider than the tile, so the 19.5 px wide hanzi box can be centred too */
+    left: -10px;
+    right: -10px;
+    padding-left: 3px; /* 2/24 of 18 px, twice, because centring halves it */
     text-align: center;
-    top: 1px;
-    font-size: 17px;
-    line-height: 17px;
+    top: 0.5px; /* 10 − 18 × 13/24, rounded to the half pixel the renderer lands on */
+    font-size: 18px;
+    line-height: 18px;
   }
 
   /* Desktop-first; mobile behavior to be defined with Eduardo. */
