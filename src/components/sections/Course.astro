@@ -1,63 +1,59 @@
 ---
 // Section 05 — Paper "05 Your course" (tiles). See docs/ladrilhos.md.
-// The number of lessons in HSK 1 is drawn with tiles: 58 at five words a lesson, 97 at three, 42 at
-// seven. Below it, three tile selectors (level, pace, audio). Changing the pace flips the tiles into
-// the new number; the text beside it and the finish date change with it. Audio only changes the last
-// sentence. Only level 1 has a map, so the other levels are shown but cannot be picked yet.
+// The number of lessons in a level is drawn with tiles. Below it, three tile selectors:
+// - Level (HSK 1 to 6) and Pace (3, 5 or 7 new words a lesson) redraw the number: the tiles flip into
+//   the new digits, and the text beside it says how long it takes at one lesson a day and when you
+//   would finish, counted from today.
+// - Audio (listen or read) only changes the last sentence.
+// Hovering a tile shows which lesson it is, its date, and (HSK 1) the situation it belongs to.
 //
-// The numbers 97, 58 and 42 are real (the parts of the HSK 1 map at each pace). The tiles are a
-// showcase: how many there are, and which hanzi each one carries, is not meant to match the data.
+// HSK 1 uses the real numbers of its map: 97, 58 and 42 lessons at 3, 5 and 7 words. Levels 2 to 6
+// have no hand-made map yet, so their number is the word count divided by the pace, and the text says
+// it is an estimate. The tiles are a showcase: how many there are, and which hanzi each one carries,
+// is not meant to match the data one to one.
 import Section from '../Section.astro';
-import { situations, HSK1_TOTAL } from '../../data/situations';
+import { situations } from '../../data/situations';
+import { hskLevels } from '../../data/levels';
 
 const ORANGE = '#D2430E';
 const MUTED = ['#7FA3B0', '#9A9C5C', '#C29A5B', '#A0938B', '#E8835A'];
 
 // Digits on a 7 × 11 grid, one tile thick, outer corners left out so the shape reads as rounded.
 const DIGITS: Record<string, string[]> = {
+  '0': ['.XXXXX.', 'X.....X', 'X.....X', 'X.....X', 'X.....X', 'X.....X', 'X.....X', 'X.....X', 'X.....X', 'X.....X', '.XXXXX.'],
+  '1': ['..XX...', '...X...', '...X...', '...X...', '...X...', '...X...', '...X...', '...X...', '...X...', '...X...', '.XXXXX.'],
   '2': ['.XXXXX.', 'X.....X', '......X', '......X', '......X', '.XXXXX.', 'X......', 'X......', 'X......', 'X......', 'XXXXXXX'],
+  '3': ['.XXXXX.', 'X.....X', '......X', '......X', '......X', '..XXXX.', '......X', '......X', '......X', 'X.....X', '.XXXXX.'],
   '4': ['X....X.', 'X....X.', 'X....X.', 'X....X.', 'X....X.', 'X....X.', 'XXXXXXX', '.....X.', '.....X.', '.....X.', '.....X.'],
   '5': ['XXXXXXX', 'X......', 'X......', 'X......', 'X......', 'XXXXXX.', '......X', '......X', '......X', 'X.....X', '.XXXXX.'],
+  '6': ['.XXXXX.', 'X......', 'X......', 'X......', 'X......', 'XXXXXX.', 'X.....X', 'X.....X', 'X.....X', 'X.....X', '.XXXXX.'],
   '7': ['XXXXXXX', '......X', '......X', '.....X.', '.....X.', '....X..', '....X..', '...X...', '...X...', '...X...', '...X...'],
   '8': ['.XXXXX.', 'X.....X', 'X.....X', 'X.....X', 'X.....X', '.XXXXX.', 'X.....X', 'X.....X', 'X.....X', 'X.....X', '.XXXXX.'],
   '9': ['.XXXXX.', 'X.....X', 'X.....X', 'X.....X', 'X.....X', '.XXXXXX', '......X', '......X', '......X', '......X', '.XXXXX.'],
 };
-const COLS = 15; // two digits of 7 with one empty column between them
-const ROWS = 11;
 
-// Tiles follow reading order (top to bottom, left to right, first digit then the second) and walk
-// through the level: the jump start in orange at the beginning, then one muted colour per situation.
+// HSK 1: the situations in order, with the jump start in orange and one muted colour per situation
+// after it. `end` is the running word count, so a tile can be matched to the situation it falls in.
 let end = 0;
 let muted = 0;
 const info = situations.map((s) => ({
+  name: s.name,
   bg: s.jumpStart ? ORANGE : MUTED[muted++ % MUTED.length],
-  chars: [...s.words.map((w) => w.hanzi).join('')],
+  chars: s.words.map((w) => w.hanzi).join(''),
   end: (end += s.count),
 }));
-function tilesFor(n: number) {
-  const cells = [...String(n)].flatMap((d, di) =>
-    DIGITS[d].flatMap((row, y) => [...row].flatMap((c, x) => (c === 'X' ? [{ x: di * 8 + x, y }] : []))),
-  );
-  const used = new Map<number, number>();
-  return cells.map((cell, t) => {
-    const word = Math.floor((t * (HSK1_TOTAL - 1)) / (cells.length - 1)); // first tile = first word, last = last
-    const si = info.findIndex((i) => word < i.end);
-    const k = used.get(si) ?? 0;
-    used.set(si, k + 1);
-    return { ...cell, ch: info[si].chars[k % info[si].chars.length], bg: info[si].bg };
-  });
-}
 
+// Lessons in HSK 1 at each pace: the parts of the hand-made map. Other levels are estimated.
+const MAPPED: Record<string, number> = { '3': 97, '5': 58, '7': 42 };
+const levels = hskLevels.map((l) => ({ words: l.words, sample: l.sample, fixed: l.level === 1 ? MAPPED : null }));
 const paces = [
-  { key: '3', zh: '三', n: 97, words: 'three', span: 'about three months' },
-  { key: '5', zh: '五', n: 58, words: 'five', span: 'about two months' },
-  { key: '7', zh: '七', n: 42, words: 'seven', span: 'about six weeks' },
+  { key: '3', zh: '三', words: 'three' },
+  { key: '5', zh: '五', words: 'five' },
+  { key: '7', zh: '七', words: 'seven' },
 ];
 const START = '5';
-const states = Object.fromEntries(paces.map((p) => [p.key, { n: p.n, words: p.words, span: p.span, tiles: tilesFor(p.n) }]));
-const first = paces.find((p) => p.key === START)!;
-const levels = ['一', '二', '三', '四', '五', '六'];
-const lastName = situations[situations.length - 1].name;
+const levelZh = ['一', '二', '三', '四', '五', '六'];
+const data = { digits: DIGITS, levels, info, muted: MUTED };
 ---
 
 <Section id="course" num="05" title="Your course">
@@ -66,20 +62,21 @@ const lastName = situations[situations.length - 1].name;
     lesson.
   </p>
 
-  <div class="shape" data-course={JSON.stringify(states)} data-start={START} data-last={lastName}>
-    <div class="num" data-num role="img" aria-label={`${first.n} lessons`}>
-      <div class="tile-tag start">Today · Say hello</div>
+  <div class="shape" data-course={JSON.stringify(data)} data-start={START}>
+    <div class="num" data-num role="img" aria-label={`${MAPPED[START]} lessons`}>
+      <div class="tile-tag start" data-start-tag>Today · Say hello</div>
       <div class="tile-tag end" data-end></div>
+      <div class="tile-tag hover" data-hover aria-hidden="true"></div>
     </div>
     <div class="live" aria-live="polite">
       <div class="word display">lessons</div>
-      <p>
-        HSK 1, <span data-words>{first.words}</span> new words each. One a day takes <span data-span>{first.span}</span>:
-        start today, finish on <b data-date>the date below</b>.
+      <p data-main>
+        HSK 1, five new words each. One a day takes about two months.
       </p>
       <p>Each lesson ends with a short text to <b data-audio>listen to</b>.</p>
+      <p class="note" data-note hidden></p>
       <div class="legend">
-        <div class="lg"><span class="sw" style={`background:${ORANGE}`}></span>Jump start: the basics first</div>
+        <div class="lg" data-jump><span class="sw" style={`background:${ORANGE}`}></span>Jump start: the basics first</div>
         <div class="lg">
           <span class="sw3">{MUTED.slice(0, 3).map((c) => <i style={`background:${c}`} />)}</span>Then one color per situation
         </div>
@@ -90,17 +87,10 @@ const lastName = situations[situations.length - 1].name;
   <div class="selectors">
     <div class="sel">
       <div class="tile-label">Level</div>
-      <div class="tiles" role="group" aria-label="Level">
+      <div class="tiles" role="group" aria-label="Level" data-level-group>
         {
-          levels.map((zh, i) => (
-            <button
-              class="st"
-              type="button"
-              aria-pressed={i === 0 ? 'true' : 'false'}
-              aria-label={`HSK ${i + 1}`}
-              disabled={i > 0}
-              title={i > 0 ? 'HSK 1 is the level mapped so far' : undefined}
-            >
+          levelZh.map((zh, i) => (
+            <button class="st" type="button" data-level={i + 1} aria-pressed={i === 0 ? 'true' : 'false'} aria-label={`HSK ${i + 1}`}>
               <span aria-hidden="true">{zh}</span>
             </button>
           ))
@@ -154,6 +144,39 @@ const lastName = situations[situations.length - 1].name;
     left: 0;
     top: -20px;
   }
+  /* three digits: smaller tiles, so the number still fits beside the text */
+  .num.compact :global(.tile) {
+    width: 18px;
+    height: 18px;
+  }
+  .num.compact :global(.tile > span) {
+    left: 3px;
+    top: 3px;
+    font-size: 12px;
+    line-height: 12px;
+  }
+  /* hovering a tile: its situation stays lit, the rest steps back, and a label names the lesson */
+  .num :global(.tile) {
+    transition: opacity 0.12s linear;
+  }
+  .num.hovering :global(.tile) {
+    opacity: 0.3;
+  }
+  .num.hovering :global(.tile.lit) {
+    opacity: 1;
+  }
+  .num.hovering .start,
+  .num.hovering .end {
+    opacity: 0 !important;
+  }
+  .num .hover {
+    z-index: 2;
+    pointer-events: none;
+    opacity: 0;
+  }
+  .num.hovering .hover {
+    opacity: 1;
+  }
 
   .live {
     display: flex;
@@ -172,9 +195,14 @@ const lastName = situations[situations.length - 1].name;
     line-height: 24px;
     color: var(--text-80);
   }
-  .live b {
+  .live :global(b) {
     font-weight: 500;
     color: var(--text);
+  }
+  .live .note {
+    font-size: var(--fs-caption);
+    line-height: 18px;
+    color: var(--muted);
   }
   .legend {
     display: flex;
@@ -253,9 +281,6 @@ const lastName = situations[situations.length - 1].name;
   .st[aria-pressed='true'] span {
     color: #161616;
   }
-  .st:disabled {
-    cursor: default;
-  }
   .st:focus-visible {
     outline: 2px solid var(--text);
     outline-offset: 2px;
@@ -279,75 +304,209 @@ const lastName = situations[situations.length - 1].name;
 </style>
 
 <script>
-  import { makeSlot, applyTile, flipTile, reduceMotion, TILE, FLIP } from '../../scripts/tiles';
+  import { makeSlot, applyTile, flipTile, reduceMotion, FLIP } from '../../scripts/tiles';
   import type { Slot, TileVal } from '../../scripts/tiles';
 
-  type State = { n: number; words: string; span: string; tiles: { x: number; y: number; ch: string; bg: string }[] };
+  type Info = { name: string; bg: string; chars: string; end: number };
+  type Level = { words: number; sample: string; fixed: Record<string, number> | null };
+  type Tile = { x: number; y: number; ch: string; bg: string; lesson: number; name: string };
 
   const root = document.querySelector<HTMLElement>('[data-course]');
   if (root) {
-    const states: Record<string, State> = JSON.parse(root.dataset.course!);
+    const D: { digits: Record<string, string[]>; levels: Level[]; info: Info[]; muted: string[] } = JSON.parse(root.dataset.course!);
     const num = root.querySelector<HTMLElement>('[data-num]')!;
+    const startTag = root.querySelector<HTMLElement>('[data-start-tag]')!;
     const endTag = root.querySelector<HTMLElement>('[data-end]')!;
-    const wordsEl = root.querySelector<HTMLElement>('[data-words]')!;
-    const spanEl = root.querySelector<HTMLElement>('[data-span]')!;
-    const dateEl = root.querySelector<HTMLElement>('[data-date]')!;
+    const hoverTag = root.querySelector<HTMLElement>('[data-hover]')!;
+    const mainEl = root.querySelector<HTMLElement>('[data-main]')!;
+    const noteEl = root.querySelector<HTMLElement>('[data-note]')!;
+    const jumpEl = root.querySelector<HTMLElement>('[data-jump]')!;
     const audioEl = root.querySelector<HTMLElement>('[data-audio]')!;
-    const COLS = 15;
+    const COLS = 23; // room for three digits of 7, with one empty column between them
     const ROWS = 11;
     const STEP = 14; // the wave runs diagonally across the whole number
+    const WORDS: Record<string, string> = { '3': 'three', '5': 'five', '7': 'seven' };
+    const NUMS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven'];
 
     const slots: Slot[] = [];
     for (let i = 0; i < COLS * ROWS; i++) {
       const slot = makeSlot(num, 'abs');
-      slot.el.style.left = `${(i % COLS) * TILE}px`;
-      slot.el.style.top = `${Math.floor(i / COLS) * TILE}px`;
+      slot.el.dataset.i = String(i);
       slots.push(slot);
     }
-
-    function show(key: string, animate: boolean) {
-      const st = states[key];
-      const want = new Map<number, TileVal>(st.tiles.map((t) => [t.y * COLS + t.x, { ch: t.ch, bg: t.bg }]));
-      const moving = animate && !reduceMotion();
+    let size = 28;
+    const place = (compact: boolean) => {
+      size = compact ? 18 : 28;
+      num.classList.toggle('compact', compact);
       slots.forEach((slot, i) => {
-        const v = want.get(i) ?? null;
-        if (moving) flipTile(slot, v, ((i % COLS) + Math.floor(i / COLS)) * STEP);
-        else applyTile(slot, v);
+        slot.el.style.left = `${(i % COLS) * size}px`;
+        slot.el.style.top = `${Math.floor(i / COLS) * size}px`;
       });
+    };
 
-      // finishing one lesson a day, starting today
-      const finish = new Date(Date.now() + (st.n - 1) * 864e5);
-      const short = finish.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      const long = finish.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
-      const last = st.tiles[st.tiles.length - 1];
-      const place = () => {
-        endTag.textContent = `${short} · ${root!.dataset.last}`;
-        endTag.style.left = `${(last.x + 1) * TILE}px`;
-        endTag.style.top = `${last.y * TILE + 4}px`;
-        endTag.style.opacity = '1';
-      };
-      if (moving) {
-        endTag.style.opacity = '0';
-        window.setTimeout(place, (last.x + last.y) * STEP + FLIP);
-      } else place();
+    const lessonsOf = (level: number, pace: string) => {
+      const L = D.levels[level - 1];
+      return L.fixed?.[pace] ?? Math.ceil(L.words / Number(pace));
+    };
 
-      wordsEl.textContent = st.words;
-      spanEl.textContent = st.span;
-      dateEl.textContent = long;
-      num.setAttribute('aria-label', `${st.n} lessons`);
+    // Tiles follow reading order (top to bottom, left to right, one digit after the other) and walk
+    // through the level from its first lesson to its last.
+    function build(level: number, pace: string): { n: number; tiles: Tile[] } {
+      const n = lessonsOf(level, pace);
+      const L = D.levels[level - 1];
+      const cells = [...String(n)].flatMap((d, di) =>
+        D.digits[d].flatMap((row, y) => [...row].flatMap((c, x) => (c === 'X' ? [{ x: di * 8 + x, y }] : []))),
+      );
+      const last = cells.length - 1;
+      const used = new Map<number, number>();
+      const sample = [...L.sample];
+      const tiles = cells.map((cell, t) => {
+        const lesson = Math.round((t * (n - 1)) / last) + 1;
+        if (level === 1) {
+          const word = Math.floor((t * (L.words - 1)) / last);
+          const si = D.info.findIndex((i) => word < i.end);
+          const k = used.get(si) ?? 0;
+          used.set(si, k + 1);
+          const chars = [...D.info[si].chars];
+          return { ...cell, lesson, ch: chars[k % chars.length], bg: D.info[si].bg, name: D.info[si].name };
+        }
+        // no map yet: bands of colour stand in for the situations the skill will lay out
+        const band = Math.floor((t * 10) / cells.length);
+        return { ...cell, lesson, ch: sample[t % sample.length], bg: D.muted[band % D.muted.length], name: '' };
+      });
+      return { n, tiles };
     }
 
+    const span = (days: number) => {
+      if (days <= 45) return `about ${NUMS[Math.round(days / 7)]} weeks`;
+      if (days < 345) return `about ${NUMS[Math.round(days / 30.4)]} months`;
+      const y = days / 365;
+      return y < 1.25 ? 'about a year' : y < 1.75 ? 'about a year and a half' : 'about two years';
+    };
+    // dates count from today, one lesson a day; the year shows once it is far enough to be unclear
+    const dateOf = (lesson: number, month: 'short' | 'long') => {
+      const d = new Date(Date.now() + (lesson - 1) * 864e5);
+      return d.toLocaleDateString('en-US', { month, day: 'numeric', ...(lesson > 300 ? { year: 'numeric' } : {}) });
+    };
+
+    let level = 1;
+    let pace = root.dataset.start!;
+    let current: { n: number; tiles: Tile[] } = { n: 0, tiles: [] };
+    let byIndex = new Map<number, Tile>();
+    let busy = 0;
+
+    function show(animate: boolean) {
+      const next = build(level, pace);
+      const compact = String(next.n).length > 2;
+      const wasCompact = num.classList.contains('compact');
+      const moving = animate && !reduceMotion();
+      const want = new Map<number, TileVal>(next.tiles.map((t) => [t.y * COLS + t.x, { ch: t.ch, bg: t.bg }]));
+      const lastTile = next.tiles[next.tiles.length - 1];
+      const mapped = !!D.levels[level - 1].fixed;
+      const delay = (i: number) => ((i % COLS) + Math.floor(i / COLS)) * STEP;
+
+      clearHover();
+      current = next;
+      byIndex = new Map(next.tiles.map((t) => [t.y * COLS + t.x, t]));
+
+      const labels = () => {
+        startTag.textContent = mapped ? 'Today · Say hello' : 'Today · Lesson 1';
+        endTag.textContent = `${dateOf(next.n, 'short')} · ${mapped ? lastTile.name : `Lesson ${next.n}`}`;
+        // beside the last tile when it fits; otherwise under it, so it never covers the text
+        const edge = (lastTile.x + 1) * size;
+        const under = edge + endTag.offsetWidth > num.offsetWidth + 24;
+        endTag.style.left = `${edge}px`;
+        endTag.style.transform = under ? 'translateX(-100%)' : '';
+        endTag.style.top = under ? `${(lastTile.y + 1) * size + 4}px` : `${lastTile.y * size + (size - 20) / 2}px`;
+        endTag.style.opacity = '1';
+        startTag.style.opacity = '1';
+      };
+      const fill = (offset: number) =>
+        slots.forEach((slot, i) => {
+          const v = want.get(i) ?? null;
+          if (moving) flipTile(slot, v, offset + delay(i));
+          else applyTile(slot, v);
+        });
+
+      if (!moving) {
+        place(compact);
+        fill(0);
+        labels();
+      } else {
+        const token = ++busy;
+        endTag.style.opacity = '0';
+        if (compact !== wasCompact) {
+          // the tile size changes: clear the old number first, then draw the new one
+          startTag.style.opacity = '0';
+          slots.forEach((slot, i) => flipTile(slot, null, delay(i)));
+          const cleared = (COLS + ROWS) * STEP + FLIP;
+          window.setTimeout(() => {
+            if (token !== busy) return;
+            place(compact);
+            fill(0);
+            window.setTimeout(() => token === busy && labels(), delay(lastTile.y * COLS + lastTile.x) + FLIP);
+          }, cleared);
+        } else {
+          fill(0);
+          window.setTimeout(() => token === busy && labels(), delay(lastTile.y * COLS + lastTile.x) + FLIP);
+        }
+      }
+
+      const finish = dateOf(next.n, 'long');
+      mainEl.innerHTML =
+        `HSK ${level}, ${WORDS[pace]} new words each. One a day takes ${span(next.n)}: start today, finish ` +
+        `${mapped ? 'on' : 'around'} <b>${finish}</b>.`;
+      noteEl.hidden = mapped;
+      noteEl.textContent = mapped
+        ? ''
+        : `An estimate: HSK ${level} adds ${D.levels[level - 1].words.toLocaleString('en-US')} words. Only HSK 1 is mapped by hand so far.`;
+      jumpEl.hidden = !mapped;
+      num.setAttribute('aria-label', `${mapped ? '' : 'about '}${next.n} lessons`);
+    }
+
+    // ---- hover: which lesson is this tile? ----
+    function clearHover() {
+      num.classList.remove('hovering');
+      slots.forEach((s) => s.el.classList.remove('lit'));
+    }
+    num.addEventListener('pointerover', (e) => {
+      const el = (e.target as HTMLElement).closest<HTMLElement>('.tile');
+      const t = el && byIndex.get(Number(el.dataset.i));
+      if (!el || !t) return;
+      slots.forEach((s, i) => {
+        const o = byIndex.get(i);
+        s.el.classList.toggle('lit', !!o && (t.name ? o.name === t.name : o === t));
+      });
+      hoverTag.textContent = `Lesson ${t.lesson} · ${dateOf(t.lesson, 'short')}${t.name ? ` · ${t.name}` : ''}`;
+      num.classList.add('hovering');
+      // above the tile; flipped to the left when it would run into the text beside the number
+      const left = t.x * size;
+      const w = hoverTag.offsetWidth;
+      hoverTag.style.left = `${left + w > 452 ? Math.max(0, (t.x + 1) * size - w) : left}px`;
+      hoverTag.style.top = `${t.y * size - 20}px`;
+    });
+    num.addEventListener('pointerleave', clearHover);
+
+    // ---- selectors ----
     const press = (group: HTMLElement, btn: HTMLElement) =>
       group.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
 
+    const levelGroup = document.querySelector<HTMLElement>('[data-level-group]')!;
+    levelGroup.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLElement>('button[data-level]');
+      if (!btn || Number(btn.dataset.level) === level) return;
+      level = Number(btn.dataset.level);
+      press(levelGroup, btn);
+      show(true);
+    });
+
     const paceGroup = document.querySelector<HTMLElement>('[data-pace-group]')!;
-    let pace = root.dataset.start!;
     paceGroup.addEventListener('click', (e) => {
       const btn = (e.target as HTMLElement).closest<HTMLElement>('button[data-pace]');
       if (!btn || btn.dataset.pace === pace) return;
       pace = btn.dataset.pace!;
       press(paceGroup, btn);
-      show(pace, true);
+      show(true);
     });
 
     const audioGroup = document.querySelector<HTMLElement>('[data-audio-group]')!;
@@ -358,6 +517,6 @@ const lastName = situations[situations.length - 1].name;
       audioEl.textContent = btn.dataset.mode!;
     });
 
-    show(pace, false);
+    show(false);
   }
 </script>

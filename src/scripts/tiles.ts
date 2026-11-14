@@ -2,7 +2,7 @@
 // Every tile change on the site uses the same transition: the tile closes and opens again like a
 // small flap, in hard steps, and a group of tiles changes in a wave from the top-left corner.
 export type TileVal = { ch: string; bg: string; fg?: string } | null;
-export type Slot = { el: HTMLElement; span: HTMLElement; val: TileVal };
+export type Slot = { el: HTMLElement; span: HTMLElement; val: TileVal; gen?: number };
 
 export const TILE = 28;
 export const ORANGE = '#D2430E';
@@ -49,19 +49,21 @@ export const FLIP = DUR * 2;
 export function flipTile(slot: Slot, v: TileVal, delay = 0) {
   if (sameTile(slot.val, v)) return;
   if (reduceMotion()) return applyTile(slot, v);
-  // remember the target now, so a second call during the wave compares against it
-  const had = !!slot.val;
+  // remember the target now, so a second call during the wave compares against it; `gen` lets a newer
+  // call cancel this one if it has not finished yet
   slot.val = v;
+  const gen = (slot.gen = (slot.gen ?? 0) + 1);
   window.setTimeout(() => {
+    if (slot.gen !== gen) return;
     const comeIn = () => {
       applyTile(slot, v);
       if (v) slot.el.animate(IN, { duration: DUR, easing: EASE });
     };
-    if (had) {
+    if (slot.el.style.visibility === 'visible') {
       const a = slot.el.animate(OUT, { duration: DUR, easing: EASE, fill: 'forwards' });
       a.onfinish = () => {
         a.cancel();
-        comeIn();
+        if (slot.gen === gen) comeIn();
       };
     } else comeIn();
   }, delay);
