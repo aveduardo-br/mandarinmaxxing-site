@@ -2,7 +2,7 @@
 
 Norte para o texto do site e da skill. Primeira versão em 12/11/2026; reescrito em 15/11/2026 com o Eduardo, para a revisão de copy do site.
 
-Leia junto: `docs/research.md` (pesquisa e fontes), `docs/ladrilhos.md` (identidade visual) e, no repositório da skill, o `README.md` (o que a skill faz de verdade).
+Leia junto: `docs/research.md` (pesquisa e fontes), `docs/ladrilhos.md` (identidade visual) e, no repositório da skill, o `README.md` e a seção "Como a skill funciona hoje" do `HANDOFF.md` (o que a skill faz de verdade).
 
 ## Objetivo
 
@@ -163,7 +163,7 @@ Tirado do código. Confira no site antes de reescrever: o design mudou muito e o
 
 ## Como revisar a copy
 
-1. Abrir o site no navegador e ler seção por seção, com o layout na frente.
+1. Abrir o site no navegador e ler seção por seção, com o layout na frente. Incluir os textos pequenos: cards dos bentos, rótulos dos gráficos, seletores, etiquetas, botões e o que aparece ao passar o mouse.
 2. Para cada seção, dizer qual das três mensagens ela serve e o que está fraco.
 3. Propor três ou quatro alternativas por trecho. O Eduardo escolhe e ajusta. Não reescrever tudo de uma vez.
 4. Conferir cada número contra a tabela acima e o README da skill.
@@ -171,4 +171,4 @@ Tirado do código. Confira no site antes de reescrever: o design mudou muito e o
 
 Mensagem para abrir o chat:
 
-> Quero revisar a copy do site mandarinmaxxing, que está fraca no tom geral. O repositório é `aveduardo-br/mandarinmaxxing-site` e o site está em https://mandarinmaxxing-site.vercel.app. Leia o `docs/messaging.md` inteiro e o `README.md` do repositório `aveduardo-br/mandarinmaxxing`. Abra o site no navegador, comece pela seção 05 (Your course) e me mostre três ou quatro alternativas por trecho antes de mudar. Converse comigo em português; o texto do site é em inglês.
+> Quero revisar toda a copy do site mandarinmaxxing e ver se está forte o suficiente: os textos das seções e também os textos dentro dos bentos, dos gráficos e dos seletores. O repositório é `aveduardo-br/mandarinmaxxing-site` e o site está em https://mandarinmaxxing-site.vercel.app. Leia o `docs/messaging.md` inteiro. Para saber o que a skill faz, leia no repositório `aveduardo-br/mandarinmaxxing` o `README.md` e a seção "Como a skill funciona hoje" do `HANDOFF.md`. Abra o site no navegador, me diga seção por seção o que está fraco, comece pela seção 05 (Your course) e me mostre três ou quatro alternativas por trecho antes de mudar. Converse comigo em português; o texto do site é em inglês.

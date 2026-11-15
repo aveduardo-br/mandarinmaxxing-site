@@ -1,5 +1,7 @@
 # Handoff para o site do mandarinmaxxing
 
+> **Desatualizado (arquivo histórico).** Este documento descreve a skill de 12/11/2026, anterior à versão 0.3.0. Várias coisas mudaram: os ritmos, o áudio (hoje uma voz só, não diálogo), como o curso é salvo e a fonte dos hanzi. **Não use como referência do produto.** Para o que a skill faz hoje, leia no repositório `aveduardo-br/mandarinmaxxing` o `README.md` e a seção "Como a skill funciona hoje" do `HANDOFF.md`. Para a mensagem e o tom, leia `docs/messaging.md`.
+
 Este arquivo reúne o que a skill faz, as decisões que já tomamos e ideias para a página. O próximo passo é conversar sobre o texto e a estrutura do site. A implementação e a publicação do site ficam para depois dessa conversa.
 
 ## O projeto em uma frase

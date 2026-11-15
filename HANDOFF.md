@@ -12,7 +12,9 @@ Ponto de partida para o próximo chat que mexer no site. Leia este arquivo intei
 - **Repositório do site:** `aveduardo-br/mandarinmaxxing-site` (Astro 5). Cada push na `main` publica sozinho na Vercel, em cerca de 1 minuto.
   - Projeto na Vercel: `prj_tWI1Nl7UFscpAWkMAg2U6Y8lPDzt`, time `team_iF6SzN2M0FmIrVc7h5KJK22G`.
 - **Repositório da skill:** https://github.com/aveduardo-br/mandarinmaxxing. É a fonte da verdade sobre o que o produto faz. Leia o `SKILL.md` e o README de lá antes de propor texto.
-- **Contexto de produto e conteúdo:** `docs/content-background.md`. Cobre o que a skill faz, a primeira conversa, como é uma aula, o tom e o que não prometer.
+- **Como a skill funciona:** no repositório da skill, o `README.md` (em inglês, para o público) e a seção "Como a skill funciona hoje" do `HANDOFF.md` (em português, com os números por nível). São a fonte da verdade.
+- **Mensagem e tom:** `docs/messaging.md`.
+- `docs/content-background.md` é um arquivo histórico, de antes da v0.3.0. Não usar como referência.
 - **Design original:** Paper, arquivo `01M73ZX4CG7GXQAC76RFJZ8R94`. O site já evoluiu além dele, então para o texto vale o que está no código.
 
 ## Onde o texto mora no código
@@ -38,7 +40,7 @@ Os títulos da side nav vêm de `sections` em `site.ts`. Se um título mudar, mu
 
 - **Fatos sobre HSK verificados.** As palavras dos tópicos foram checadas contra a lista do New HSK 4 (HSK 3.0). A lição do livro (HSK Standard Course 4A, Lesson 1 "简单的爱情") foi checada e tem fonte. Não invente números nem palavras.
 - **Comparação com livros HSK com neutralidade.** É uma organização diferente, não "melhor".
-- **Não prometer** fluência, resultado em prova nem nada que a skill não faz (veja `docs/content-background.md`).
+- **Não prometer** fluência, resultado em prova nem nada que a skill não faz (veja `docs/messaging.md`).
 - O curso pessoal do Eduardo (67 aulas, HSK 1–2) é a origem do projeto, não um número do produto.
 
 ## Preferências do Eduardo
