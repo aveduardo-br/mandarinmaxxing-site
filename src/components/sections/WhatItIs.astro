@@ -201,7 +201,9 @@ import Section from '../Section.astro';
     fill();
     const start = () => { if (!timer && !reduce) timer = window.setInterval(tick, TICK); };
     const stop = () => { if (timer) clearInterval(timer); timer = null; };
-    new IntersectionObserver((es) => es.forEach((e) => (e.isIntersecting ? start() : stop()))).observe(B);
+    // always running, wherever the page is scrolled; it only rests while the tab is in the background
+    start();
+    document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
     // a wider or narrower belt: start over with the new number of columns
     let lastW = B.clientWidth;
     new ResizeObserver(() => {
