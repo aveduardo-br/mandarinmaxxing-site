@@ -190,10 +190,13 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     background: none;
     cursor: pointer;
   }
+  /* the tile is only a picture: clicks go to the button. Its glyph box is wider than the tile (for
+     centring), and without this it would catch clicks meant for the neighbouring button. */
   .st :global(.tile) {
     position: absolute;
     left: 0;
     top: 0;
+    pointer-events: none;
   }
   /* hanzi and digits centred the same way as the side nav, scaled to 24 px */
   .st :global(.tile > span) {
