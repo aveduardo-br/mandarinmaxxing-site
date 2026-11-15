@@ -164,15 +164,15 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
       width: auto;
     }
   }
-  /* an unlit tile of the scoreboard: grey, with a small square in the middle like a bulb that is off */
+  /* an unlit tile of the scoreboard: a dark square, a little smaller than the tile, so the grid shows */
   .num :global(.tile > span:empty)::before {
     content: '';
     position: absolute;
-    left: 8px;
-    top: 10px;
-    width: 6px;
-    height: 6px;
-    background: #333;
+    left: -1px; /* the span sits at 3px, 1px inside the tile: this puts the square 2px in */
+    top: 1px;
+    width: 24px;
+    height: 24px;
+    background: #161616;
   }
   .num .tile-tag {
     position: absolute;
@@ -372,7 +372,6 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     });
     let width = 420;
 
-    const GREY = '#1E1E1E';
     // the unlit scoreboard: an 8 in each of the three places
     const board = [0, 1, 2].flatMap((p) =>
       D.digits['8'].flatMap((row, y) => [...row].flatMap((c, x) => (c === 'X' ? [{ x: p * 8 + x, y }] : []))),
@@ -438,7 +437,7 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
       root.classList.add('wide');
       const moving = animate && !reduceMotion();
       const want = new Map<number, TileVal>([
-        ...next.pad.map((c): [number, TileVal] => [c.y * COLS + c.x, { ch: '', bg: GREY }]),
+        ...next.pad.map((c): [number, TileVal] => [c.y * COLS + c.x, { ch: '', bg: 'transparent' }]),
         ...next.tiles.map((t): [number, TileVal] => [t.y * COLS + t.x, { ch: t.ch, bg: t.bg }]),
       ]);
       const lastTile = next.tiles[next.tiles.length - 1];
