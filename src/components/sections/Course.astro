@@ -31,6 +31,8 @@ const DIGITS: Record<string, string[]> = {
   '7': ['XXXXXXX', '......X', '......X', '.....X.', '.....X.', '....X..', '....X..', '...X...', '...X...', '...X...', '...X...'],
   '8': ['.XXXXX.', 'X.....X', 'X.....X', 'X.....X', 'X.....X', '.XXXXX.', 'X.....X', 'X.....X', 'X.....X', 'X.....X', '.XXXXX.'],
   '9': ['.XXXXX.', 'X.....X', 'X.....X', 'X.....X', 'X.....X', '.XXXXXX', '......X', '......X', '......X', '......X', '.XXXXX.'],
+  // the leading zero of a two-digit number, in grey tiles: a zero with a slash, like a scoreboard
+  pad: ['.XXXXX.', 'X.....X', 'X....XX', 'X...X.X', 'X...X.X', 'X..X..X', 'X.X...X', 'X.X...X', 'XX....X', 'X.....X', '.XXXXX.'],
 };
 
 // HSK 1: the situations in order, with the jump start in orange and one muted colour per situation
@@ -141,7 +143,7 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
   .num {
     position: relative;
     flex: none;
-    width: 420px; /* two digits; the script widens it for three, which pushes the text right */
+    width: 644px; /* always three digits, like a scoreboard: a two-digit number gets a grey leading zero */
     height: 308px;
     transition: width 0.22s steps(4, end);
   }
@@ -352,6 +354,8 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     });
     let width = 420;
 
+    const GREY = '#1E1E1E';
+    const padCells = D.digits.pad.flatMap((row, y) => [...row].flatMap((c, x) => (c === 'X' ? [{ x, y }] : [])));
     const lessonsOf = (level: number, pace: string) => {
       const L = D.levels[level - 1];
       return L.fixed?.[pace] ?? Math.ceil(L.words / Number(pace));
@@ -359,11 +363,14 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
 
     // Tiles follow reading order (top to bottom, left to right, one digit after the other) and walk
     // through the level from its first lesson to its last.
-    function build(level: number, pace: string): { n: number; tiles: Tile[] } {
+    function build(level: number, pace: string): { n: number; tiles: Tile[]; pad: { x: number; y: number }[] } {
       const n = lessonsOf(level, pace);
       const L = D.levels[level - 1];
-      const cells = [...String(n)].flatMap((d, di) =>
-        D.digits[d].flatMap((row, y) => [...row].flatMap((c, x) => (c === 'X' ? [{ x: di * 8 + x, y }] : []))),
+      // always three places, right-aligned; the empty place on the left is the grey slashed zero
+      const str = String(n);
+      const off = 3 - str.length;
+      const cells = [...str].flatMap((d, di) =>
+        D.digits[d].flatMap((row, y) => [...row].flatMap((c, x) => (c === 'X' ? [{ x: (off + di) * 8 + x, y }] : []))),
       );
       const last = cells.length - 1;
       const used = new Map<number, number>();
@@ -382,7 +389,8 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
         const band = Math.floor((t * 10) / cells.length);
         return { ...cell, lesson, ch: sample[t % sample.length], bg: D.muted[band % D.muted.length], name: '' };
       });
-      return { n, tiles };
+      const pad = off > 0 ? padCells : [];
+      return { n, tiles, pad };
     }
 
     const span = (days: number) => {
@@ -399,18 +407,20 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
 
     let level = 1;
     let pace = root.dataset.start!;
-    let current: { n: number; tiles: Tile[] } = { n: 0, tiles: [] };
+    let current: { n: number; tiles: Tile[]; pad: { x: number; y: number }[] } = { n: 0, tiles: [], pad: [] };
     let byIndex = new Map<number, Tile>();
     let busy = 0;
 
     function show(animate: boolean) {
       const next = build(level, pace);
-      const digits = String(next.n).length;
-      width = (digits * 8 - 1) * size;
+      width = (3 * 8 - 1) * size;
       num.style.width = `${width}px`;
-      root.classList.toggle('wide', digits > 2);
+      root.classList.add('wide');
       const moving = animate && !reduceMotion();
-      const want = new Map<number, TileVal>(next.tiles.map((t) => [t.y * COLS + t.x, { ch: t.ch, bg: t.bg }]));
+      const want = new Map<number, TileVal>([
+        ...next.pad.map((c): [number, TileVal] => [c.y * COLS + c.x, { ch: '', bg: GREY }]),
+        ...next.tiles.map((t): [number, TileVal] => [t.y * COLS + t.x, { ch: t.ch, bg: t.bg }]),
+      ]);
       const lastTile = next.tiles[next.tiles.length - 1];
       const mapped = !!D.levels[level - 1].fixed;
       // only HSK 1 carries its situations on the tiles (names, colours, jump start)
@@ -423,6 +433,7 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
 
       const labels = () => {
         startTag.textContent = named ? 'Today · Say hello' : 'Today · Lesson 1';
+        startTag.style.left = `${(next.tiles[0].x - (next.tiles[0].x % 8)) * size}px`; // over the first real digit
         endTag.textContent = `${dateOf(next.n, 'short')} · ${named ? lastTile.name : `Lesson ${next.n}`}`;
         // beside the last tile when it fits; otherwise under it, so it never covers the text
         const edge = (lastTile.x + 1) * size;
