@@ -164,7 +164,7 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
       width: auto;
     }
   }
-  /* an unlit tile of the scoreboard: a dark square, a little smaller than the tile, so the grid shows */
+  /* an unlit tile of the scoreboard: only a faint dashed outline, 2px inside the tile */
   .num :global(.tile > span:empty)::before {
     content: '';
     position: absolute;
@@ -172,7 +172,8 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     top: 1px;
     width: 24px;
     height: 24px;
-    background: #161616;
+    box-sizing: border-box;
+    border: 1px dashed #2a2a2a;
   }
   .num .tile-tag {
     position: absolute;
