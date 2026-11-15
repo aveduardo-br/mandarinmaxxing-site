@@ -40,17 +40,15 @@ import Section from '../Section.astro';
     background: #d2430e;
     color: #0e0e0e;
   }
-  /* The belt reaches past the column on both sides (up to 120 px, never under the side nav) and fades
-     out at both ends, so it reads as endless. The board is at least 680 px wide; on a narrow screen
-     it is cropped evenly on both sides, so the sorting in the middle stays in view. */
+  /* The belt reaches past the column on both sides (up to 120 px, never under the side nav). There is
+     no fade: tiles flip in on the left and flip out on the right, each row at its own point, and that
+     point wanders a little, so both ends are ragged. The board is at least 680 px wide; on a narrow
+     screen it is cropped evenly on both sides, so the sorting in the middle stays in view. */
   .crop {
     --ext: clamp(0px, (100vw - 100%) / 2 - 330px, 120px);
-    --fade: calc(var(--ext) + 72px);
     width: calc(100% + 2 * var(--ext));
     margin-left: calc(-1 * var(--ext));
     overflow: hidden;
-    -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent);
-    mask-image: linear-gradient(to right, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent);
   }
   @media (max-width: 1180px) {
     /* no side nav here: the belt can use the margins */
@@ -68,7 +66,6 @@ import Section from '../Section.astro';
   .board :global(.tile) {
     left: 0;
     top: 0;
-    visibility: visible;
     will-change: transform;
   }
   .note {
@@ -90,7 +87,7 @@ import Section from '../Section.astro';
     '中国:4:288 人:4:169 在:4:271 哪:4:130 国:4:65 哪儿:4:133 去:4:166 说:4:195 中文:4:289 今天:4:93 明天:4:129 昨天:4:296 会:4:81 汉语:4:68 ' +
     '这:5:278 那:5:135 朋友:5:155 的:5:29 认识:5:170 很:5:78 高兴:5:56 先生:5:230 女士:5:154 呢:5:143 我们:5:221 你们:5:147 们:5:123 他们:5:200 她们:5:204 都:5:40';
   type Word = { w: string; l: number; o: number };
-  type Item = { w: Word; el: HTMLElement; y: number; py: number };
+  type Item = { w: Word; el: HTMLElement; y: number; py: number; state: 0 | 1 | 2 }; // 0 not in yet, 1 showing, 2 gone
   type Col = { x: number; px: number; items: Item[] }; // one item per lesson
 
   const B = document.querySelector<HTMLElement>('[data-belt]');
@@ -111,6 +108,15 @@ import Section from '../Section.astro';
     // every column reads lesson 1 to 5 from top to bottom, so the rows on the right are full and clean.
     // There are no empty columns: the belt is solid from end to end.
     let BC = 25, ZS = 10, ZE = 15, OX = -10;
+    // Where each row starts and ends. A tile shows from column inAt[row] on and is gone past column
+    // outAt[row]. Both wander by at most one column a beat, inside a band of JIT columns next to the
+    // visible edge, so the two ends are never a straight line and never the same twice. A step of one
+    // column can only delay a tile or bring two in (or out) together: the belt between the two ends
+    // stays solid, and nothing ever stops.
+    let L0 = 1, R0 = 23, JIT = 3;
+    let inAt: number[] = [], outAt: number[] = [];
+    let quiet = false; // true while the belt is laid out before the first frame: no flips
+    const rnd = (n: number) => Math.floor(Math.random() * (n + 1));
     const size = () => {
       const w = B.clientWidth;
       BC = Math.max(25, Math.ceil(w / C));
@@ -118,8 +124,40 @@ import Section from '../Section.astro';
       ZS = mid - 3;
       ZE = ZS + ROWS;
       OX = (w - BC * C) / 2; // centred: the same crop on both sides
+      // the columns that are whole inside the crop (a tile glides from column x - 1 to x over a beat)
+      const b = B.getBoundingClientRect(), c = B.parentElement!.getBoundingClientRect();
+      const first = Math.max(0, Math.ceil((c.left - b.left - OX) / C));
+      const lastCol = Math.min(BC - 1, Math.floor((c.right - b.left - OX) / C) - 1);
+      JIT = lastCol - first < 18 ? 2 : 3;
+      L0 = first + 1;
+      R0 = lastCol - 1;
+      inAt = Array.from({ length: ROWS }, () => L0 + rnd(JIT));
+      outAt = Array.from({ length: ROWS }, () => R0 - rnd(JIT));
     };
     size();
+    const wander = () => {
+      for (let r = 0; r < ROWS; r++) {
+        if (Math.random() < 0.4) inAt[r] = Math.min(L0 + JIT, Math.max(L0, inAt[r] + (Math.random() < 0.5 ? -1 : 1)));
+        if (Math.random() < 0.4) outAt[r] = Math.min(R0, Math.max(R0 - JIT, outAt[r] + (Math.random() < 0.5 ? -1 : 1)));
+      }
+    };
+    // the same flap as every other tile on the site, on `scale` so it rides on top of the glide
+    const FLAP = { duration: 110, easing: 'steps(3, end)' } as const;
+    const flap = (o: Item, show: boolean) => {
+      const el = o.el;
+      o.state = show ? 1 : 2;
+      if (quiet || reduce) { el.style.visibility = show ? 'visible' : 'hidden'; return; }
+      const delay = Math.random() * TICK * 0.7; // not on the beat
+      if (show) {
+        window.setTimeout(() => {
+          el.style.visibility = 'visible';
+          el.animate([{ scale: '1 0' }, { scale: '1 1' }], FLAP);
+        }, delay);
+      } else {
+        const a = el.animate([{ scale: '1 1' }, { scale: '1 0' }], { ...FLAP, delay, fill: 'forwards' });
+        a.onfinish = () => { el.style.visibility = 'hidden'; a.cancel(); };
+      }
+    };
     let cols: Col[] = [];
     let timer: number | null = null;
     let last: number[] = [];
@@ -128,6 +166,7 @@ import Section from '../Section.astro';
       const slot = makeSlot(B, 'abs');
       slot.span.textContent = w.w[0];
       slot.el.style.backgroundColor = COLORS[w.l - 1];
+      slot.el.style.visibility = 'hidden'; // it flips in when it reaches its row's starting point
       return slot.el;
     };
     // each lesson deals its words like a shuffled deck: every word shows once before any repeats, and
@@ -192,13 +231,24 @@ import Section from '../Section.astro';
       const c: Col = { x: 0, px: -1, items: [] };
       c.items = shuffle().map((l, y) => {
         const w = pick(l);
-        return { w, el: mk(w), y, py: y };
+        return { w, el: mk(w), y, py: y, state: 0 as const };
       });
       cols.push(c);
-      for (const col of cols) for (const o of col.items) place(col, o);
+      wander();
+      for (const col of cols)
+        for (const o of col.items) {
+          place(col, o);
+          if (o.state === 0 && col.x >= inAt[o.y]) flap(o, true);
+          else if (o.state === 1 && col.x > outAt[o.y]) flap(o, false);
+        }
     };
 
-    const fill = () => { for (let i = 0; i < BC + 2; i++) tick(); }; // start with the belt already full
+    // start with the belt already full
+    const fill = () => {
+      quiet = true;
+      for (let i = 0; i < BC + 2; i++) tick();
+      quiet = false;
+    };
     fill();
     const start = () => { if (!timer && !reduce) timer = window.setInterval(tick, TICK); };
     const stop = () => { if (timer) clearInterval(timer); timer = null; };
