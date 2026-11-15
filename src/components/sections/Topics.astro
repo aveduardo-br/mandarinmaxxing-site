@@ -9,11 +9,16 @@
 // light orange, scattered across the list. All positions are real (src/data/situations.ts).
 import Section from '../Section.astro';
 import { situations, bookLesson, HSK1_TOTAL } from '../../data/situations';
+import { ORANGE, MUTED } from '../../scripts/tiles';
+// each situation's colour, as in section 05: jump start in orange, then the muted colours in turn
+let mutedI = 0;
+const colorOf = new Map(situations.map((s) => [s.num, s.jumpStart ? ORANGE : MUTED[mutedI++ % MUTED.length]]));
 
 // Ten examples, spread from the start of the level to the end. `num` is the map's number.
 const SAMPLE = ['01', '02', '05', '07', '08', '12', '13', '16', '18', '22'];
 const topics = SAMPLE.map((num, i) => ({
   ...situations.find((s) => s.num === num)!,
+  color: colorOf.get(num)!,
   num: String(i + 1).padStart(2, '0'),
 }));
 const ROWS = 2;
@@ -89,14 +94,15 @@ const stripData = topics.map((t) => ({
               </span>
               <span class="num">{t.num}</span>
               <span class="name">{t.name}</span>
-              <span class="preview hanzi" aria-hidden="true">
+              <span class="preview" aria-hidden="true" style={`--c:${t.color}`}>
                 {t.words.slice(0, 3).map((w, i) => (
-                  <>
-                    {i > 0 && ' '}
-                    <span class="pw" style={`--i:${i}`}>
-                      {w.hanzi}
-                    </span>
-                  </>
+                  <span class="pw" style={`--i:${i}`}>
+                    {[...w.hanzi].map((ch) => (
+                      <span class="pt">
+                        <span>{ch}</span>
+                      </span>
+                    ))}
+                  </span>
                 ))}
               </span>
             </button>
@@ -344,16 +350,43 @@ const stripData = topics.map((t) => ({
     min-width: 0;
     color: var(--text-dim);
   }
+  /* the first words of the situation as small tiles (docs/ladrilhos.md): dimmed at rest; when the
+     row is hovered they flip, in a wave, to the situation's colour (set by the script) */
   .preview {
     flex-shrink: 0;
-    white-space: pre;
-    font-size: 16px;
-    line-height: var(--lh-h4);
-    color: #3a3a3a;
+    display: flex;
+    gap: 8px;
   }
   .pw {
-    display: inline-block;
-    transition: color 0.15s ease;
+    display: flex;
+  }
+  .pt {
+    position: relative;
+    flex: none;
+    width: 20px;
+    height: 20px;
+    background: #1e1e1e;
+  }
+  .pt.on {
+    background: var(--c);
+  }
+  /* Zpix glyphs sit at the left of their box with a 4/24 gap on the right: centred box, pushed right */
+  .pt > span {
+    position: absolute;
+    left: -10px;
+    right: -10px;
+    padding-left: 3px;
+    top: 0.5px;
+    text-align: center;
+    font-family: 'Zpix', var(--f-display);
+    font-size: 18px;
+    line-height: 18px;
+    font-weight: 500;
+    color: #8a8a8a;
+    white-space: pre;
+  }
+  .pt.on > span {
+    color: #161616;
   }
 
   /* hover (and keyboard focus): arrow head slides in, the whole row turns light orange */
@@ -769,6 +802,26 @@ const stripData = topics.map((t) => ({
       if (hover === i) hover = -1;
       render();
     };
+    // preview tiles: flip to the situation's colour on hover, back to dim when the cursor leaves
+    const pts = [...item.querySelectorAll<HTMLElement>('.pt')];
+    const gens = pts.map(() => 0);
+    const flipPreview = (on: boolean) =>
+      pts.forEach((el, k) => {
+        const g = ++gens[k];
+        window.setTimeout(() => {
+          if (gens[k] !== g || el.classList.contains('on') === on) return;
+          if (matchMedia('(prefers-reduced-motion: reduce)').matches) return void el.classList.toggle('on', on);
+          const a = el.animate([{ transform: 'scaleY(1)' }, { transform: 'scaleY(0)' }], { duration: 110, easing: 'steps(3, end)', fill: 'forwards' });
+          a.onfinish = () => {
+            a.cancel();
+            if (gens[k] !== g) return;
+            el.classList.toggle('on', on);
+            el.animate([{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }], { duration: 110, easing: 'steps(3, end)' });
+          };
+        }, k * 28);
+      });
+    row.addEventListener('mouseenter', () => flipPreview(true));
+    row.addEventListener('mouseleave', () => flipPreview(false));
     row.addEventListener('mouseenter', enter);
     row.addEventListener('mouseleave', leave);
     row.addEventListener('focus', enter);
