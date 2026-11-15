@@ -9,16 +9,11 @@
 // light orange, scattered across the list. All positions are real (src/data/situations.ts).
 import Section from '../Section.astro';
 import { situations, bookLesson, HSK1_TOTAL } from '../../data/situations';
-import { ORANGE, MUTED } from '../../scripts/tiles';
-// each situation's colour, as in section 05: jump start in orange, then the muted colours in turn
-let mutedI = 0;
-const colorOf = new Map(situations.map((s) => [s.num, s.jumpStart ? ORANGE : MUTED[mutedI++ % MUTED.length]]));
 
 // Ten examples, spread from the start of the level to the end. `num` is the map's number.
 const SAMPLE = ['01', '02', '05', '07', '08', '12', '13', '16', '18', '22'];
 const topics = SAMPLE.map((num, i) => ({
   ...situations.find((s) => s.num === num)!,
-  color: colorOf.get(num)!,
   num: String(i + 1).padStart(2, '0'),
 }));
 const ROWS = 2;
@@ -94,7 +89,7 @@ const stripData = topics.map((t) => ({
               </span>
               <span class="num">{t.num}</span>
               <span class="name">{t.name}</span>
-              <span class="preview" aria-hidden="true" style={`--c:${t.color}`}>
+              <span class="preview" aria-hidden="true">
                 {t.words.slice(0, 3).map((w, i) => (
                   <span class="pw" style={`--i:${i}`}>
                     {[...w.hanzi].map((ch) => (
@@ -351,7 +346,7 @@ const stripData = topics.map((t) => ({
     color: var(--text-dim);
   }
   /* the first words of the situation as small tiles (docs/ladrilhos.md): dimmed at rest; when the
-     row is hovered they flip, in a wave, to the situation's colour (set by the script) */
+     row is hovered they flip, in a wave, to the same light orange as the row's text */
   .preview {
     flex-shrink: 0;
     display: flex;
@@ -368,7 +363,7 @@ const stripData = topics.map((t) => ({
     background: #1e1e1e;
   }
   .pt.on {
-    background: var(--c);
+    background: var(--accent-light);
   }
   /* Zpix glyphs sit at the left of their box with a 4/24 gap on the right: centred box, pushed right */
   .pt > span {
@@ -802,7 +797,7 @@ const stripData = topics.map((t) => ({
       if (hover === i) hover = -1;
       render();
     };
-    // preview tiles: flip to the situation's colour on hover, back to dim when the cursor leaves
+    // preview tiles: flip to light orange on hover, back to dim when the cursor leaves
     const pts = [...item.querySelectorAll<HTMLElement>('.pt')];
     const gens = pts.map(() => 0);
     const flipPreview = (on: boolean) =>
