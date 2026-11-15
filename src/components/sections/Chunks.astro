@@ -3,8 +3,8 @@
 // A staircase of tiles: one chunk repeated on five steps, each with a different word in its slot.
 // The orange tiles are the chunk (they stay), the coloured ones are the word that changes. Black
 // labels give the English. Clicking the staircase moves to the next chunk: every tile flips in place,
-// in a wave, and the steps grow or shrink. The small block on the right shows the chunk on its own,
-// with the slot empty, and changes with it.
+// in a wave, and the steps grow or shrink. Above the staircase, a line shows the chunk on its own,
+// with the slot empty, and its meaning; it changes with it (Paper "03 Chunks — opção C").
 import Section from '../Section.astro';
 
 // Every word here is in the HSK 1 list. The tiles use the pixel font: after changing a phrase,
@@ -56,13 +56,13 @@ const chunks = [
   </p>
 
   <div class="viz" data-chunks={JSON.stringify(chunks)}>
-    <div class="fit" data-fit>
-      <div class="stage" data-stage role="button" tabindex="0" aria-label="Show the next chunk"></div>
-    </div>
     <div class="legend" aria-hidden="true">
       <div class="tile-label">The chunk</div>
       <div class="lrow" data-legend></div>
-      <p>It <b>stays the same</b>. Only the word in the slot changes.</p>
+      <p><b data-legend-label>{chunks[0].label}</b> It stays the same. Only the word in the slot changes:</p>
+    </div>
+    <div class="fit" data-fit>
+      <div class="stage" data-stage role="button" tabindex="0" aria-label="Show the next chunk"></div>
     </div>
     <p class="sr-only" aria-live="polite" data-live>
       {chunks[0].label} {chunks[0].words.map((w) => `${chunks[0].pre}${w[0]}${chunks[0].post} (${w[1]})`).join(', ')}
@@ -80,11 +80,9 @@ const chunks = [
     position: relative;
     margin-top: 40px;
   }
-  /* 20px of room above the tiles for the label that sits on the first step */
   .fit {
-    height: 160px;
-    padding-top: 20px;
-    margin-top: -20px;
+    height: 140px;
+    margin-top: 20px;
     overflow: hidden;
   }
   .stage {
@@ -106,14 +104,13 @@ const chunks = [
     transition: opacity 0.12s linear;
   }
 
+  /* the chunk on its own, above the staircase: label, tiles with the empty slot, meaning */
   .legend {
-    position: absolute;
-    left: 512px;
-    top: 0;
-    width: 168px;
     display: flex;
-    flex-direction: column;
-    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 16px;
+    row-gap: 8px;
   }
   .lrow {
     display: flex;
@@ -141,13 +138,6 @@ const chunks = [
     white-space: nowrap;
   }
 
-  @media (max-width: 760px) {
-    .legend {
-      position: static;
-      width: auto;
-      margin-top: 28px;
-    }
-  }
 </style>
 
 <script>
@@ -162,11 +152,14 @@ const chunks = [
     const stage = viz.querySelector<HTMLElement>('[data-stage]')!;
     const fit = viz.querySelector<HTMLElement>('[data-fit]')!;
     const legendRow = viz.querySelector<HTMLElement>('[data-legend]')!;
+    const legendLabel = viz.querySelector<HTMLElement>('[data-legend-label]')!;
     const live = viz.querySelector<HTMLElement>('[data-live]')!;
     const ROWS = 5;
     const MAXC = Math.max(...chunks.flatMap((c) => c.words.map((w) => [...c.pre, ...w[0], ...c.post].length)));
     const LEGEND = Math.max(...chunks.map((c) => [...c.pre, ...c.post].length + 1));
 
+    // each step starts 2 tiles further right; on a narrow column only half a tile, so it fits
+    let STEP = 2 * TILE;
     // every step keeps its left edge in all chunks, so the tiles only ever change in place
     const rowsOf = (k: number): TileVal[][] => {
       const c = chunks[k];
@@ -191,7 +184,6 @@ const chunks = [
       slots.push([]);
       for (let c = 0; c < MAXC; c++) {
         const slot = makeSlot(stage, 'abs');
-        slot.el.style.left = `${(2 * r + c) * TILE}px`;
         slot.el.style.top = `${r * TILE}px`;
         slots[r].push(slot);
       }
@@ -201,16 +193,17 @@ const chunks = [
       stage.appendChild(tip);
       tips.push(tip);
     }
-    const startTag = document.createElement('div');
-    startTag.className = 'tile-tag';
-    startTag.style.left = '0px';
-    startTag.style.top = '-20px';
-    stage.appendChild(startTag);
     const legendSlots: Slot[] = Array.from({ length: LEGEND }, () => makeSlot(legendRow));
 
+    const lens: number[] = Array(ROWS).fill(0);
     const setTip = (r: number, k: number, len: number) => {
+      lens[r] = len;
       tips[r].textContent = chunks[k].words[r][1];
-      tips[r].style.left = `${(2 * r + len) * TILE}px`;
+      tips[r].style.left = `${r * STEP + len * TILE}px`;
+    };
+    const place = () => {
+      slots.forEach((row, r) => row.forEach((slot, c) => (slot.el.style.left = `${r * STEP + c * TILE}px`)));
+      tips.forEach((tip, r) => (tip.style.left = `${r * STEP + lens[r] * TILE}px`));
     };
 
     let cur = 0;
@@ -223,9 +216,12 @@ const chunks = [
         setTip(r, k, row.length);
         tips[r].style.opacity = '1';
       });
-      startTag.textContent = chunks[k].label;
+      legendLabel.textContent = chunks[k].label;
       const lr = legendOf(k);
-      legendSlots.forEach((slot, i) => applyTile(slot, lr[i] ?? null));
+      legendSlots.forEach((slot, i) => {
+        applyTile(slot, lr[i] ?? null);
+        slot.el.style.display = lr[i] ? '' : 'none';
+      });
     }
 
     function go(k: number) {
@@ -237,10 +233,11 @@ const chunks = [
       busy = true;
       const rows = rowsOf(k);
       let last = 0;
-      startTag.style.opacity = '0';
+      legendLabel.style.transition = 'opacity 0.12s linear';
+      legendLabel.style.opacity = '0';
       window.setTimeout(() => {
-        startTag.textContent = c.label;
-        startTag.style.opacity = '1';
+        legendLabel.textContent = c.label;
+        legendLabel.style.opacity = '1';
       }, 130);
       rows.forEach((row, r) => {
         tips[r].style.opacity = '0';
@@ -259,7 +256,13 @@ const chunks = [
         last = Math.max(last, rowEnd + FLIP);
       });
       const lr = legendOf(k);
-      legendSlots.forEach((slot, i) => flipTile(slot, lr[i] ?? null, 120 + i * WAVE));
+      // unused legend tiles take no room, so the meaning sits right after the chunk
+      legendSlots.forEach((slot, i) => {
+        const v = lr[i] ?? null, d = 120 + i * WAVE;
+        if (v) slot.el.style.display = '';
+        flipTile(slot, v, d);
+        if (!v) window.setTimeout(() => !slot.val && (slot.el.style.display = 'none'), d + FLIP);
+      });
       window.setTimeout(() => (busy = false), last + 40);
     }
 
@@ -272,11 +275,15 @@ const chunks = [
       }
     });
 
-    // on narrow screens the staircase scales down to fit the column
+    // on a narrow column the steps get shorter (half a tile); if it still doesn't fit, it scales down
     const fitStage = () => {
-      const s = Math.min(1, fit.clientWidth / 560);
+      const w = fit.clientWidth;
+      STEP = w >= 560 ? 2 * TILE : TILE / 2;
+      place();
+      const need = (ROWS - 1) * STEP + MAXC * TILE + 120;
+      const s = Math.min(1, w / need);
       stage.style.transform = s < 1 ? `scale(${s})` : '';
-      fit.style.height = `${140 * s + 20}px`;
+      fit.style.height = `${140 * s}px`;
     };
     addEventListener('resize', fitStage);
     fitStage();
