@@ -1,9 +1,10 @@
 ---
 // Section 05 — Paper "05 Your course" (tiles). See docs/ladrilhos.md.
 // The number of lessons in a level, drawn with tiles on a three-place scoreboard (a faint 8 under
-// every digit). Right under it, two tile selectors: HSK (1 to 6) and words per lesson (3, 5 or 7).
-// Changing either flips the tiles into the new number. Two black labels are the only text: LESSONS
-// above the number, and when you would finish at one lesson a day, counted from today, below it.
+// every digit). Right under it, two tile selectors, HSK (1 to 6) and words per lesson (3, 5 or 7),
+// and a black box with the breakdown at that pace: when you would finish each level from the chosen
+// one up to HSK 6, at one lesson a day counted from today. Changing a selector flips the number.
+// Selector tiles work like the side nav: hanzi on grey while off, the digit on orange when chosen.
 //
 // HSK 1 to 4 use the real numbers of their maps (HSK 1: 97, 58 and 42 lessons at 3, 5 and 7 words).
 // Only HSK 1 carries its situations on the tiles. HSK 5 and 6 have no hand-made map, so their number is
@@ -83,29 +84,22 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
       <div class="sel">
         <div class="tile-label">HSK</div>
         <div class="tiles" role="group" aria-label="HSK level" data-level-group>
-          {
-            levelZh.map((zh, i) => (
-              <button class="st" type="button" data-level={i + 1} aria-pressed={i === 0 ? 'true' : 'false'} aria-label={`HSK ${i + 1}`}>
-                <span aria-hidden="true">{zh}</span>
-              </button>
-            ))
-          }
+          {levelZh.map((zh, i) => <button class="st" type="button" data-level={i + 1} data-zh={zh} aria-pressed={i === 0 ? 'true' : 'false'} aria-label={`HSK ${i + 1}`} />)}
         </div>
+        <p>HSK 1 to 4, mapped by hand. New? Start at one. Studied before? Pick where to begin.</p>
       </div>
       <div class="sel">
         <div class="tile-label">Words / lesson</div>
         <div class="tiles" role="group" aria-label="New words a lesson" data-pace-group>
-          {
-            paces.map((p) => (
-              <button class="st" type="button" data-pace={p.key} aria-pressed={p.key === START ? 'true' : 'false'} aria-label={`${p.words} new words a lesson`}>
-                <span aria-hidden="true">{p.zh}</span>
-              </button>
-            ))
-          }
+          {paces.map((p) => <button class="st" type="button" data-pace={p.key} data-zh={p.zh} aria-pressed={p.key === START ? 'true' : 'false'} aria-label={`${p.words} new words a lesson`} />)}
         </div>
+        <p>Three, five or seven new words a lesson. Any other number works too.</p>
+      </div>
+      <div class="pace-box" data-box aria-live="polite">
+        <div class="ph">At this pace · one a day</div>
+        <div class="rows" data-rows></div>
       </div>
     </div>
-    <div class="tile-tag end" data-end aria-live="polite"></div>
   </div>
 </Section>
 
@@ -115,7 +109,7 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     position: relative;
     width: 644px;
     margin-top: 32px;
-    padding-top: 20px; /* room for the LESSONS label */
+    padding-top: 38px; /* room for the LESSONS label */
   }
   .num {
     position: relative;
@@ -133,33 +127,72 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     box-sizing: border-box;
     border: 1px dashed #2a2a2a;
   }
-  .board > .tile-tag {
-    position: absolute;
-    z-index: 1;
-  }
+  /* LESSONS: a bigger black label above the number */
   .top {
+    position: absolute;
     left: 0;
     top: 0;
-  }
-  /* the finish date hangs out of the block, bottom right */
-  .end {
-    right: -32px;
-    bottom: 4px;
-    transition: opacity 0.12s linear;
+    z-index: 1;
+    background: #000;
+    padding: 5px 10px;
+    font-family: var(--f-body);
+    font-size: 15px;
+    line-height: 20px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text);
   }
 
   .controls {
     display: flex;
-    gap: 32px;
+    gap: 24px;
     margin-top: 16px;
   }
   .sel {
+    flex: 1 1 0;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 8px;
   }
   .tiles {
     display: flex;
+  }
+  .sel p {
+    font-size: var(--fs-caption);
+    line-height: var(--lh-caption);
+    color: var(--muted);
+  }
+  /* the breakdown at the chosen pace */
+  .pace-box {
+    flex: none;
+    width: 212px;
+    background: #000;
+    padding: 10px 12px 12px;
+  }
+  .ph {
+    font-family: var(--f-body);
+    font-size: 11px;
+    line-height: 14px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding-bottom: 6px;
+  }
+  .rows :global(.r) {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: var(--fs-caption);
+    line-height: 22px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .rows :global(.r.on) {
+    color: var(--text);
+    font-weight: 500;
   }
   /* a tile you can pick: dimmed until chosen, orange when it is */
   .st {
@@ -169,24 +202,21 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     height: 28px;
     padding: 0;
     border: 0;
-    background: #1e1e1e;
+    background: none;
     cursor: pointer;
   }
-  .st span {
+  .st :global(.tile) {
     position: absolute;
-    left: 3px;
+    left: 0;
+    top: 0;
+  }
+  /* hanzi and digits centred the same way as the side nav, scaled to 24 px */
+  .st :global(.tile > span) {
+    left: -10px;
+    right: -10px;
+    padding-left: 4px;
+    text-align: center;
     top: 1px;
-    font-family: 'Zpix', var(--f-display);
-    font-size: 24px;
-    line-height: 24px;
-    font-weight: 500;
-    color: #8a8a8a;
-  }
-  .st[aria-pressed='true'] {
-    background: var(--accent);
-  }
-  .st[aria-pressed='true'] span {
-    color: #161616;
   }
   .st:focus-visible {
     outline: 2px solid var(--text);
@@ -202,16 +232,17 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     .num {
       zoom: 0.5;
     }
-    .end {
-      position: static !important;
-      display: inline-block;
-      margin-top: 16px;
+    .controls {
+      flex-direction: column;
+    }
+    .pace-box {
+      width: auto;
     }
   }
 </style>
 
 <script>
-  import { makeSlot, applyTile, flipTile, reduceMotion, FLIP } from '../../scripts/tiles';
+  import { makeSlot, applyTile, flipTile, reduceMotion, ORANGE, DIM } from '../../scripts/tiles';
   import type { Slot, TileVal } from '../../scripts/tiles';
 
   type Info = { name: string; bg: string; chars: string; end: number };
@@ -222,7 +253,7 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
   if (root) {
     const D: { digits: Record<string, string[]>; levels: Level[]; info: Info[]; muted: string[] } = JSON.parse(root.dataset.course!);
     const num = root.querySelector<HTMLElement>('[data-num]')!;
-    const endTag = root.querySelector<HTMLElement>('[data-end]')!;
+    const rowsEl = root.querySelector<HTMLElement>('[data-rows]')!;
     const COLS = 23; // room for three digits of 7, with one empty column between them
     const ROWS = 11;
     const STEP = 14; // the wave runs diagonally across the whole number
@@ -282,12 +313,13 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     // the finish date, counted from today at one lesson a day; the year shows once it is far enough
     const dateOf = (lesson: number) => {
       const d = new Date(Date.now() + (lesson - 1) * 864e5);
-      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', ...(lesson > 300 ? { year: 'numeric' } : {}) });
+      return lesson > 300
+        ? d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+        : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     };
 
     let level = 1;
     let pace = root.dataset.start!;
-    let busy = 0;
 
     function show(animate: boolean) {
       const next = build(level, pace);
@@ -298,29 +330,38 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
       ]);
       const mapped = !!D.levels[level - 1].fixed;
       const delay = (i: number) => ((i % COLS) + Math.floor(i / COLS)) * STEP;
-      const last = Math.max(...[...want.keys()].map(delay));
 
-      const label = () => {
-        endTag.textContent = `One a day · ${mapped ? '' : '≈ '}done by ${dateOf(next.n)}`;
-        endTag.style.opacity = '1';
-      };
       slots.forEach((slot, i) => {
         const v = want.get(i) ?? null;
         if (moving) flipTile(slot, v, delay(i));
         else applyTile(slot, v);
       });
-      if (!moving) label();
-      else {
-        const token = ++busy;
-        endTag.style.opacity = '0';
-        window.setTimeout(() => token === busy && label(), last + FLIP);
-      }
+      // each level from the chosen one up to HSK 6, finished one after the other
+      let total = 0;
+      rowsEl.innerHTML = D.levels
+        .map((L, i) => {
+          if (i + 1 < level) return '';
+          total += lessonsOf(i + 1, pace);
+          return `<div class="r${i + 1 === level ? ' on' : ''}"><span>HSK ${i + 1}</span><span>${L.fixed ? '' : '≈ '}${dateOf(total)}</span></div>`;
+        })
+        .join('');
       num.setAttribute('aria-label', `${mapped ? '' : 'about '}${next.n} lessons`);
     }
 
-    // ---- selectors ----
+    // ---- selectors: hanzi on grey while off, the digit on orange when chosen (like the side nav) ----
+    const tileOf = new Map<HTMLElement, Slot>();
+    const valOf = (b: HTMLElement, on: boolean): TileVal =>
+      on ? { ch: b.dataset.level ?? b.dataset.pace!, bg: ORANGE } : { ch: b.dataset.zh!, bg: DIM.bg, fg: DIM.fg };
+    root.querySelectorAll<HTMLElement>('button.st').forEach((b) => {
+      const slot = makeSlot(b);
+      applyTile(slot, valOf(b, b.getAttribute('aria-pressed') === 'true'));
+      tileOf.set(b, slot);
+    });
     const press = (group: HTMLElement, btn: HTMLElement) =>
-      group.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+      group.querySelectorAll<HTMLElement>('button').forEach((b) => {
+        b.setAttribute('aria-pressed', String(b === btn));
+        flipTile(tileOf.get(b)!, valOf(b, b === btn));
+      });
 
     const levelGroup = document.querySelector<HTMLElement>('[data-level-group]')!;
     levelGroup.addEventListener('click', (e) => {
