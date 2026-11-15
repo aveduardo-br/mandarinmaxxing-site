@@ -1,9 +1,9 @@
 ---
 // Numbered section: pixel numeral (orange) + display title (white).
 // With `tiled`, the pixel numeral is replaced by a number tile (docs/ladrilhos.md) before the usual
-// display title. While the section is not the active one the number tile is black with a grey digit (1); when the
-// section becomes active (SideNav adds .is-active) it flips to orange with the number in hanzi (一),
-// like the side nav. Being
+// display title. While the section is not the active one the number tile is black with the number
+// in hanzi in grey (一); when the section becomes active (SideNav adds .is-active) it flips to orange
+// with the digit in black (1), like the side nav. Being
 // tried on section 01 first.
 import { numerals } from '../data/numerals';
 
@@ -23,7 +23,7 @@ const tileTitle = tiled ? { digit: String(Number(num)), num: NUM_ZH[Number(num)]
   {
     tileTitle ? (
       <h2 class="title-row tiled" data-tile-title>
-        <span class="tt num" data-num data-digit={tileTitle.digit} data-zh={tileTitle.num} aria-hidden="true"><span>{tileTitle.digit}</span></span>
+        <span class="tt num" data-num data-digit={tileTitle.digit} data-zh={tileTitle.num} aria-hidden="true"><span>{tileTitle.num}</span></span>
         <span class="title display">{title}</span>
       </h2>
     ) : (
@@ -100,13 +100,13 @@ const tileTitle = tiled ? { digit: String(Number(num)), num: NUM_ZH[Number(num)]
     font-weight: 500;
     white-space: pre;
   }
-  /* number tile: black with a grey digit while the section is not active, orange with the hanzi
-     when it is */
+  /* number tile: black with the hanzi in grey while the section is not active, orange with the
+     digit in black when it is */
   .tt.num > span {
     color: var(--muted);
   }
-  /* the digit is set like the English letters (the pixel 1 reads as an I next to them), in grey */
-  .tt.num:not(.on) > span {
+  /* the digit is set in Geist, like the title (the pixel 1 reads as an I) */
+  .tt.num.on > span {
     left: 0;
     right: 0;
     top: 0;
@@ -143,7 +143,7 @@ const tileTitle = tiled ? { digit: String(Number(num)), num: NUM_ZH[Number(num)]
       const g = ++gen;
       if (reduce) {
         tile.classList.toggle('on', on);
-        tile.firstElementChild!.textContent = on ? tile.dataset.zh! : tile.dataset.digit!;
+        tile.firstElementChild!.textContent = on ? tile.dataset.digit! : tile.dataset.zh!;
         return;
       }
       const a = tile.animate(OUT, { duration: DUR, easing: EASE, fill: 'forwards' });
@@ -151,7 +151,7 @@ const tileTitle = tiled ? { digit: String(Number(num)), num: NUM_ZH[Number(num)]
         a.cancel();
         if (g !== gen) return;
         tile.classList.toggle('on', on);
-        tile.firstElementChild!.textContent = on ? tile.dataset.zh! : tile.dataset.digit!;
+        tile.firstElementChild!.textContent = on ? tile.dataset.digit! : tile.dataset.zh!;
         tile.animate(IN, { duration: DUR, easing: EASE });
       };
     };

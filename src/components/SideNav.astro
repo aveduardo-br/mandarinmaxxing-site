@@ -86,8 +86,8 @@ import { sections, faq, SKILL_REPO } from '../data/site';
     color: var(--text);
   }
 
-  /* Numbered sections: the number is a small tile (docs/ladrilhos.md). Grey with the digit while
-     inactive; when the section becomes active it flips to orange with the number in hanzi. */
+  /* Numbered sections: the number is a small tile (docs/ladrilhos.md). Grey with the number in
+     hanzi while inactive; when the section becomes active it flips to orange with the digit. */
   a.numbered {
     display: flex;
     align-items: center;
@@ -131,19 +131,19 @@ import { sections, faq, SKILL_REPO } from '../data/site';
 <script>
   import { makeSlot, applyTile, flipTile, ORANGE, DIM, type Slot } from '../scripts/tiles';
 
-  // number tiles: digit on grey while inactive, hanzi on orange while active
+  // number tiles: hanzi on grey while inactive, digit on orange while active
   const HANZI_NUM = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
   const numTiles = new Map<string, { slot: Slot; n: number }>();
   document.querySelectorAll<HTMLAnchorElement>('a.numbered').forEach((a) => {
     const n = Number(a.dataset.num);
     const slot = makeSlot(a.querySelector<HTMLElement>('.ntile')!);
-    applyTile(slot, { ch: String(n), bg: DIM.bg, fg: DIM.fg });
+    applyTile(slot, { ch: HANZI_NUM[n] ?? String(n), bg: DIM.bg, fg: DIM.fg });
     numTiles.set(a.dataset.nav!, { slot, n });
   });
   const tileFor = (id: string | null, on: boolean) => {
     const t = id ? numTiles.get(id) : undefined;
     if (!t) return;
-    flipTile(t.slot, on ? { ch: HANZI_NUM[t.n] ?? String(t.n), bg: ORANGE } : { ch: String(t.n), bg: DIM.bg, fg: DIM.fg });
+    flipTile(t.slot, on ? { ch: String(t.n), bg: ORANGE } : { ch: HANZI_NUM[t.n] ?? String(t.n), bg: DIM.bg, fg: DIM.fg });
   };
 
   const links = new Map<string, HTMLAnchorElement>();
