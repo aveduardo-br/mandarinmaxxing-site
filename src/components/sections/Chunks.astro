@@ -1,11 +1,11 @@
 ---
 // Section 03 — Paper "03 Chunks" (tiles). See docs/ladrilhos.md.
-// A staircase of tiles: one chunk repeated on five steps, each with a different word in its slot.
-// The orange tiles are the chunk (they stay), the coloured ones are the word that changes. Black
-// labels give the English. The first step is the chunk itself, in orange, with an empty slot and a
-// black label with its meaning on top. On the steps below the chunk turns grey and only the word
-// that enters the slot is in colour. Clicking the staircase moves to the next chunk: every tile flips
-// in place, in a wave, and the steps grow or shrink.
+// A staircase of tiles (Paper "v4 · B Tradução na borda"). The first step is the chunk itself, in
+// orange, with an empty dashed slot. On the five steps below the chunk turns grey and only the word
+// that enters the slot is in colour. Each step moves one tile to the right. The English sits on the
+// right edge of the column, joined to its step by a thin dashed line; the chunk's own line is bold.
+// On a narrow column the English goes under each step instead. Clicking the staircase moves to the
+// next chunk: every tile flips in place, in a wave, and the steps grow or shrink.
 import Section from '../Section.astro';
 
 // Every word here is in the HSK 1 list. The tiles use the pixel font: after changing a phrase,
@@ -76,17 +76,14 @@ const chunks = [
     position: relative;
     margin-top: 40px;
   }
-  /* 20px of room above the tiles for the label on the first step (the chunk) */
   .fit {
-    height: 188px;
-    padding-top: 20px;
+    height: 168px;
     overflow: hidden;
   }
   .stage {
     position: relative;
-    width: 680px;
-    height: 168px;
-    transform-origin: 0 0;
+    width: 100%;
+    height: 100%;
     cursor: pointer;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
@@ -96,9 +93,59 @@ const chunks = [
     outline: 2px solid var(--text);
     outline-offset: 4px;
   }
-  .stage :global(.tile-tag) {
+  /* the empty slot of the chunk */
+  .stage :global(.hole) {
     position: absolute;
+    top: 0;
+    width: 28px;
+    height: 28px;
+    box-sizing: border-box;
+    border: 1.5px dashed var(--muted);
     transition: opacity 0.12s linear;
+  }
+  /* the English for one step: a dashed leader, then the sentence on the right edge */
+  .stage :global(.en) {
+    position: absolute;
+    right: 0;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-left: 14px;
+    transition: opacity 0.12s linear;
+  }
+  .stage :global(.en .lead) {
+    flex: 1;
+    min-width: 24px;
+    border-top: 1px dashed #3a3a3a;
+  }
+  .stage :global(.en .txt) {
+    font-family: var(--f-body);
+    font-size: 15px;
+    line-height: 28px;
+    font-weight: 300;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .stage :global(.en .txt b) {
+    color: var(--text);
+    font-weight: 500;
+  }
+  .stage :global(.en.head .txt) {
+    color: var(--text);
+    font-weight: 600;
+  }
+  /* narrow column: the English under each step, no leader */
+  .stage.stack :global(.en) {
+    height: 18px;
+    padding-left: 0;
+  }
+  .stage.stack :global(.en .lead) {
+    display: none;
+  }
+  .stage.stack :global(.en .txt) {
+    font-size: 13px;
+    line-height: 18px;
   }
 
   .after {
@@ -112,7 +159,6 @@ const chunks = [
     clip: rect(0 0 0 0);
     white-space: nowrap;
   }
-
 </style>
 
 <script>
@@ -129,18 +175,17 @@ const chunks = [
     const live = viz.querySelector<HTMLElement>('[data-live]')!;
     const WORDS = 5;
     const ROWS = WORDS + 1; // the chunk itself, then one step per word
+    const STEP = TILE; // each step starts one tile further right
     const MAXC = Math.max(...chunks.flatMap((c) => c.words.map((w) => [...c.pre, ...w[0], ...c.post].length)));
     const GREY: TileVal = { ch: '', ...DIM };
+    const esc = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 
-    // each step starts 2 tiles further right; on a narrow column only half a tile, so it fits
-    let STEP = 2 * TILE;
     // row 0: the chunk in orange with an empty slot; rows 1-5: the chunk in grey, the word in colour.
-    // Every step keeps its left edge in all chunks, so the tiles only ever change in place.
     const rowsOf = (k: number): TileVal[][] => {
       const c = chunks[k];
       const grey = (ch: string): TileVal => ({ ...GREY!, ch });
       return [
-        [...[...c.pre].map((ch) => ({ ch, bg: ORANGE })), { ch: '', bg: '#1E1E1E' }, ...[...c.post].map((ch) => ({ ch, bg: ORANGE }))],
+        [...[...c.pre].map((ch) => ({ ch, bg: ORANGE })), { ch: '', bg: 'transparent' }, ...[...c.post].map((ch) => ({ ch, bg: ORANGE }))],
         ...c.words.map((w, r) => [
           ...[...c.pre].map(grey),
           ...[...w[0]].map((ch) => ({ ch, bg: MUTED[r % MUTED.length] })),
@@ -148,41 +193,58 @@ const chunks = [
         ]),
       ];
     };
-    const tipOf = (k: number, r: number) => (r === 0 ? '' : chunks[k].words[r - 1][1]);
+    // "I'd like to …" on the chunk's line; "I'd like to <b>have a look</b>" on each step
+    const enOf = (k: number, r: number) => {
+      const label = chunks[k].label;
+      if (r === 0) return esc(label);
+      const [a, b] = label.split('…');
+      return `${esc(a)}<b>${esc(chunks[k].words[r - 1][1])}</b>${esc(b ?? '')}`;
+    };
 
     const slots: Slot[][] = [];
-    const tips: HTMLElement[] = [];
+    const ens: HTMLElement[] = [];
     for (let r = 0; r < ROWS; r++) {
       slots.push([]);
-      for (let c = 0; c < MAXC; c++) {
-        const slot = makeSlot(stage, 'abs');
-        slot.el.style.top = `${r * TILE}px`;
-        slots[r].push(slot);
-      }
-      const tip = document.createElement('div');
-      tip.className = 'tile-tag';
-      if (r === 0) tip.hidden = true; // the chunk's row needs no label beside it: its meaning is on top
-      tip.style.top = `${r * TILE + 4}px`;
-      stage.appendChild(tip);
-      tips.push(tip);
+      for (let c = 0; c < MAXC; c++) slots[r].push(makeSlot(stage, 'abs'));
+      const en = document.createElement('div');
+      en.className = r === 0 ? 'en head' : 'en';
+      en.innerHTML = '<span class="lead"></span><span class="txt"></span>';
+      stage.appendChild(en);
+      ens.push(en);
     }
-    // the chunk's meaning, on top of the first step
-    const startTag = document.createElement('div');
-    startTag.className = 'tile-tag';
-    startTag.style.left = '0px';
-    startTag.style.top = '-20px';
-    stage.appendChild(startTag);
+    const hole = document.createElement('div');
+    hole.className = 'hole';
+    stage.appendChild(hole);
 
+    let stack = false; // narrow column: English under each step
+    const pitch = () => (stack ? TILE + 22 : TILE);
     const lens: number[] = Array(ROWS).fill(0);
-    const setTip = (r: number, k: number, len: number) => {
+    const placeEn = (r: number) => {
+      const en = ens[r];
+      if (stack) {
+        en.style.left = `${r * STEP}px`;
+        en.style.top = `${r * pitch() + TILE + 2}px`;
+      } else {
+        en.style.left = `${r * STEP + lens[r] * TILE}px`;
+        en.style.top = `${r * pitch()}px`;
+      }
+    };
+    const setEn = (r: number, k: number, len: number) => {
       lens[r] = len;
-      tips[r].textContent = tipOf(k, r);
-      tips[r].style.left = `${r * STEP + len * TILE}px`;
+      ens[r].querySelector('.txt')!.innerHTML = enOf(k, r);
+      placeEn(r);
     };
     const place = () => {
-      slots.forEach((row, r) => row.forEach((slot, c) => (slot.el.style.left = `${r * STEP + c * TILE}px`)));
-      tips.forEach((tip, r) => (tip.style.left = `${r * STEP + lens[r] * TILE}px`));
+      slots.forEach((row, r) =>
+        row.forEach((slot, c) => {
+          slot.el.style.left = `${r * STEP + c * TILE}px`;
+          slot.el.style.top = `${r * pitch()}px`;
+        }),
+      );
+      ens.forEach((_, r) => placeEn(r));
+      fit.style.height = `${(ROWS - 1) * pitch() + (stack ? TILE + 22 : TILE)}px`;
     };
+    const setHole = (k: number) => (hole.style.left = `${[...chunks[k].pre].length * TILE}px`);
 
     let cur = 0;
     let busy = false;
@@ -190,10 +252,10 @@ const chunks = [
     function render(k: number) {
       rowsOf(k).forEach((row, r) => {
         slots[r].forEach((slot, c) => applyTile(slot, row[c] ?? null));
-        setTip(r, k, row.length);
-        tips[r].style.opacity = '1';
+        setEn(r, k, row.length);
+        ens[r].style.opacity = '1';
       });
-      startTag.textContent = `The chunk · ${chunks[k].label}`;
+      setHole(k);
     }
 
     function go(k: number) {
@@ -204,13 +266,9 @@ const chunks = [
       if (reduceMotion()) return render(k);
       busy = true;
       let last = 0;
-      startTag.style.opacity = '0';
-      window.setTimeout(() => {
-        startTag.textContent = `The chunk · ${c.label}`;
-        startTag.style.opacity = '1';
-      }, 130);
+      hole.style.opacity = '0';
       rowsOf(k).forEach((row, r) => {
-        tips[r].style.opacity = '0';
+        ens[r].style.opacity = '0';
         let rowEnd = 0;
         slots[r].forEach((slot, col) => {
           const v = row[col] ?? null;
@@ -220,8 +278,12 @@ const chunks = [
           flipTile(slot, v, d);
         });
         window.setTimeout(() => {
-          setTip(r, k, row.length);
-          tips[r].style.opacity = '1';
+          setEn(r, k, row.length);
+          ens[r].style.opacity = '1';
+          if (r === 0) {
+            setHole(k);
+            hole.style.opacity = '1';
+          }
         }, rowEnd + FLIP * 0.6);
         last = Math.max(last, rowEnd + FLIP);
       });
@@ -237,18 +299,31 @@ const chunks = [
       }
     });
 
-    // on a narrow column the steps get shorter (half a tile); if it still doesn't fit, it scales down
+    // the English goes under the steps when the longest step plus its sentence won't fit beside it
+    const measure = document.createElement('span');
+    measure.className = 'txt';
+    measure.style.cssText = 'position:absolute;visibility:hidden;left:0;top:0';
+    const probe = document.createElement('div');
+    probe.className = 'en';
+    probe.style.visibility = 'hidden';
+    probe.appendChild(measure);
+    stage.appendChild(probe);
     const fitStage = () => {
-      const w = fit.clientWidth;
-      STEP = w >= 560 ? 2 * TILE : TILE / 2;
+      stage.classList.remove('stack');
+      let need = 0;
+      chunks.forEach((_, k) =>
+        rowsOf(k).forEach((row, r) => {
+          measure.innerHTML = enOf(k, r);
+          need = Math.max(need, r * STEP + row.length * TILE + 14 + 24 + 14 + measure.offsetWidth);
+        }),
+      );
+      stack = fit.clientWidth < need;
+      stage.classList.toggle('stack', stack);
       place();
-      const need = (ROWS - 1) * STEP + MAXC * TILE + 120;
-      const s = Math.min(1, w / need);
-      stage.style.transform = s < 1 ? `scale(${s})` : '';
-      fit.style.height = `${(ROWS * TILE + 20) * s + 20 * (1 - s)}px`;
     };
     addEventListener('resize', fitStage);
-    fitStage();
     render(0);
+    fitStage();
+    document.fonts?.ready.then(fitStage);
   }
 </script>
