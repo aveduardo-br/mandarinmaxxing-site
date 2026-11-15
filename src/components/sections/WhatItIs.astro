@@ -137,7 +137,7 @@ import Section from '../Section.astro';
       return WORDS[(Math.random() * WORDS.length) | 0];
     };
     // each row on the left gets single words with random holes: no runs, no groups
-    const FILL = 0.62; // chance a row gets a new word on each beat
+    const FILL = 0.9; // chance a row gets a new word on each beat
     const rows = Array.from({ length: ROWS }, () => ({ blocked: false }));
     const at = (x: number, y: number) => tiles.find((o) => o.x === x && o.y === y);
 
