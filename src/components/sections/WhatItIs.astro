@@ -141,20 +141,21 @@ import Section from '../Section.astro';
         if (Math.random() < 0.4) outAt[r] = Math.min(R0, Math.max(R0 - JIT, outAt[r] + (Math.random() < 0.5 ? -1 : 1)));
       }
     };
-    // the same flap as every other tile on the site, on `scale` so it rides on top of the glide
-    const FLAP = { duration: 110, easing: 'steps(3, end)' } as const;
+    // The tile opens and closes like a flap, on `scale` so it rides on top of the glide. Here it is slow
+    // and smooth (not the stepped flap of the other tiles), so it reads clearly on a moving belt.
+    const FLAP = 380;
     const flap = (o: Item, show: boolean) => {
       const el = o.el;
       o.state = show ? 1 : 2;
       if (quiet || reduce) { el.style.visibility = show ? 'visible' : 'hidden'; return; }
-      const delay = Math.random() * TICK * 0.7; // not on the beat
+      const delay = Math.random() * TICK * 0.5; // not on the beat
       if (show) {
         window.setTimeout(() => {
           el.style.visibility = 'visible';
-          el.animate([{ scale: '1 0' }, { scale: '1 1' }], FLAP);
+          el.animate([{ scale: '1 0' }, { scale: '1 1' }], { duration: FLAP, easing: 'cubic-bezier(.2,.7,.2,1)' });
         }, delay);
       } else {
-        const a = el.animate([{ scale: '1 1' }, { scale: '1 0' }], { ...FLAP, delay, fill: 'forwards' });
+        const a = el.animate([{ scale: '1 1' }, { scale: '1 0' }], { duration: FLAP, easing: 'cubic-bezier(.6,0,.8,.3)', delay, fill: 'forwards' });
         a.onfinish = () => { el.style.visibility = 'hidden'; a.cancel(); };
       }
     };
@@ -197,6 +198,9 @@ import Section from '../Section.astro';
       const el = o.el;
       el.style.translate = `${c.x * C + OX}px 0px`;
       el.style.transform = `translate(0px,${o.y * C}px)`;
+      // `scale` is applied before `transform`, so its origin has to sit on the tile's own centre in its
+      // row; otherwise the flap would grow down from the top of the board
+      el.style.transformOrigin = `${C / 2}px ${o.y * C + C / 2}px`;
       if (!reduce) {
         el.animate([{ translate: `${c.px * C + OX}px 0px` }, { translate: `${c.x * C + OX}px 0px` }], { duration: TICK, easing: 'linear' });
         if (o.py !== o.y)
