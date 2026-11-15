@@ -19,21 +19,29 @@ import { hskLevels } from '../../data/levels';
 const ORANGE = '#D2430E';
 const MUTED = ['#7FA3B0', '#9A9C5C', '#C29A5B', '#A0938B', '#E8835A'];
 
-// Digits on a 7 × 11 grid, one tile thick, outer corners left out so the shape reads as rounded.
-const DIGITS: Record<string, string[]> = {
-  '0': ['.XXXXX.', 'X.....X', 'X.....X', 'X.....X', 'X.....X', 'X.....X', 'X.....X', 'X.....X', 'X.....X', 'X.....X', '.XXXXX.'],
-  '1': ['..XX...', '...X...', '...X...', '...X...', '...X...', '...X...', '...X...', '...X...', '...X...', '...X...', '.XXXXX.'],
-  '2': ['.XXXXX.', 'X.....X', '......X', '......X', '......X', '.XXXXX.', 'X......', 'X......', 'X......', 'X......', 'XXXXXXX'],
-  '3': ['.XXXXX.', 'X.....X', '......X', '......X', '......X', '..XXXX.', '......X', '......X', '......X', 'X.....X', '.XXXXX.'],
-  '4': ['X....X.', 'X....X.', 'X....X.', 'X....X.', 'X....X.', 'X....X.', 'XXXXXXX', '.....X.', '.....X.', '.....X.', '.....X.'],
-  '5': ['XXXXXXX', 'X......', 'X......', 'X......', 'X......', 'XXXXXX.', '......X', '......X', '......X', 'X.....X', '.XXXXX.'],
-  '6': ['.XXXXX.', 'X......', 'X......', 'X......', 'X......', 'XXXXXX.', 'X.....X', 'X.....X', 'X.....X', 'X.....X', '.XXXXX.'],
-  '7': ['XXXXXXX', '......X', '......X', '.....X.', '.....X.', '....X..', '....X..', '...X...', '...X...', '...X...', '...X...'],
-  '8': ['.XXXXX.', 'X.....X', 'X.....X', 'X.....X', 'X.....X', '.XXXXX.', 'X.....X', 'X.....X', 'X.....X', 'X.....X', '.XXXXX.'],
-  '9': ['.XXXXX.', 'X.....X', 'X.....X', 'X.....X', 'X.....X', '.XXXXXX', '......X', '......X', '......X', '......X', '.XXXXX.'],
-  // the leading zero of a two-digit number, in grey tiles: a zero with a slash, like a scoreboard
-  pad: ['.XXXXX.', 'X.....X', 'X....XX', 'X...X.X', 'X...X.X', 'X..X..X', 'X.X...X', 'X.X...X', 'XX....X', 'X.....X', '.XXXXX.'],
+// Digits like a stadium scoreboard: seven segments on a 7 × 11 grid, one tile thick, the outer corners
+// left out so the shape reads as rounded. Every digit is part of the 8, so the three places always show
+// a grey 8 underneath and the number lights up on top of it.
+const SEG: Record<string, [number, number][]> = {
+  a: [1, 2, 3, 4, 5].map((x) => [x, 0]),
+  g: [1, 2, 3, 4, 5].map((x) => [x, 5]),
+  d: [1, 2, 3, 4, 5].map((x) => [x, 10]),
+  f: [1, 2, 3, 4, 5].map((y) => [0, y]),
+  e: [5, 6, 7, 8, 9].map((y) => [0, y]),
+  b: [1, 2, 3, 4, 5].map((y) => [6, y]),
+  c: [5, 6, 7, 8, 9].map((y) => [6, y]),
 };
+const LIT: Record<string, string> = {
+  '0': 'abcdef', '1': 'bc', '2': 'abged', '3': 'abgcd', '4': 'fgbc',
+  '5': 'afgcd', '6': 'afgedc', '7': 'abc', '8': 'abcdefg', '9': 'abcdfg',
+};
+const DIGITS: Record<string, string[]> = Object.fromEntries(
+  Object.entries(LIT).map(([d, segs]) => {
+    const g = Array.from({ length: 11 }, () => Array(7).fill('.'));
+    for (const k of segs) for (const [x, y] of SEG[k]) g[y][x] = 'X';
+    return [d, g.map((r) => r.join(''))];
+  }),
+);
 
 // HSK 1: the situations in order, with the jump start in orange and one muted colour per situation
 // after it. `end` is the running word count, so a tile can be matched to the situation it falls in.
@@ -143,7 +151,7 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
   .num {
     position: relative;
     flex: none;
-    width: 644px; /* always three digits, like a scoreboard: a two-digit number gets a grey leading zero */
+    width: 644px; /* always three places, like a scoreboard: a grey 8 under every digit */
     height: 308px;
     transition: width 0.22s steps(4, end);
   }
@@ -155,6 +163,16 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     .shape.wide .live {
       width: auto;
     }
+  }
+  /* an unlit tile of the scoreboard: grey, with a small square in the middle like a bulb that is off */
+  .num :global(.tile > span:empty)::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 10px;
+    width: 6px;
+    height: 6px;
+    background: #333;
   }
   .num .tile-tag {
     position: absolute;
@@ -355,7 +373,10 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     let width = 420;
 
     const GREY = '#1E1E1E';
-    const padCells = D.digits.pad.flatMap((row, y) => [...row].flatMap((c, x) => (c === 'X' ? [{ x, y }] : [])));
+    // the unlit scoreboard: an 8 in each of the three places
+    const board = [0, 1, 2].flatMap((p) =>
+      D.digits['8'].flatMap((row, y) => [...row].flatMap((c, x) => (c === 'X' ? [{ x: p * 8 + x, y }] : []))),
+    );
     const lessonsOf = (level: number, pace: string) => {
       const L = D.levels[level - 1];
       return L.fixed?.[pace] ?? Math.ceil(L.words / Number(pace));
@@ -366,7 +387,7 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     function build(level: number, pace: string): { n: number; tiles: Tile[]; pad: { x: number; y: number }[] } {
       const n = lessonsOf(level, pace);
       const L = D.levels[level - 1];
-      // always three places, right-aligned; the empty place on the left is the grey slashed zero
+      // always three places, right-aligned, over the grey scoreboard
       const str = String(n);
       const off = 3 - str.length;
       const cells = [...str].flatMap((d, di) =>
@@ -389,8 +410,7 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
         const band = Math.floor((t * 10) / cells.length);
         return { ...cell, lesson, ch: sample[t % sample.length], bg: D.muted[band % D.muted.length], name: '' };
       });
-      const pad = off > 0 ? padCells : [];
-      return { n, tiles, pad };
+      return { n, tiles, pad: board };
     }
 
     const span = (days: number) => {
