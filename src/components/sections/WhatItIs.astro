@@ -39,16 +39,29 @@ import Section from '../Section.astro';
     background: #d2430e;
     color: #0e0e0e;
   }
-  /* the board is always 680px wide; on a narrow screen it is cropped evenly on both sides, so the
-     sorting in the middle stays in view */
+  /* The belt reaches past the column on both sides (up to 120 px, never under the side nav) and fades
+     out at both ends, so it reads as endless. The board is at least 680 px wide; on a narrow screen
+     it is cropped evenly on both sides, so the sorting in the middle stays in view. */
   .crop {
+    --ext: clamp(0px, (100vw - 100%) / 2 - 330px, 120px);
+    --fade: calc(var(--ext) + 72px);
+    width: calc(100% + 2 * var(--ext));
+    margin-left: calc(-1 * var(--ext));
     overflow: hidden;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent);
+    mask-image: linear-gradient(to right, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent);
+  }
+  @media (max-width: 1180px) {
+    /* no side nav here: the belt can use the margins */
+    .crop {
+      --ext: clamp(0px, (100vw - 100%) / 2 - 16px, 120px);
+    }
   }
   .board {
     position: relative;
-    width: 680px;
+    width: max(100%, 680px);
     height: 140px;
-    margin-left: calc(50% - 340px);
+    margin-left: min(0px, calc(50% - 340px));
     overflow: hidden;
   }
   .board :global(.tile) {
@@ -88,10 +101,21 @@ import Section from '../Section.astro';
     const reduce = reduceMotion();
     const syl = [...WORDS].sort((a, b) => a.o - b.o); // the official order
 
-    // 25 columns by 5 rows. Left of the middle the words come in the official order, mixed;
-    // between ZS and ZE each one moves to the row of its lesson; right of it the rows are lessons.
-    const BC = 25, MID = 12, ROWS = 5, ZS = MID - 2, ZE = MID + 2;
-    const TICK = 650, OX = (680 - BC * C) / 2; // cropped 10px each side to fill the 680px column
+    // As many columns as fit the board (25 in the 680 px column, more when the belt is wider) by 5
+    // rows. Left of the middle the words come in the official order, mixed; between ZS and ZE each
+    // one moves to the row of its lesson; right of it the rows are lessons.
+    const ROWS = 5, TICK = 650;
+    let BC = 25, MID = 12, ZS = 10, ZE = 14, OX = -10;
+    const size = () => {
+      const w = B.clientWidth;
+      BC = Math.max(25, Math.ceil(w / C));
+      if (BC % 2 === 0) BC++;
+      MID = (BC - 1) / 2;
+      ZS = MID - 2;
+      ZE = MID + 2;
+      OX = (w - BC * C) / 2; // centred: the same crop on both sides
+    };
+    size();
     let tiles: Item[] = [];
     let timer: number | null = null;
 
@@ -193,7 +217,21 @@ import Section from '../Section.astro';
       });
     };
 
-    for (let i = 0; i < BC + 4; i++) tick(); // start with the belt already full
+    const fill = () => { for (let i = 0; i < BC + 4; i++) tick(); }; // start with the belt already full
+    fill();
+    // a wider or narrower belt: start over with the new number of columns
+    let lastW = B.clientWidth;
+    new ResizeObserver(() => {
+      const w = B.clientWidth;
+      if (Math.abs(w - lastW) < C) return;
+      lastW = w;
+      tiles.forEach((o) => o.el.remove());
+      tiles = [];
+      rk.fill(0);
+      rows.forEach((r) => { r.left = 0; r.gap = rnd(0, 5); r.blocked = false; });
+      size();
+      fill();
+    }).observe(B);
     const start = () => { if (!timer && !reduce) timer = window.setInterval(tick, TICK); };
     const stop = () => { if (timer) clearInterval(timer); timer = null; };
     new IntersectionObserver((es) => es.forEach((e) => (e.isIntersecting ? start() : stop()))).observe(B);
