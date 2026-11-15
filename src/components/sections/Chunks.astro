@@ -2,9 +2,10 @@
 // Section 03 — Paper "03 Chunks" (tiles). See docs/ladrilhos.md.
 // A staircase of tiles: one chunk repeated on five steps, each with a different word in its slot.
 // The orange tiles are the chunk (they stay), the coloured ones are the word that changes. Black
-// labels give the English. Clicking the staircase moves to the next chunk: every tile flips in place,
-// in a wave, and the steps grow or shrink. Above the staircase, a line shows the chunk on its own,
-// with the slot empty, and its meaning; it changes with it (Paper "03 Chunks — opção C").
+// labels give the English. The first step is the chunk itself, in orange, with an empty slot and a
+// black label with its meaning on top. On the steps below the chunk turns grey and only the word
+// that enters the slot is in colour. Clicking the staircase moves to the next chunk: every tile flips
+// in place, in a wave, and the steps grow or shrink.
 import Section from '../Section.astro';
 
 // Every word here is in the HSK 1 list. The tiles use the pixel font: after changing a phrase,
@@ -56,11 +57,6 @@ const chunks = [
   </p>
 
   <div class="viz" data-chunks={JSON.stringify(chunks)}>
-    <div class="legend" aria-hidden="true">
-      <div class="tile-label">The chunk</div>
-      <div class="lrow" data-legend></div>
-      <p><b data-legend-label>{chunks[0].label}</b> It stays the same. Only the word in the slot changes:</p>
-    </div>
     <div class="fit" data-fit>
       <div class="stage" data-stage role="button" tabindex="0" aria-label="Show the next chunk"></div>
     </div>
@@ -80,15 +76,16 @@ const chunks = [
     position: relative;
     margin-top: 40px;
   }
+  /* 20px of room above the tiles for the label on the first step (the chunk) */
   .fit {
-    height: 140px;
-    margin-top: 20px;
+    height: 188px;
+    padding-top: 20px;
     overflow: hidden;
   }
   .stage {
     position: relative;
     width: 680px;
-    height: 140px;
+    height: 168px;
     transform-origin: 0 0;
     cursor: pointer;
     user-select: none;
@@ -104,26 +101,9 @@ const chunks = [
     transition: opacity 0.12s linear;
   }
 
-  /* the chunk on its own, above the staircase: label, tiles with the empty slot, meaning */
-  .legend {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    column-gap: 16px;
-    row-gap: 8px;
-  }
-  .lrow {
-    display: flex;
-    height: 28px;
-  }
-  .legend p {
-    font-size: 15px;
-    line-height: 22px;
-    color: var(--text-80);
-  }
-  .legend b {
-    font-weight: 500;
-    color: var(--text);
+  .stage :global(.tile-tag.stays) {
+    background: var(--accent);
+    color: var(--bg);
   }
 
   .after {
@@ -141,7 +121,7 @@ const chunks = [
 </style>
 
 <script>
-  import { makeSlot, applyTile, flipTile, reduceMotion, TILE, ORANGE, MUTED, WAVE, FLIP } from '../../scripts/tiles';
+  import { makeSlot, applyTile, flipTile, reduceMotion, TILE, ORANGE, MUTED, DIM, WAVE, FLIP } from '../../scripts/tiles';
   import type { Slot, TileVal } from '../../scripts/tiles';
 
   type Chunk = { pre: string; post: string; label: string; words: [string, string][] };
@@ -151,32 +131,29 @@ const chunks = [
     const chunks: Chunk[] = JSON.parse(viz.dataset.chunks!);
     const stage = viz.querySelector<HTMLElement>('[data-stage]')!;
     const fit = viz.querySelector<HTMLElement>('[data-fit]')!;
-    const legendRow = viz.querySelector<HTMLElement>('[data-legend]')!;
-    const legendLabel = viz.querySelector<HTMLElement>('[data-legend-label]')!;
     const live = viz.querySelector<HTMLElement>('[data-live]')!;
-    const ROWS = 5;
+    const WORDS = 5;
+    const ROWS = WORDS + 1; // the chunk itself, then one step per word
     const MAXC = Math.max(...chunks.flatMap((c) => c.words.map((w) => [...c.pre, ...w[0], ...c.post].length)));
-    const LEGEND = Math.max(...chunks.map((c) => [...c.pre, ...c.post].length + 1));
+    const GREY: TileVal = { ch: '', ...DIM };
 
     // each step starts 2 tiles further right; on a narrow column only half a tile, so it fits
     let STEP = 2 * TILE;
-    // every step keeps its left edge in all chunks, so the tiles only ever change in place
+    // row 0: the chunk in orange with an empty slot; rows 1-5: the chunk in grey, the word in colour.
+    // Every step keeps its left edge in all chunks, so the tiles only ever change in place.
     const rowsOf = (k: number): TileVal[][] => {
       const c = chunks[k];
-      return c.words.map((w, r) => [
-        ...[...c.pre].map((ch) => ({ ch, bg: ORANGE })),
-        ...[...w[0]].map((ch) => ({ ch, bg: MUTED[r % MUTED.length] })),
-        ...[...c.post].map((ch) => ({ ch, bg: ORANGE })),
-      ]);
-    };
-    const legendOf = (k: number): TileVal[] => {
-      const c = chunks[k];
+      const grey = (ch: string): TileVal => ({ ...GREY!, ch });
       return [
-        ...[...c.pre].map((ch) => ({ ch, bg: ORANGE })),
-        { ch: '', bg: '#1E1E1E' },
-        ...[...c.post].map((ch) => ({ ch, bg: ORANGE })),
+        [...[...c.pre].map((ch) => ({ ch, bg: ORANGE })), { ch: '', bg: '#1E1E1E' }, ...[...c.post].map((ch) => ({ ch, bg: ORANGE }))],
+        ...c.words.map((w, r) => [
+          ...[...c.pre].map(grey),
+          ...[...w[0]].map((ch) => ({ ch, bg: MUTED[r % MUTED.length] })),
+          ...[...c.post].map(grey),
+        ]),
       ];
     };
+    const tipOf = (k: number, r: number) => (r === 0 ? 'stays the same' : chunks[k].words[r - 1][1]);
 
     const slots: Slot[][] = [];
     const tips: HTMLElement[] = [];
@@ -188,17 +165,22 @@ const chunks = [
         slots[r].push(slot);
       }
       const tip = document.createElement('div');
-      tip.className = 'tile-tag';
+      tip.className = r === 0 ? 'tile-tag stays' : 'tile-tag';
       tip.style.top = `${r * TILE + 4}px`;
       stage.appendChild(tip);
       tips.push(tip);
     }
-    const legendSlots: Slot[] = Array.from({ length: LEGEND }, () => makeSlot(legendRow));
+    // the chunk's meaning, on top of the first step
+    const startTag = document.createElement('div');
+    startTag.className = 'tile-tag';
+    startTag.style.left = '0px';
+    startTag.style.top = '-20px';
+    stage.appendChild(startTag);
 
     const lens: number[] = Array(ROWS).fill(0);
     const setTip = (r: number, k: number, len: number) => {
       lens[r] = len;
-      tips[r].textContent = chunks[k].words[r][1];
+      tips[r].textContent = tipOf(k, r);
       tips[r].style.left = `${r * STEP + len * TILE}px`;
     };
     const place = () => {
@@ -210,18 +192,12 @@ const chunks = [
     let busy = false;
 
     function render(k: number) {
-      const rows = rowsOf(k);
-      rows.forEach((row, r) => {
+      rowsOf(k).forEach((row, r) => {
         slots[r].forEach((slot, c) => applyTile(slot, row[c] ?? null));
         setTip(r, k, row.length);
         tips[r].style.opacity = '1';
       });
-      legendLabel.textContent = chunks[k].label;
-      const lr = legendOf(k);
-      legendSlots.forEach((slot, i) => {
-        applyTile(slot, lr[i] ?? null);
-        slot.el.style.display = lr[i] ? '' : 'none';
-      });
+      startTag.textContent = `The chunk · ${chunks[k].label}`;
     }
 
     function go(k: number) {
@@ -231,15 +207,13 @@ const chunks = [
       live.textContent = `${c.label} ${c.words.map((w) => `${c.pre}${w[0]}${c.post} (${w[1]})`).join(', ')}`;
       if (reduceMotion()) return render(k);
       busy = true;
-      const rows = rowsOf(k);
       let last = 0;
-      legendLabel.style.transition = 'opacity 0.12s linear';
-      legendLabel.style.opacity = '0';
+      startTag.style.opacity = '0';
       window.setTimeout(() => {
-        legendLabel.textContent = c.label;
-        legendLabel.style.opacity = '1';
+        startTag.textContent = `The chunk · ${c.label}`;
+        startTag.style.opacity = '1';
       }, 130);
-      rows.forEach((row, r) => {
+      rowsOf(k).forEach((row, r) => {
         tips[r].style.opacity = '0';
         let rowEnd = 0;
         slots[r].forEach((slot, col) => {
@@ -254,14 +228,6 @@ const chunks = [
           tips[r].style.opacity = '1';
         }, rowEnd + FLIP * 0.6);
         last = Math.max(last, rowEnd + FLIP);
-      });
-      const lr = legendOf(k);
-      // unused legend tiles take no room, so the meaning sits right after the chunk
-      legendSlots.forEach((slot, i) => {
-        const v = lr[i] ?? null, d = 120 + i * WAVE;
-        if (v) slot.el.style.display = '';
-        flipTile(slot, v, d);
-        if (!v) window.setTimeout(() => !slot.val && (slot.el.style.display = 'none'), d + FLIP);
       });
       window.setTimeout(() => (busy = false), last + 40);
     }
@@ -283,7 +249,7 @@ const chunks = [
       const need = (ROWS - 1) * STEP + MAXC * TILE + 120;
       const s = Math.min(1, w / need);
       stage.style.transform = s < 1 ? `scale(${s})` : '';
-      fit.style.height = `${140 * s}px`;
+      fit.style.height = `${(ROWS * TILE + 20) * s + 20 * (1 - s)}px`;
     };
     addEventListener('resize', fitStage);
     fitStage();
