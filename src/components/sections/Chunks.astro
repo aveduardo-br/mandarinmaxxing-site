@@ -101,11 +101,6 @@ const chunks = [
     transition: opacity 0.12s linear;
   }
 
-  .stage :global(.tile-tag.stays) {
-    background: var(--accent);
-    color: var(--bg);
-  }
-
   .after {
     margin-top: 40px;
   }
@@ -153,7 +148,7 @@ const chunks = [
         ]),
       ];
     };
-    const tipOf = (k: number, r: number) => (r === 0 ? 'stays the same' : chunks[k].words[r - 1][1]);
+    const tipOf = (k: number, r: number) => (r === 0 ? '' : chunks[k].words[r - 1][1]);
 
     const slots: Slot[][] = [];
     const tips: HTMLElement[] = [];
@@ -165,7 +160,8 @@ const chunks = [
         slots[r].push(slot);
       }
       const tip = document.createElement('div');
-      tip.className = r === 0 ? 'tile-tag stays' : 'tile-tag';
+      tip.className = 'tile-tag';
+      if (r === 0) tip.hidden = true; // the chunk's row needs no label beside it: its meaning is on top
       tip.style.top = `${r * TILE + 4}px`;
       stage.appendChild(tip);
       tips.push(tip);
