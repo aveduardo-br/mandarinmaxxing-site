@@ -17,7 +17,10 @@ interface Props {
 const { id, num, title, tiled } = Astro.props;
 const n = numerals[num];
 const NUM_ZH = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
-const tileTitle = tiled ? { digit: String(Number(num)), num: NUM_ZH[Number(num)], letters: [...title.toUpperCase()] } : null;
+// words are kept whole so a long title wraps between words, never inside one
+const tileTitle = tiled
+  ? { digit: String(Number(num)), num: NUM_ZH[Number(num)], words: title.toUpperCase().split(' ').map((w) => [...w]) }
+  : null;
 ---
 
 <section id={id} class="section" data-section>
@@ -27,9 +30,14 @@ const tileTitle = tiled ? { digit: String(Number(num)), num: NUM_ZH[Number(num)]
         <span class="sr">{title}</span>
         <span class="trow" aria-hidden="true">
           <span class="tt num" data-num data-digit={tileTitle.digit} data-zh={tileTitle.num}><span>{tileTitle.digit}</span></span>
-          {tileTitle.letters.map((ch) => (
-            <span class="tt lat">
-              <span>{ch === ' ' ? '' : ch}</span>
+          {tileTitle.words.map((w, wi) => (
+            <span class="word">
+              {wi > 0 && <span class="tt lat" />}
+              {w.map((ch) => (
+                <span class="tt lat">
+                  <span>{ch}</span>
+                </span>
+              ))}
             </span>
           ))}
         </span>
@@ -98,8 +106,12 @@ const tileTitle = tiled ? { digit: String(Number(num)), num: NUM_ZH[Number(num)]
   }
   .trow {
     display: flex;
+    flex-wrap: wrap;
     user-select: none;
     -webkit-user-select: none;
+  }
+  .word {
+    display: flex;
   }
   .tt {
     position: relative;
