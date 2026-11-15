@@ -111,7 +111,8 @@ import Section from '../Section.astro';
       BC = Math.max(25, Math.ceil(w / C));
       if (BC % 2 === 0) BC++;
       MID = (BC - 1) / 2;
-      ZS = MID - 2;
+      // the sorting starts well before the middle, so the change is easy to follow
+      ZS = MID - 5;
       ZE = MID + 2;
       OX = (w - BC * C) / 2; // centred: the same crop on both sides
     };
@@ -126,22 +127,13 @@ import Section from '../Section.astro';
       return slot.el;
     };
 
-    // each row takes the next word (in official order) whose lane is at most one row away,
-    // so a word never has to cross the whole board to reach its lane
-    const rk = Array(ROWS).fill(0);
-    const nextFor = (y: number): Word => {
-      for (let i = 0; i < syl.length; i++) {
-        const w = syl[(rk[y] + i) % syl.length];
-        if (Math.abs(w.l - 1 - y) <= 1) {
-          rk[y] = (rk[y] + i + 1) % syl.length;
-          return w;
-        }
-      }
-      return syl[0];
-    };
-    // each row on the left is a strip of short "phrases" with gaps, like a textbook line mixing lessons
+    // the words come in the official order, each to whichever row is free, so any lesson can show up
+    // on any row: the left side is fully mixed
+    let rk = 0;
+    const nextWord = (): Word => syl[rk++ % syl.length];
+    // each row on the left is short runs of 1 to 3 words with small gaps: full, but scattered
     const rnd = (a: number, b: number) => a + Math.floor(Math.random() * (b - a + 1));
-    const rows = Array.from({ length: ROWS }, () => ({ left: 0, gap: rnd(0, 5), blocked: false }));
+    const rows = Array.from({ length: ROWS }, () => ({ left: 0, gap: rnd(0, 2), blocked: false }));
     const at = (x: number, y: number) => tiles.find((o) => o.x === x && o.y === y);
 
     // continuous belt: x glides linearly over a whole beat, so the motion never stops;
@@ -203,17 +195,17 @@ import Section from '../Section.astro';
         if (head && !moveIn(head, true)) { r.blocked = true; return; }
         row.filter((o) => o !== head).forEach((o) => { o.x++; place(o); });
       });
-      // feed each row in bursts: 4–9 words, then a hole of 1–2 cells
+      // feed each row in short runs: 1–3 words, then a hole of 0–1 cell
       rows.forEach((r, y) => {
         if (r.blocked) return;
         if (r.gap > 0) { r.gap--; return; }
         if (at(0, y)) return;
-        if (r.left === 0) r.left = rnd(4, 9);
-        const w = nextFor(y);
+        if (r.left === 0) r.left = rnd(1, 3);
+        const w = nextWord();
         const o: Item = { w, el: mk(w), x: 0, y, px: -1, py: y };
         place(o);
         tiles.push(o);
-        if (--r.left === 0) r.gap = rnd(1, 2);
+        if (--r.left === 0) r.gap = rnd(0, 1);
       });
     };
 
@@ -227,8 +219,8 @@ import Section from '../Section.astro';
       lastW = w;
       tiles.forEach((o) => o.el.remove());
       tiles = [];
-      rk.fill(0);
-      rows.forEach((r) => { r.left = 0; r.gap = rnd(0, 5); r.blocked = false; });
+      rk = 0;
+      rows.forEach((r) => { r.left = 0; r.gap = rnd(0, 2); r.blocked = false; });
       size();
       fill();
     }).observe(B);
