@@ -1,9 +1,9 @@
 ---
 // Section 05 — Paper "05 Your course" (tiles). See docs/ladrilhos.md.
 // The number of lessons in a level, drawn with tiles on a three-place scoreboard (a faint 8 under
-// every digit). Right under it, two tile selectors, HSK (1 to 6) and words per lesson (3, 5 or 7),
-// and a black box with the breakdown at that pace: when you would finish each level from the chosen
-// one up to HSK 6, at one lesson a day counted from today. Changing a selector flips the number.
+// every digit). Right under it, one panel of three equal modules: HSK (1 to 6), words per lesson
+// (3, 5 or 7), and a short sentence on the chosen level at that pace: how many lessons, and when you
+// would finish at one a day, counted from today. Changing a selector flips the number.
 // Selector tiles work like the side nav: hanzi on grey while off, the digit on orange when chosen.
 //
 // HSK 1 to 4 use the real numbers of their maps (HSK 1: 97, 58 and 42 lessons at 3, 5 and 7 words).
@@ -81,23 +81,23 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     <div class="tile-tag top">Lessons</div>
     <div class="num" data-num role="img" aria-label={`${MAPPED[START]} lessons`}></div>
     <div class="controls">
-      <div class="sel">
+      <div class="mod">
         <div class="tile-label">HSK</div>
         <div class="tiles" role="group" aria-label="HSK level" data-level-group>
           {levelZh.map((zh, i) => <button class="st" type="button" data-level={i + 1} data-zh={zh} aria-pressed={i === 0 ? 'true' : 'false'} aria-label={`HSK ${i + 1}`} />)}
         </div>
-        <p>HSK 1 to 4, mapped by hand. New? Start at one. Studied before? Pick where to begin.</p>
+        <p>1 to 4 mapped by hand. New? Start at one.</p>
       </div>
-      <div class="sel">
+      <div class="mod">
         <div class="tile-label">Words / lesson</div>
         <div class="tiles" role="group" aria-label="New words a lesson" data-pace-group>
           {paces.map((p) => <button class="st" type="button" data-pace={p.key} data-zh={p.zh} aria-pressed={p.key === START ? 'true' : 'false'} aria-label={`${p.words} new words a lesson`} />)}
         </div>
-        <p>Three, five or seven new words a lesson. Any other number works too.</p>
+        <p>Three, five or seven. Any number works.</p>
       </div>
-      <div class="pace-box" data-box aria-live="polite">
-        <div class="ph">At this pace · one a day</div>
-        <div class="rows" data-rows></div>
+      <div class="mod out">
+        <div class="tile-label">At this pace</div>
+        <p class="say" data-say aria-live="polite"></p>
       </div>
     </div>
   </div>
@@ -144,55 +144,40 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     color: var(--text);
   }
 
+  /* one panel under the number, as wide as it, split into three equal modules */
   .controls {
     display: flex;
-    gap: 24px;
-    margin-top: 16px;
+    margin-top: 20px;
+    border: 1px solid var(--card-border);
+    background: var(--card);
   }
-  .sel {
+  .mod {
     flex: 1 1 0;
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
+    padding: 14px 16px 16px;
+  }
+  .mod + .mod {
+    border-left: 1px solid var(--card-border);
   }
   .tiles {
     display: flex;
   }
-  .sel p {
+  .mod p {
     font-size: var(--fs-caption);
     line-height: var(--lh-caption);
     color: var(--muted);
   }
-  /* the breakdown at the chosen pace */
-  .pace-box {
-    flex: none;
-    width: 212px;
-    background: #000;
-    padding: 10px 12px 12px;
-  }
-  .ph {
-    font-family: var(--f-body);
-    font-size: 11px;
-    line-height: 14px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    padding-bottom: 6px;
-  }
-  .rows :global(.r) {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    font-size: var(--fs-caption);
+  .mod .say {
+    font-size: 15px;
     line-height: 22px;
-    color: var(--muted);
-    font-variant-numeric: tabular-nums;
+    color: var(--text-80);
   }
-  .rows :global(.r.on) {
-    color: var(--text);
+  .say :global(b) {
     font-weight: 500;
+    color: var(--text);
   }
   /* a tile you can pick: dimmed until chosen, orange when it is */
   .st {
@@ -235,8 +220,9 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     .controls {
       flex-direction: column;
     }
-    .pace-box {
-      width: auto;
+    .mod + .mod {
+      border-left: 0;
+      border-top: 1px solid var(--card-border);
     }
   }
 </style>
@@ -253,7 +239,8 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
   if (root) {
     const D: { digits: Record<string, string[]>; levels: Level[]; info: Info[]; muted: string[] } = JSON.parse(root.dataset.course!);
     const num = root.querySelector<HTMLElement>('[data-num]')!;
-    const rowsEl = root.querySelector<HTMLElement>('[data-rows]')!;
+    const sayEl = root.querySelector<HTMLElement>('[data-say]')!;
+    const WORDS: Record<string, string> = { '3': 'three', '5': 'five', '7': 'seven' };
     const COLS = 23; // room for three digits of 7, with one empty column between them
     const ROWS = 11;
     const STEP = 14; // the wave runs diagonally across the whole number
@@ -311,11 +298,11 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     }
 
     // the finish date, counted from today at one lesson a day; the year shows once it is far enough
-    const dateOf = (lesson: number) => {
+    const dateOf = (lesson: number, exact: boolean) => {
       const d = new Date(Date.now() + (lesson - 1) * 864e5);
-      return lesson > 300
-        ? d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-        : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      return exact
+        ? d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', ...(lesson > 300 ? { year: 'numeric' } : {}) })
+        : d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     };
 
     let level = 1;
@@ -336,15 +323,11 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
         if (moving) flipTile(slot, v, delay(i));
         else applyTile(slot, v);
       });
-      // each level from the chosen one up to HSK 6, finished one after the other
-      let total = 0;
-      rowsEl.innerHTML = D.levels
-        .map((L, i) => {
-          if (i + 1 < level) return '';
-          total += lessonsOf(i + 1, pace);
-          return `<div class="r${i + 1 === level ? ' on' : ''}"><span>HSK ${i + 1}</span><span>${L.fixed ? '' : '≈ '}${dateOf(total)}</span></div>`;
-        })
-        .join('');
+      // one sentence on the chosen level only
+      const date = dateOf(next.n, mapped);
+      sayEl.innerHTML =
+        `At ${WORDS[pace]} words a lesson, HSK ${level} is ${mapped ? '' : 'about '}${next.n} lessons. ` +
+        `One a day, you finish ${mapped ? 'on' : 'around'} <b>${date}</b>.`;
       num.setAttribute('aria-label', `${mapped ? '' : 'about '}${next.n} lessons`);
     }
 
