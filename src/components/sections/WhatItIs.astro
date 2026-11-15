@@ -90,7 +90,7 @@ import Section from '../Section.astro';
     '这:5:278 那:5:135 朋友:5:155 的:5:29 认识:5:170 很:5:78 高兴:5:56 先生:5:230 女士:5:154 呢:5:143 我们:5:221 你们:5:147 们:5:123 他们:5:200 她们:5:204 都:5:40';
   type Word = { w: string; l: number; o: number };
   type Item = { w: Word; el: HTMLElement; y: number; py: number };
-  type Col = { x: number; px: number; items: Item[] }; // items[row], one per lesson; empty column = []
+  type Col = { x: number; px: number; items: Item[] }; // one item per lesson
 
   const B = document.querySelector<HTMLElement>('[data-belt]');
   if (B) {
@@ -108,6 +108,7 @@ import Section from '../Section.astro';
     // zone (five columns in the middle) neighbours in a column swap when they are out of order, one
     // round per beat (odd-even transposition sort: five rounds always sort five tiles). Past the zone
     // every column reads lesson 1 to 5 from top to bottom, so the rows on the right are full and clean.
+    // There are no empty columns: the belt is solid from end to end.
     let BC = 25, ZS = 10, ZE = 15, OX = -10;
     const size = () => {
       const w = B.clientWidth;
@@ -175,14 +176,12 @@ import Section from '../Section.astro';
           }
         }
       }
-      // a new column on the left (now and then an empty one, for a little air)
+      // a new full column on the left
       const c: Col = { x: 0, px: -1, items: [] };
-      if (Math.random() > 0.1) {
-        c.items = shuffle().map((l, y) => {
-          const w = pick(l);
-          return { w, el: mk(w), y, py: y };
-        });
-      } else last = [];
+      c.items = shuffle().map((l, y) => {
+        const w = pick(l);
+        return { w, el: mk(w), y, py: y };
+      });
       cols.push(c);
       for (const col of cols) for (const o of col.items) place(col, o);
     };
