@@ -3,7 +3,8 @@
 Ponto de partida para o próximo chat que mexer no site. Leia este arquivo inteiro antes de começar.
 
 - **Converse com o Eduardo em português.** Todo o texto público do site é em inglês.
-- **O site já está construído e no ar**, com a copy reescrita para a skill v0.3.0. A próxima fase é de design.
+- **O site já está construído e no ar.** O design em ladrilhos está feito; a fase atual é revisar a copy.
+- **Para mexer em texto, comece pelo `docs/messaging.md`** (reescrito em 15/11/2026): leitores, as três mensagens, vocabulário do site, o que a skill faz na v0.4.0, tom e a mensagem para abrir o chat de copy.
 
 ## Links
 
