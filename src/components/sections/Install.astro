@@ -3,7 +3,7 @@
 // optional extra, and the terminal command as a footnote for people who use coding agents.
 // Button and menu names are the ones in the Claude app; check them against the skill's README.
 import Section from '../Section.astro';
-import { SKILL_REPO, SKILL_ZIP } from '../../data/site';
+import { SKILL_REPO, SKILL_ZIP, SKILL_ISSUES } from '../../data/site';
 
 const INSTRUCTIONS = 'Use the mandarinmaxxing skill. My course is saved in course.md.';
 const START = 'start mandarinmaxxing';
@@ -68,6 +68,11 @@ const START = 'start mandarinmaxxing';
   <p class="foot">
     Using Claude Code or Codex? The skill runs there too, installed from the terminal.
     <a href={`${SKILL_REPO}#other-ways-to-run-it`} target="_blank" rel="noopener">Instructions on GitHub ↗</a>
+  </p>
+  <p class="foot">
+    Something didn’t match what you saw?
+    <a href={SKILL_ISSUES} target="_blank" rel="noopener">Open an issue on GitHub ↗</a>. That’s how the install steps
+    and the lessons get fixed.
   </p>
 </Section>
 

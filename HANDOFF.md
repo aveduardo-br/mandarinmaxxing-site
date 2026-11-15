@@ -19,7 +19,7 @@ Ponto de partida para o próximo chat que mexer no site. Leia este arquivo intei
 
 ## Onde o texto mora no código
 
-Ordem da página (`src/pages/index.astro`): Hero, 01 What it is, 02 Situations, not chapters, 03 Chunks, 04 Every lesson follows the same four steps, 05 Your course, 06 Install, FAQ, Footer.
+Ordem da página (`src/pages/index.astro`): Hero, 01 What it is, 02 Situations, not chapters, 03 Chunks, 04 A lesson, step by step, 05 Your course, 06 Install, FAQ, Footer.
 
 | Parte | Arquivo |
 | --- | --- |

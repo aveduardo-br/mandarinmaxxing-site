@@ -74,7 +74,8 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
 
 <Section id="course" num="05" title="Your course" tiled>
   <p class="prose">
-    The course is yours. Pick a level and a pace and watch it take shape. Every tile is one lesson.
+    The course is yours. Nobody studies at the same speed, so the course doesn’t have one. Set your level and your
+    pace below and see how long yours would be.
   </p>
 
   <div class="board" data-course={JSON.stringify(data)} data-start={START}>
@@ -86,14 +87,14 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
         <div class="tiles" role="group" aria-label="HSK level" data-level-group>
           {levelZh.map((zh, i) => <button class="st" type="button" data-level={i + 1} data-zh={zh} aria-pressed={i === 0 ? 'true' : 'false'} aria-label={`HSK ${i + 1}`} />)}
         </div>
-        <p>1 to 4 mapped by hand. New? Start at one.</p>
+        <p>Start at 1, or at the level you already reached.</p>
       </div>
       <div class="mod">
         <div class="tile-label">Words / lesson</div>
         <div class="tiles" role="group" aria-label="New words a lesson" data-pace-group>
           {paces.map((p) => <button class="st" type="button" data-pace={p.key} data-zh={p.zh} aria-pressed={p.key === START ? 'true' : 'false'} aria-label={`${p.words} new words a lesson`} />)}
         </div>
-        <p>Three, five or seven. Any number works.</p>
+        <p>Three is light, seven is intense. Or ask for any number.</p>
       </div>
       <div class="mod out">
         <div class="tile-label">At this pace</div>
@@ -101,9 +102,17 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
       </div>
     </div>
   </div>
+
+  <p class="prose after">
+    None of this is locked. Ask for a lighter pace, move food before phone calls, or switch the explanations to your
+    language.
+  </p>
 </Section>
 
 <style>
+  .after {
+    margin-top: 32px;
+  }
   /* one block: the label, the scoreboard, the selectors right under it, the finish date */
   .board {
     position: relative;
@@ -243,7 +252,6 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     const D: { digits: Record<string, string[]>; levels: Level[]; info: Info[]; muted: string[] } = JSON.parse(root.dataset.course!);
     const num = root.querySelector<HTMLElement>('[data-num]')!;
     const sayEl = root.querySelector<HTMLElement>('[data-say]')!;
-    const WORDS: Record<string, string> = { '3': 'three', '5': 'five', '7': 'seven' };
     const COLS = 23; // room for three digits of 7, with one empty column between them
     const ROWS = 11;
     const STEP = 14; // the wave runs diagonally across the whole number
@@ -328,9 +336,11 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
       });
       // one sentence on the chosen level only
       const date = dateOf(next.n, mapped);
-      sayEl.innerHTML =
-        `At ${WORDS[pace]} words a lesson, HSK ${level} is ${mapped ? '' : 'about '}${next.n} lessons. ` +
-        `One a day, you finish ${mapped ? 'on' : 'around'} <b>${date}</b>.`;
+      const words = D.levels[level - 1].words.toLocaleString('en-US');
+      sayEl.innerHTML = mapped
+        ? `${next.n} lessons to cover all ${words} words of HSK ${level}. One a day, that’s <b>${date}</b>.`
+        : `HSK ${level} has ${words} words: about ${next.n} lessons at this pace. ` +
+          `The lesson list is built when you start the level.`;
       num.setAttribute('aria-label', `${mapped ? '' : 'about '}${next.n} lessons`);
     }
 

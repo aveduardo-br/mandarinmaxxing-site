@@ -1,10 +1,13 @@
 ---
 // Footer — Paper node 4W-0.
-import { SKILL_REPO, SKILL_RELEASES } from '../data/site';
+import { SKILL_REPO, SKILL_RELEASES, SKILL_ISSUES } from '../data/site';
 ---
 
 <footer class="footer">
-  <p>Made by Eduardo. Lessons taught by Claude.</p>
+  <p>
+    Made by Eduardo. Lessons taught by Claude. Found something off?
+    <a href={SKILL_ISSUES} target="_blank" rel="noopener">Open an issue ↗</a>.
+  </p>
   <p>
     <a href={SKILL_REPO} target="_blank" rel="noopener">GitHub</a> · <a
       href={SKILL_RELEASES}

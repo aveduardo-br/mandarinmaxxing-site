@@ -139,21 +139,23 @@ Regra prática: se a frase pode ir para o site de qualquer outro produto, ela es
 - Qualquer função que a skill não tenha.
 - "Comunidade" como se já houvesse um lugar para ela. Hoje é o GitHub.
 
-## Estado da copy por seção (15/11/2026)
+## Estado da copy por seção (15/11/2026, depois da revisão)
 
-Tirado do código. Confira no site antes de reescrever: o design mudou muito e o texto precisa caber no layout.
+Revisão de copy aplicada em 15/11/2026, aprovada pelo Eduardo seção por seção.
 
-| Seção | O que diz hoje | Direção |
-| --- | --- | --- |
-| Hero | A frase principal, "a skill for Claude", "Free" | Ver se cabe a mensagem 3 (grátis, melhora com o uso). |
-| 01 What it is | "Turns the chat into a tutor", "It isn’t a complete method" | Boa base para a mensagem 2. Conferir se explica o HSK para o leitor 2. |
-| 02 Situations, not chapters | Comparação com uma lição do livro | É a mensagem 1. Revisar se a diferença fica clara em duas frases. |
-| 03 Chunks | "Words are only half of it" | Conferir se o exemplo mostra o reaproveitamento. |
-| 04 A lesson, step by step | Os quatro passos | Texto dos cards é descritivo. Pode ganhar o porquê de cada passo. |
-| 05 Your course | "The course is yours. Pick a level and a pace and watch it take shape. Every tile is one lesson." | **Prioridade.** Copy mais forte: personalizado, cada um no seu ritmo, convite a mexer no seletor. |
-| 06 Install | Quatro passos | Funcional. Só conferir os nomes dos botões. |
-| FAQ | Por que fiz, onde fica salvo, níveis, o que não faz, grátis | "Why I made it" carrega a mensagem 3. Ver se parte dela sobe para o corpo do site. |
-| Footer | "Made by Eduardo. Lessons taught by Claude." | Pode levar o convite para ajudar a melhorar. |
+| Seção | O que mudou |
+| --- | --- |
+| Hero | Linha nova abaixo do título: explica o HSK em meia frase e traz a mensagem 3 (grátis, melhora com o uso). |
+| 01 What it is | Explica o HSK para quem não conhece. Legenda da esteira: "regrouped into situations". |
+| 02 Situations, not chapters | Abertura entra direto no livro (o HSK já foi explicado na 01). Lista apresentada como "The first ten situations of HSK 1". |
+| 03 Chunks | Segundo parágrafo abre com o exemplo do reaproveitamento (太贵了 → 太热了). |
+| 04 A lesson, step by step | Título igual ao da side nav. Cada card diz para que serve o passo. |
+| 05 Your course | Abertura sobre ritmo próprio, legendas dos seletores que ajudam a escolher, frase viva começando pelo número, linha final "None of this is locked". Saiu "Every tile is one lesson" (não era verdade). |
+| 06 Install | Linha final convidando a abrir uma issue. |
+| FAQ | Última linha de "Why did you make this?" com o convite para reportar. |
+| Footer | Convite para abrir uma issue. |
+
+Pendente: o card de áudio da seção 04 mostra um diálogo entre A e B, e a skill gera um clipe de uma voz só.
 
 ## Em aberto
 
