@@ -1,39 +1,36 @@
 ---
 // Numbered section: pixel numeral (orange) + display title (white).
-// With `zh`, the title is drawn in tiles instead (docs/ladrilhos.md), like MAXXING in the hero: an
-// orange number tile, then the title in hanzi on orange tiles. Hovering flips the row, in a wave,
-// to the English title in white letters on black tiles (and the number to its digit); leaving
-// flips it back. Being tried on section 01 first.
+// With `tiled`, the title is drawn in tiles instead (docs/ladrilhos.md), like MAXXING in the hero:
+// the English title in white letters on black tiles, after a number tile with the number in hanzi.
+// While the section is not the active one the number tile is black with a grey hanzi; when the
+// section becomes active (SideNav adds .is-active) it flips to orange with a black hanzi. Being
+// tried on section 01 first.
 import { numerals } from '../data/numerals';
 
 interface Props {
   id: string;
   num: string;
   title: string;
-  zh?: string;
+  tiled?: boolean;
 }
-const { id, num, title, zh } = Astro.props;
+const { id, num, title, tiled } = Astro.props;
 const n = numerals[num];
 const NUM_ZH = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
-const tileTitle = zh
-  ? { zh: [NUM_ZH[Number(num)], ...zh], en: [String(Number(num)), ...title.toUpperCase()] }
-  : null;
+const tileTitle = tiled ? { num: NUM_ZH[Number(num)], letters: [...title.toUpperCase()] } : null;
 ---
 
 <section id={id} class="section" data-section>
   {
     tileTitle ? (
-      <h2 class="title-row tiled" data-tile-title={JSON.stringify(tileTitle)}>
+      <h2 class="title-row tiled" data-tile-title>
         <span class="sr">{title}</span>
         <span class="trow" aria-hidden="true">
-          {Array.from({ length: Math.max(tileTitle.zh.length, tileTitle.en.length) }, (_, i) => {
-            const ch = tileTitle.zh[i];
-            return (
-              <span class:list={['tt', { num: i === 0, off: !ch }]}>
-                <span>{ch ?? ''}</span>
-              </span>
-            );
-          })}
+          <span class="tt num" data-num><span>{tileTitle.num}</span></span>
+          {tileTitle.letters.map((ch) => (
+            <span class="tt lat">
+              <span>{ch === ' ' ? '' : ch}</span>
+            </span>
+          ))}
         </span>
       </h2>
     ) : (
@@ -108,10 +105,7 @@ const tileTitle = zh
     flex: none;
     width: 28px;
     height: 28px;
-    background: var(--accent);
-  }
-  .tt.off {
-    visibility: hidden;
+    background: #000;
   }
   /* hanzi: Zpix like every tile, 3 px from the left and 1 px from the top */
   .tt > span {
@@ -122,10 +116,19 @@ const tileTitle = zh
     font-size: 24px;
     line-height: 24px;
     font-weight: 500;
-    color: #161616;
     white-space: pre;
   }
-  /* English: white letters on black tiles, like MAXXING in the hero (the number stays orange) */
+  /* number tile: black with a grey hanzi while the section is not active, orange when it is */
+  .tt.num > span {
+    color: var(--muted);
+  }
+  .tt.num.on {
+    background: var(--accent);
+  }
+  .tt.num.on > span {
+    color: #161616;
+  }
+  /* English: white letters on black tiles, like MAXXING in the hero */
   .tt.lat > span {
     left: 0;
     right: 0;
@@ -137,56 +140,36 @@ const tileTitle = zh
     font-weight: 600;
     color: var(--text);
   }
-  .tt.lat:not(.num) {
-    background: #000;
-  }
-  .tt.num.lat > span {
-    color: #161616;
-  }
-
 </style>
 
 <script>
-  // Section titles in tiles: hanzi by default, English on hover. Same flap as every tile on the site.
-  const DUR = 110, EASE = 'steps(3, end)', WAVE = 28;
+  // Tiled section titles: the number tile flips to orange while its section is the active one.
+  // SideNav marks the active section with .is-active.
+  const DUR = 110, EASE = 'steps(3, end)';
   const OUT = [{ transform: 'scaleY(1)' }, { transform: 'scaleY(0)' }];
   const IN = [{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }];
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   document.querySelectorAll<HTMLElement>('[data-tile-title]').forEach((h) => {
-    const data = JSON.parse(h.dataset.tileTitle!) as { zh: string[]; en: string[] };
-    const tiles = [...h.querySelectorAll<HTMLElement>('.tt')].map((el) => ({ el, span: el.firstElementChild as HTMLElement, gen: 0 }));
-    const set = (t: (typeof tiles)[number], i: number, en: boolean) => {
-      // no character: no tile; a space in the English title: an empty black tile, so the row reads as
-      // one black label like MAXXING
-      const ch = (en ? data.en : data.zh)[i];
-      t.el.classList.toggle('lat', en);
-      t.el.classList.toggle('off', ch === undefined);
-      t.span.textContent = ch === undefined || ch === ' ' ? '' : ch;
+    const sec = h.closest<HTMLElement>('[data-section]')!;
+    const tile = h.querySelector<HTMLElement>('[data-num]')!;
+    let gen = 0;
+    let target = false;
+    const set = (on: boolean) => {
+      if (target === on) return;
+      target = on;
+      const g = ++gen;
+      if (reduce) return void tile.classList.toggle('on', on);
+      const a = tile.animate(OUT, { duration: DUR, easing: EASE, fill: 'forwards' });
+      a.onfinish = () => {
+        a.cancel();
+        if (g !== gen) return;
+        tile.classList.toggle('on', on);
+        tile.animate(IN, { duration: DUR, easing: EASE });
+      };
     };
-    const show = (en: boolean) =>
-      tiles.forEach((t, i) => {
-        const now = (en ? data.en : data.zh)[i];
-        if (now === undefined && t.el.classList.contains('off')) return;
-        const gen = ++t.gen;
-        window.setTimeout(() => {
-          if (t.gen !== gen) return;
-          if (reduce) return set(t, i, en);
-          const visible = !t.el.classList.contains('off');
-          const comeIn = () => {
-            set(t, i, en);
-            if (!t.el.classList.contains('off')) t.el.animate(IN, { duration: DUR, easing: EASE });
-          };
-          if (!visible) return comeIn();
-          const a = t.el.animate(OUT, { duration: DUR, easing: EASE, fill: 'forwards' });
-          a.onfinish = () => {
-            a.cancel();
-            if (t.gen === gen) comeIn();
-          };
-        }, i * WAVE);
-      });
-    const row = h.querySelector<HTMLElement>('.trow')!;
-    row.addEventListener('pointerenter', () => show(true));
-    row.addEventListener('pointerleave', () => show(false));
+    const sync = () => set(sec.classList.contains('is-active'));
+    new MutationObserver(sync).observe(sec, { attributes: true, attributeFilter: ['class'] });
+    sync();
   });
 </script>
