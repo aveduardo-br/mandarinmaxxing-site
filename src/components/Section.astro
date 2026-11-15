@@ -2,8 +2,9 @@
 // Numbered section: pixel numeral (orange) + display title (white).
 // With `tiled`, the title is drawn in tiles instead (docs/ladrilhos.md), like MAXXING in the hero:
 // the English title in white letters on black tiles, after a number tile with the number in hanzi.
-// While the section is not the active one the number tile is black with a grey hanzi; when the
-// section becomes active (SideNav adds .is-active) it flips to orange with a black hanzi. Being
+// While the section is not the active one the number tile is black with a grey digit (1); when the
+// section becomes active (SideNav adds .is-active) it flips to orange with the number in hanzi (一),
+// like the side nav. Being
 // tried on section 01 first.
 import { numerals } from '../data/numerals';
 
@@ -16,7 +17,7 @@ interface Props {
 const { id, num, title, tiled } = Astro.props;
 const n = numerals[num];
 const NUM_ZH = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
-const tileTitle = tiled ? { num: NUM_ZH[Number(num)], letters: [...title.toUpperCase()] } : null;
+const tileTitle = tiled ? { digit: String(Number(num)), num: NUM_ZH[Number(num)], letters: [...title.toUpperCase()] } : null;
 ---
 
 <section id={id} class="section" data-section>
@@ -25,7 +26,7 @@ const tileTitle = tiled ? { num: NUM_ZH[Number(num)], letters: [...title.toUpper
       <h2 class="title-row tiled" data-tile-title>
         <span class="sr">{title}</span>
         <span class="trow" aria-hidden="true">
-          <span class="tt num" data-num><span>{tileTitle.num}</span></span>
+          <span class="tt num" data-num data-digit={tileTitle.digit} data-zh={tileTitle.num}><span>{tileTitle.digit}</span></span>
           {tileTitle.letters.map((ch) => (
             <span class="tt lat">
               <span>{ch === ' ' ? '' : ch}</span>
@@ -118,9 +119,21 @@ const tileTitle = tiled ? { num: NUM_ZH[Number(num)], letters: [...title.toUpper
     font-weight: 500;
     white-space: pre;
   }
-  /* number tile: black with a grey hanzi while the section is not active, orange when it is */
+  /* number tile: black with a grey digit while the section is not active, orange with the hanzi
+     when it is */
   .tt.num > span {
     color: var(--muted);
+  }
+  /* the digit is set like the English letters (the pixel 1 reads as an I next to them), in grey */
+  .tt.num:not(.on) > span {
+    left: 0;
+    right: 0;
+    top: 0;
+    text-align: center;
+    font-family: var(--f-body);
+    font-size: 17px;
+    line-height: 28px;
+    font-weight: 600;
   }
   .tt.num.on {
     background: var(--accent);
@@ -159,12 +172,17 @@ const tileTitle = tiled ? { num: NUM_ZH[Number(num)], letters: [...title.toUpper
       if (target === on) return;
       target = on;
       const g = ++gen;
-      if (reduce) return void tile.classList.toggle('on', on);
+      if (reduce) {
+        tile.classList.toggle('on', on);
+        tile.firstElementChild!.textContent = on ? tile.dataset.zh! : tile.dataset.digit!;
+        return;
+      }
       const a = tile.animate(OUT, { duration: DUR, easing: EASE, fill: 'forwards' });
       a.onfinish = () => {
         a.cancel();
         if (g !== gen) return;
         tile.classList.toggle('on', on);
+        tile.firstElementChild!.textContent = on ? tile.dataset.zh! : tile.dataset.digit!;
         tile.animate(IN, { duration: DUR, easing: EASE });
       };
     };
