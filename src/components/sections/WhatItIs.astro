@@ -129,7 +129,18 @@ import Section from '../Section.astro';
       slot.el.style.backgroundColor = COLORS[w.l - 1];
       return slot.el;
     };
-    const pick = (l: number) => byLesson[l][(Math.random() * byLesson[l].length) | 0];
+    // each lesson deals its words like a shuffled deck: every word shows once before any repeats, and
+    // the same character never comes twice in a row on its row (some words share a first character)
+    const decks: Word[][] = Array.from({ length: ROWS }, () => []);
+    const lastCh: string[] = Array(ROWS).fill('');
+    const pick = (l: number): Word => {
+      if (!decks[l].length) decks[l] = [...byLesson[l]].sort(() => Math.random() - 0.5);
+      let i = decks[l].findIndex((w) => w.w[0] !== lastCh[l]);
+      if (i < 0) i = 0;
+      const [w] = decks[l].splice(i, 1);
+      lastCh[l] = w.w[0];
+      return w;
+    };
     // a shuffled order of the five lessons, with no lesson on the same row as in the previous column
     const shuffle = () => {
       let order: number[] = [];
