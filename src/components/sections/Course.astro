@@ -1,17 +1,14 @@
 ---
 // Section 05 — Paper "05 Your course" (tiles). See docs/ladrilhos.md.
-// The number of lessons in a level is drawn with tiles. Below it, three tile selectors:
-// - Level (HSK 1 to 6) and Pace (3, 5 or 7 new words a lesson) redraw the number: the tiles flip into
-//   the new digits, and the text beside it says how long it takes at one lesson a day and when you
-//   would finish, counted from today.
-// - Audio (listen or read) only changes the last sentence.
-// Hovering a tile shows which lesson it is, its date, and (HSK 1) the situation it belongs to.
+// The number of lessons in a level, drawn with tiles on a three-place scoreboard (a faint 8 under
+// every digit). Right under it, two tile selectors: HSK (1 to 6) and words per lesson (3, 5 or 7).
+// Changing either flips the tiles into the new number. Two black labels are the only text: LESSONS
+// above the number, and when you would finish at one lesson a day, counted from today, below it.
 //
 // HSK 1 to 4 use the real numbers of their maps (HSK 1: 97, 58 and 42 lessons at 3, 5 and 7 words).
 // Only HSK 1 carries its situations on the tiles. HSK 5 and 6 have no hand-made map, so their number is
-// the word count divided by the pace, and the text says
-// it is an estimate. The tiles are a showcase: how many there are, and which hanzi each one carries,
-// is not meant to match the data one to one.
+// the word count divided by the pace, and the finish date is marked as an estimate. The tiles are a
+// showcase: which hanzi each one carries is not meant to match the data one to one.
 import Section from '../Section.astro';
 import { situations } from '../../data/situations';
 import { hskLevels } from '../../data/levels';
@@ -76,93 +73,54 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
 
 <Section id="course" num="05" title="Your course" tiled>
   <p class="prose">
-    The course is yours. Pick a level, a pace and whether you want audio, and watch it take shape. Every tile is one
-    lesson.
+    The course is yours. Pick a level and a pace and watch it take shape. Every tile is one lesson.
   </p>
 
-  <div class="shape" data-course={JSON.stringify(data)} data-start={START}>
-    <div class="num" data-num role="img" aria-label={`${MAPPED[START]} lessons`}>
-      <div class="tile-tag start" data-start-tag>Today · Say hello</div>
-      <div class="tile-tag end" data-end></div>
-      <div class="tile-tag hover" data-hover aria-hidden="true"></div>
-    </div>
-    <div class="live" aria-live="polite">
-      <div class="word display">lessons</div>
-      <p data-main>
-        HSK 1, about five new words each. One a day takes about two months.
-      </p>
-      <p>Each lesson ends with a short text to <b data-audio>listen to</b>.</p>
-      <p class="note" data-note hidden></p>
-      <div class="legend">
-        <div class="lg" data-jump><span class="sw" style={`background:${ORANGE}`}></span>Jump start: the basics first</div>
-        <div class="lg">
-          <span class="sw3">{MUTED.slice(0, 3).map((c) => <i style={`background:${c}`} />)}</span>Then one color per situation
+  <div class="board" data-course={JSON.stringify(data)} data-start={START}>
+    <div class="tile-tag top">Lessons</div>
+    <div class="num" data-num role="img" aria-label={`${MAPPED[START]} lessons`}></div>
+    <div class="controls">
+      <div class="sel">
+        <div class="tile-label">HSK</div>
+        <div class="tiles" role="group" aria-label="HSK level" data-level-group>
+          {
+            levelZh.map((zh, i) => (
+              <button class="st" type="button" data-level={i + 1} aria-pressed={i === 0 ? 'true' : 'false'} aria-label={`HSK ${i + 1}`}>
+                <span aria-hidden="true">{zh}</span>
+              </button>
+            ))
+          }
+        </div>
+      </div>
+      <div class="sel">
+        <div class="tile-label">Words / lesson</div>
+        <div class="tiles" role="group" aria-label="New words a lesson" data-pace-group>
+          {
+            paces.map((p) => (
+              <button class="st" type="button" data-pace={p.key} aria-pressed={p.key === START ? 'true' : 'false'} aria-label={`${p.words} new words a lesson`}>
+                <span aria-hidden="true">{p.zh}</span>
+              </button>
+            ))
+          }
         </div>
       </div>
     </div>
-  </div>
-
-  <div class="selectors">
-    <div class="sel">
-      <div class="tile-label">Level</div>
-      <div class="tiles" role="group" aria-label="Level" data-level-group>
-        {
-          levelZh.map((zh, i) => (
-            <button class="st" type="button" data-level={i + 1} aria-pressed={i === 0 ? 'true' : 'false'} aria-label={`HSK ${i + 1}`}>
-              <span aria-hidden="true">{zh}</span>
-            </button>
-          ))
-        }
-      </div>
-      <p>HSK 1 to 4, mapped by hand. New? Start at one. Studied before? Pick where to begin.</p>
-    </div>
-    <div class="sel">
-      <div class="tile-label">Pace</div>
-      <div class="tiles" role="group" aria-label="Pace" data-pace-group>
-        {
-          paces.map((p) => (
-            <button class="st" type="button" data-pace={p.key} aria-pressed={p.key === START ? 'true' : 'false'} aria-label={`${p.words} new words a lesson`}>
-              <span aria-hidden="true">{p.zh}</span>
-            </button>
-          ))
-        }
-      </div>
-      <p>Three, five or seven new words a lesson. Any other number works too.</p>
-    </div>
-    <div class="sel">
-      <div class="tile-label">Audio</div>
-      <div class="tiles" role="group" aria-label="Audio" data-audio-group>
-        <button class="st" type="button" data-mode="listen to" aria-pressed="true" aria-label="Listen"><span aria-hidden="true">听</span></button>
-        <button class="st" type="button" data-mode="read" aria-pressed="false" aria-label="Read"><span aria-hidden="true">读</span></button>
-      </div>
-      <p>Listen or read. Every lesson ends with a short text. Hearing it is optional.</p>
-    </div>
+    <div class="tile-tag end" data-end aria-live="polite"></div>
   </div>
 </Section>
 
 <style>
-  .shape {
-    display: flex;
-    align-items: flex-start;
-    gap: 32px;
-    margin-top: 12px;
-    padding-top: 20px; /* room for the label on the first tile */
+  /* one block: the label, the scoreboard, the selectors right under it, the finish date */
+  .board {
+    position: relative;
+    width: 644px;
+    margin-top: 32px;
+    padding-top: 20px; /* room for the LESSONS label */
   }
   .num {
     position: relative;
-    flex: none;
-    width: 644px; /* always three places, like a scoreboard: a grey 8 under every digit */
+    width: 644px; /* always three places, like a scoreboard: a faint 8 under every digit */
     height: 308px;
-    transition: width 0.22s steps(4, end);
-  }
-  /* three digits: the text runs past the column on wide screens, and drops below on narrower ones */
-  @media (max-width: 1160px) {
-    .shape.wide {
-      flex-direction: column;
-    }
-    .shape.wide .live {
-      width: auto;
-    }
   }
   /* an unlit tile of the scoreboard: only a faint dashed outline, 2px inside the tile */
   .num :global(.tile > span:empty)::before {
@@ -175,113 +133,33 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     box-sizing: border-box;
     border: 1px dashed #2a2a2a;
   }
-  .num .tile-tag {
+  .board > .tile-tag {
     position: absolute;
-    transition: opacity 0.12s linear;
+    z-index: 1;
   }
-  .num .start {
+  .top {
     left: 0;
-    top: -20px;
+    top: 0;
   }
-  /* hovering a tile: its situation stays lit, the rest steps back, and a label names the lesson */
-  .num :global(.tile) {
+  /* the finish date hangs out of the block, bottom right */
+  .end {
+    right: -32px;
+    bottom: 4px;
     transition: opacity 0.12s linear;
   }
-  .num.hovering :global(.tile) {
-    opacity: 0.3;
-  }
-  .num.hovering :global(.tile.lit) {
-    opacity: 1;
-  }
-  .num.hovering .start,
-  .num.hovering .end {
-    opacity: 0 !important;
-  }
-  .num .hover {
-    z-index: 2;
-    pointer-events: none;
-    opacity: 0;
-  }
-  .num.hovering .hover {
-    opacity: 1;
-  }
 
-  .live {
+  .controls {
     display: flex;
-    flex-direction: column;
-    gap: 12px;
-    flex: none;
-    width: 228px;
-    padding-top: 4px;
-  }
-  .word {
-    font-size: var(--fs-h2);
-    line-height: var(--lh-h2);
-    color: var(--text);
-  }
-  .live p {
-    font-size: 15px;
-    line-height: 24px;
-    color: var(--text-80);
-  }
-  .live :global(b) {
-    font-weight: 500;
-    color: var(--text);
-  }
-  .live .note {
-    font-size: var(--fs-caption);
-    line-height: 18px;
-    color: var(--muted);
-  }
-  .legend {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding-top: 4px;
-  }
-  .lg {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: var(--fs-caption);
-    line-height: 16px;
-    font-weight: 400;
-    color: var(--text-dim);
-  }
-  .sw {
-    flex: none;
-    width: 12px;
-    height: 12px;
-  }
-  .sw3 {
-    display: flex;
-    flex: none;
-  }
-  .sw3 i {
-    width: 4px;
-    height: 12px;
-  }
-
-  .selectors {
-    display: flex;
-    gap: 24px;
-    margin-top: 40px;
+    gap: 32px;
+    margin-top: 16px;
   }
   .sel {
-    flex: 1 1 0;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    min-width: 0;
+    gap: 8px;
   }
   .tiles {
     display: flex;
-  }
-  .sel p {
-    font-size: var(--fs-small);
-    line-height: 22px;
-    color: var(--text-soft);
-    opacity: 0.8;
   }
   /* a tile you can pick: dimmed until chosen, orange when it is */
   .st {
@@ -316,21 +194,18 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     z-index: 1;
   }
 
-  @media (max-width: 760px) {
-    .shape {
-      flex-direction: column;
-    }
-    .num {
-      zoom: 0.75;
-    }
-    .shape.wide .num {
-      zoom: 0.5;
-    }
-    .live {
+  /* narrow column: the scoreboard at half size, the finish date under the selectors, inside */
+  @media (max-width: 720px) {
+    .board {
       width: auto;
     }
-    .selectors {
-      flex-direction: column;
+    .num {
+      zoom: 0.5;
+    }
+    .end {
+      position: static !important;
+      display: inline-block;
+      margin-top: 16px;
     }
   }
 </style>
@@ -347,18 +222,10 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
   if (root) {
     const D: { digits: Record<string, string[]>; levels: Level[]; info: Info[]; muted: string[] } = JSON.parse(root.dataset.course!);
     const num = root.querySelector<HTMLElement>('[data-num]')!;
-    const startTag = root.querySelector<HTMLElement>('[data-start-tag]')!;
     const endTag = root.querySelector<HTMLElement>('[data-end]')!;
-    const hoverTag = root.querySelector<HTMLElement>('[data-hover]')!;
-    const mainEl = root.querySelector<HTMLElement>('[data-main]')!;
-    const noteEl = root.querySelector<HTMLElement>('[data-note]')!;
-    const jumpEl = root.querySelector<HTMLElement>('[data-jump]')!;
-    const audioEl = root.querySelector<HTMLElement>('[data-audio]')!;
     const COLS = 23; // room for three digits of 7, with one empty column between them
     const ROWS = 11;
     const STEP = 14; // the wave runs diagonally across the whole number
-    const WORDS: Record<string, string> = { '3': 'three', '5': 'five', '7': 'seven' };
-    const NUMS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven'];
 
     const slots: Slot[] = [];
     for (let i = 0; i < COLS * ROWS; i++) {
@@ -371,7 +238,6 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
       slot.el.style.left = `${(i % COLS) * size}px`;
       slot.el.style.top = `${Math.floor(i / COLS) * size}px`;
     });
-    let width = 420;
 
     // the unlit scoreboard: an 8 in each of the three places
     const board = [0, 1, 2].flatMap((p) =>
@@ -413,108 +279,44 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
       return { n, tiles, pad: board };
     }
 
-    const span = (days: number) => {
-      if (days <= 45) return `about ${NUMS[Math.round(days / 7)]} weeks`;
-      if (days < 345) return `about ${NUMS[Math.round(days / 30.4)]} months`;
-      const y = days / 365;
-      return y < 1.25 ? 'about a year' : y < 1.75 ? 'about a year and a half' : 'about two years';
-    };
-    // dates count from today, one lesson a day; the year shows once it is far enough to be unclear
-    const dateOf = (lesson: number, month: 'short' | 'long') => {
+    // the finish date, counted from today at one lesson a day; the year shows once it is far enough
+    const dateOf = (lesson: number) => {
       const d = new Date(Date.now() + (lesson - 1) * 864e5);
-      return d.toLocaleDateString('en-US', { month, day: 'numeric', ...(lesson > 300 ? { year: 'numeric' } : {}) });
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', ...(lesson > 300 ? { year: 'numeric' } : {}) });
     };
 
     let level = 1;
     let pace = root.dataset.start!;
-    let current: { n: number; tiles: Tile[]; pad: { x: number; y: number }[] } = { n: 0, tiles: [], pad: [] };
-    let byIndex = new Map<number, Tile>();
     let busy = 0;
 
     function show(animate: boolean) {
       const next = build(level, pace);
-      width = (3 * 8 - 1) * size;
-      num.style.width = `${width}px`;
-      root.classList.add('wide');
       const moving = animate && !reduceMotion();
       const want = new Map<number, TileVal>([
         ...next.pad.map((c): [number, TileVal] => [c.y * COLS + c.x, { ch: '', bg: 'transparent' }]),
         ...next.tiles.map((t): [number, TileVal] => [t.y * COLS + t.x, { ch: t.ch, bg: t.bg }]),
       ]);
-      const lastTile = next.tiles[next.tiles.length - 1];
       const mapped = !!D.levels[level - 1].fixed;
-      // only HSK 1 carries its situations on the tiles (names, colours, jump start)
-      const named = level === 1;
       const delay = (i: number) => ((i % COLS) + Math.floor(i / COLS)) * STEP;
+      const last = Math.max(...[...want.keys()].map(delay));
 
-      clearHover();
-      current = next;
-      byIndex = new Map(next.tiles.map((t) => [t.y * COLS + t.x, t]));
-
-      const labels = () => {
-        startTag.textContent = named ? 'Today · Say hello' : 'Today · Lesson 1';
-        startTag.style.left = `${(next.tiles[0].x - (next.tiles[0].x % 8)) * size}px`; // over the first real digit
-        endTag.textContent = `${dateOf(next.n, 'short')} · ${named ? lastTile.name : `Lesson ${next.n}`}`;
-        // beside the last tile when it fits; otherwise under it, so it never covers the text
-        const edge = (lastTile.x + 1) * size;
-        const under = edge + endTag.offsetWidth > width + 24;
-        endTag.style.left = `${edge}px`;
-        endTag.style.transform = under ? 'translateX(-100%)' : '';
-        endTag.style.top = under ? `${(lastTile.y + 1) * size + 4}px` : `${lastTile.y * size + (size - 20) / 2}px`;
+      const label = () => {
+        endTag.textContent = `One a day · ${mapped ? '' : '≈ '}done by ${dateOf(next.n)}`;
         endTag.style.opacity = '1';
-        startTag.style.opacity = '1';
       };
-      const fill = (offset: number) =>
-        slots.forEach((slot, i) => {
-          const v = want.get(i) ?? null;
-          if (moving) flipTile(slot, v, offset + delay(i));
-          else applyTile(slot, v);
-        });
-
-      if (!moving) {
-        fill(0);
-        labels();
-      } else {
+      slots.forEach((slot, i) => {
+        const v = want.get(i) ?? null;
+        if (moving) flipTile(slot, v, delay(i));
+        else applyTile(slot, v);
+      });
+      if (!moving) label();
+      else {
         const token = ++busy;
         endTag.style.opacity = '0';
-        fill(0);
-        window.setTimeout(() => token === busy && labels(), delay(lastTile.y * COLS + lastTile.x) + FLIP);
+        window.setTimeout(() => token === busy && label(), last + FLIP);
       }
-
-      const finish = dateOf(next.n, 'long');
-      mainEl.innerHTML =
-        `HSK ${level}, about ${WORDS[pace]} new words each. One a day takes ${span(next.n)}: start today, finish ` +
-        `${mapped ? 'on' : 'around'} <b>${finish}</b>.`;
-      noteEl.hidden = mapped;
-      noteEl.textContent = mapped
-        ? ''
-        : `An estimate: HSK ${level} adds ${D.levels[level - 1].words.toLocaleString('en-US')} words. HSK 1 to 4 are mapped by hand; for 5 and 6 the skill builds the map when you start.`;
-      jumpEl.hidden = !named;
       num.setAttribute('aria-label', `${mapped ? '' : 'about '}${next.n} lessons`);
     }
-
-    // ---- hover: which lesson is this tile? ----
-    function clearHover() {
-      num.classList.remove('hovering');
-      slots.forEach((s) => s.el.classList.remove('lit'));
-    }
-    num.addEventListener('pointerover', (e) => {
-      const el = (e.target as HTMLElement).closest<HTMLElement>('.tile');
-      const t = el && byIndex.get(Number(el.dataset.i));
-      if (!el || !t) return;
-      slots.forEach((s, i) => {
-        const o = byIndex.get(i);
-        s.el.classList.toggle('lit', !!o && (t.name ? o.name === t.name : o === t));
-      });
-      hoverTag.textContent = `Lesson ${t.lesson} · ${dateOf(t.lesson, 'short')}${t.name ? ` · ${t.name}` : ''}`;
-      num.classList.add('hovering');
-      // above the tile; flipped to the left when it would run into the text beside the number
-      const left = t.x * size;
-      const w = hoverTag.offsetWidth;
-      hoverTag.style.left = `${left + w > width + 32 ? Math.max(0, (t.x + 1) * size - w) : left}px`;
-      hoverTag.style.top = `${t.y * size - 20}px`;
-    });
-    num.addEventListener('pointerleave', clearHover);
 
     // ---- selectors ----
     const press = (group: HTMLElement, btn: HTMLElement) =>
@@ -536,14 +338,6 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
       pace = btn.dataset.pace!;
       press(paceGroup, btn);
       show(true);
-    });
-
-    const audioGroup = document.querySelector<HTMLElement>('[data-audio-group]')!;
-    audioGroup.addEventListener('click', (e) => {
-      const btn = (e.target as HTMLElement).closest<HTMLElement>('button[data-mode]');
-      if (!btn) return;
-      press(audioGroup, btn);
-      audioEl.textContent = btn.dataset.mode!;
     });
 
     show(false);
