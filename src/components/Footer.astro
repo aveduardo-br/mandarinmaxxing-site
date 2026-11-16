@@ -1,35 +1,199 @@
 ---
-// Footer — Paper node 4W-0.
-import { SKILL_REPO, SKILL_RELEASES, SKILL_ISSUES } from '../data/site';
+// Footer — Paper "08 Footer — opção E (três lanternas detalhadas)".
+// Left: what the page offers again, as links. Right: three tile lanterns hanging from the top edge
+// (src/scripts/lanterns.ts draws and moves them; scripts/build-lanterns.py makes their tiles).
+import { SKILL_REPO, SKILL_RELEASES, SKILL_ISSUES, SKILL_ZIP, SKILL_VERSION } from '../data/site';
+import { PANEL_W } from '../data/lanterns';
+import { panelHeight, MARGIN } from '../scripts/lanterns';
 ---
 
 <footer class="footer">
-  <p>
-    Made by Eduardo. Lessons taught by Claude. Found something off?
-    <a href={SKILL_ISSUES} target="_blank" rel="noopener">Open an issue ↗</a>.
-  </p>
-  <p>
-    <a href={SKILL_REPO} target="_blank" rel="noopener">GitHub</a> · <a
-      href={SKILL_RELEASES}
-      target="_blank"
-      rel="noopener">Releases</a
-    >
-  </p>
+  <div class="info">
+    <div class="head">
+      <p class="name">mandarinmaxxing</p>
+      <p class="tagline">The same HSK words, reorganized around everyday conversations. A free skill for Claude.</p>
+    </div>
+    <div class="cols">
+      <div class="colm">
+        <p class="label">The skill</p>
+        <a href={SKILL_ZIP}>Download for Claude</a>
+        <a href="#install">How to install</a>
+        <a href={SKILL_REPO} target="_blank" rel="noopener">GitHub ↗</a>
+        <a href={SKILL_RELEASES} target="_blank" rel="noopener">Releases ↗</a>
+      </div>
+      <div class="colm">
+        <p class="label">On this page</p>
+        <a href="#what-it-is">What it is</a>
+        <a href="#topics">Situations, not chapters</a>
+        <a href="#lesson">A lesson, step by step</a>
+        <a href="#faq">Questions</a>
+      </div>
+      <div class="colm wide">
+        <p class="label">Help improve it</p>
+        <p class="note">A lesson felt off, or a word sits in the wrong situation? That’s how it gets better.</p>
+        <a class="issue" href={SKILL_ISSUES} target="_blank" rel="noopener">Open an issue ↗</a>
+      </div>
+    </div>
+    <div class="fine">
+      <p>Made by Eduardo. Lessons taught by Claude. {SKILL_VERSION}</p>
+      <p class="dim">
+        An independent project. It uses the HSK syllabus released in November 2025 and isn’t affiliated with the
+        organization that runs the test.
+      </p>
+    </div>
+  </div>
+  <div class="lanterns" style={`width:${PANEL_W}px;height:${panelHeight}px`} aria-hidden="true">
+    <canvas data-lanterns style={`left:${-MARGIN}px;width:${PANEL_W + MARGIN * 2}px;height:${panelHeight}px`}></canvas>
+  </div>
 </footer>
+
+<script>
+  import { mountLanterns } from '../scripts/lanterns';
+
+  const footer = document.querySelector<HTMLElement>('footer.footer')!;
+  mountLanterns(footer.querySelector<HTMLCanvasElement>('[data-lanterns]')!, footer);
+
+  // The side nav is fixed at mid-height on the left: it steps aside while the footer is under it.
+  const nav = document.querySelector<HTMLElement>('.sidenav');
+  if (nav) {
+    nav.style.transition = 'opacity 0.25s ease';
+    const check = () => {
+      const under = footer.getBoundingClientRect().top < nav.getBoundingClientRect().bottom + 24;
+      nav.style.opacity = under ? '0' : '';
+      nav.style.pointerEvents = under ? 'none' : '';
+    };
+    addEventListener('scroll', check, { passive: true });
+    addEventListener('resize', check);
+    check();
+  }
+</script>
 
 <style>
   .footer {
     display: flex;
     justify-content: space-between;
-    gap: 16px;
-    flex-wrap: wrap;
-    padding: 32px 48px;
+    align-items: flex-start;
+    gap: 0;
+    padding: 0 max(48px, calc((100vw - 1200px) / 2)) 64px;
     border-top: 1px solid var(--outline);
+    overflow: clip;
+  }
+
+  .info {
+    flex: 0 1 610px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 44px;
+    padding-top: 88px;
+  }
+  p {
+    margin: 0;
+  }
+  .head {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .name {
+    font-family: var(--f-display);
+    font-weight: var(--fw-display);
+    font-size: var(--fs-h2);
+    line-height: var(--lh-h2);
+    letter-spacing: var(--tr-display);
+    color: var(--text);
+  }
+  .tagline {
+    max-width: 560px;
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
+    font-weight: 300;
+    color: var(--text-80);
+  }
+
+  .cols {
+    display: flex;
+    gap: 25px;
+  }
+  .colm {
+    flex: none;
+    width: 170px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .colm.wide {
+    width: 220px;
+  }
+  .label {
+    font-size: var(--fs-label);
+    line-height: 14px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .colm a,
+  .note {
     font-size: var(--fs-small);
     line-height: var(--lh-small);
+    font-weight: 300;
+    color: var(--text-soft);
+  }
+  .colm a {
+    transition: color 0.15s ease;
+  }
+  .colm a:hover {
+    color: var(--text);
+  }
+  .colm a.issue {
+    font-weight: 400;
+    color: var(--accent-light);
+  }
+
+  .fine {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 20px;
+    border-top: 1px solid var(--divider);
+    font-size: var(--fs-caption);
+    line-height: var(--lh-caption);
+    font-weight: 300;
     color: var(--text-dim);
   }
-  a:hover {
-    color: var(--text);
+  .fine .dim {
+    color: var(--muted-2);
+  }
+
+  /* the lanterns hang from the top edge of the footer; the canvas is wider than its box so they
+     have room to swing */
+  .lanterns {
+    position: relative;
+    flex: none;
+  }
+  .lanterns canvas {
+    position: absolute;
+    top: 0;
+    pointer-events: none;
+  }
+
+  /* not enough width for both: lanterns on top, text under them */
+  @media (max-width: 1279px) {
+    .footer {
+      flex-direction: column-reverse;
+      align-items: center;
+      padding-inline: 32px;
+    }
+    .info {
+      flex: none;
+      width: 100%;
+      max-width: 610px;
+      padding-top: 24px;
+    }
+    .cols {
+      flex-wrap: wrap;
+    }
   }
 </style>
