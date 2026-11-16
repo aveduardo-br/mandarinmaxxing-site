@@ -23,10 +23,10 @@ const HALF_PI = Math.PI / 2;
 // physics, in px and seconds
 const GRAVITY = 2200;
 const SWING_DAMP = 0.9;
-const SWING_MAX = 0.5;
-const SPIN_SPRING = 14; // pulls the front back
-const SPIN_DAMP = 2.2;
-const SPIN_MAX = 1.15; // rad; the back never comes fully round
+const SWING_MAX = 0.26;
+const SPIN_SPRING = 9; // pulls the front back, slowly
+const SPIN_DAMP = 2.4;
+const SPIN_MAX = 0.95; // rad; the back never comes fully round
 const ROPE_GRAVITY = 2600;
 const ROPE_DRAG = 0.985;
 const STEP = 1 / 120;
@@ -41,6 +41,8 @@ type Body = {
   front: HTMLCanvasElement;
   back: HTMLCanvasElement;
   strip: HTMLCanvasElement; // rope tiles side by side
+  turned: HTMLCanvasElement; // the body while it is turned, drawn upright
+  tg: CanvasRenderingContext2D;
   ropes: Rope[];
   a: number; // swing angle
   va: number;
@@ -127,11 +129,15 @@ export async function mountLanterns(canvas: HTMLCanvasElement, area: HTMLElement
       }
       return rope;
     });
-    return { d, w, h, pivot, len: d.drop + h / 2, front, back, strip, ropes, a: 0, va: 0, s: 0, vs: 0 };
+    const [turned, tg] = sheet(w, h);
+    return { d, w, h, pivot, len: d.drop + h / 2, front, back, strip, turned, tg, ropes, a: 0, va: 0, s: 0, vs: 0 };
   });
 
   // ---------- drawing ----------
+  // One row of the turned body, into the lantern's own upright sheet (so tiles stay edge to edge;
+  // the swing then rotates the finished picture).
   const drawRow = (b: Body, img: HTMLCanvasElement, j: number, hw: number, isBack: boolean, shade: number) => {
+    const g = b.tg;
     const r = (hw + 0.5) * T;
     const cx = b.w / 2;
     const n = (hw * 2 + 1) * 2; // two slices per tile
@@ -150,13 +156,14 @@ export async function mountLanterns(canvas: HTMLCanvasElement, area: HTMLElement
       const x0 = cx + r * Math.sin(a0);
       const x1 = cx + r * Math.sin(a1);
       if (x1 - x0 < 0.15) continue;
-      ctx.drawImage(img, (cx + u0 * r) * dpr, j * T * dpr, (T / 2) * dpr, T * dpr, x0, j * T, x1 - x0 + 0.5, T);
+      const wd = Math.min(x1 - x0 + 0.6, cx + r - x0);
+      g.drawImage(img, (cx + u0 * r) * dpr, j * T * dpr, (T / 2) * dpr, T * dpr, x0, j * T, wd, T);
       if (shade > 0.01) {
         // darker towards the edge while it is turned: reads as a round body
-        ctx.globalAlpha = shade * (1 - Math.cos((a0 + a1) / 2));
-        ctx.fillStyle = '#000';
-        ctx.fillRect(x0, j * T, x1 - x0 + 0.5, T);
-        ctx.globalAlpha = 1;
+        g.globalAlpha = shade * (1 - Math.cos((a0 + a1) / 2));
+        g.fillStyle = '#000';
+        g.fillRect(x0, j * T, wd, T);
+        g.globalAlpha = 1;
       }
     }
   };
@@ -174,10 +181,12 @@ export async function mountLanterns(canvas: HTMLCanvasElement, area: HTMLElement
       if (Math.abs(b.s) < 0.003) ctx.drawImage(b.front, 0, 0, b.w, b.h);
       else {
         const shade = Math.min(0.5, Math.abs(b.s) * 0.6);
+        b.tg.clearRect(0, 0, b.w, b.h);
         b.d.rows.forEach((row, j) => {
           drawRow(b, b.back, j, row.hw, true, shade);
           drawRow(b, b.front, j, row.hw, false, shade);
         });
+        ctx.drawImage(b.turned, 0, 0, b.w, b.h);
       }
       ctx.restore();
       for (const r of b.ropes) {
@@ -234,8 +243,8 @@ export async function mountLanterns(canvas: HTMLCanvasElement, area: HTMLElement
         if (row && Math.abs(lx) < (row.hw + 0.5) * T + 8 && Math.abs(mouse.vx) > 30) {
           // touching: the body follows the pointer sideways and is turned by it
           const reach = Math.max(80, ly);
-          b.va += (clamp(-mouse.vx / reach, 3.5) - b.va) * Math.min(1, 12 * h);
-          b.vs += (clamp(mouse.vx * 0.012, 6) - b.vs) * Math.min(1, 10 * h);
+          b.va += (clamp((-mouse.vx / reach) * 0.45, 1.1) - b.va) * Math.min(1, 10 * h);
+          b.vs += (clamp(mouse.vx * 0.005, 2.6) - b.vs) * Math.min(1, 8 * h);
         }
       }
       b.va += (-(GRAVITY / b.len) * Math.sin(b.a) - SWING_DAMP * b.va) * h;
@@ -337,8 +346,8 @@ export async function mountLanterns(canvas: HTMLCanvasElement, area: HTMLElement
     if (visible && !greeted) {
       greeted = true;
       bodies.forEach((b, i) => {
-        b.va = [0.5, -0.4, 0.45][i % 3];
-        b.vs = [1.2, -1, 1.1][i % 3];
+        b.va = [0.3, -0.25, 0.28][i % 3];
+        b.vs = [0.9, -0.8, 0.85][i % 3];
       });
     }
     if (visible) wake();
