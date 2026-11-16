@@ -10,7 +10,7 @@
   font-style: normal;
   font-display: swap;
 }
-/* Two hanzi of the footer lanterns (习, 向) that zpix-site.woff does not have yet. Cut from
+/* The hanzi of the footer lanterns' phrases that zpix-site.woff does not have yet. Cut from
    assets/fonts/zpix-cjk-subset.woff; the next run of scripts/subset-zpix.py with the full font
    includes them in zpix-site.woff and this block can go. */
 @font-face {
@@ -19,7 +19,7 @@
   font-weight: 500;
   font-style: normal;
   font-display: swap;
-  unicode-range: U+4E60, U+5411;
+  unicode-range: U+4E07, U+4E60, U+6B65, U+5411;
 }
 
 *,

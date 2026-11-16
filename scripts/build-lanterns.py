@@ -91,14 +91,14 @@ c3 = Counter(c.k + 40)
 right, right_ropes = build(tall_rows(), 9, (3, 7, 5, 14), [(-2, 'GGG'), (0, 'GGGGKGGG'), (2, 'GGG')], c3)
 
 # x = left edge in the panel (px), drop = string length (px), phrase x/y = top-left of the text in the
-# lantern (px), in 2×2 tiles (24px Zpix)
+# lantern (px), in 2×2 tiles (24px Zpix); alt = the wish it flips to when the middle lantern is fully lit
 data = [
     {'cols': 9, 'x': 0, 'drop': 40, 'rows': left, 'ropes': left_ropes,
-     'phrase': {'text': '好好学习', 'vertical': True, 'x': 49, 'y': 98}},
+     'phrase': {'text': '好好学习', 'alt': '心想事成', 'vertical': True, 'x': 49, 'y': 98}},
     {'cols': 19, 'x': 154, 'drop': 72, 'rows': mid, 'ropes': mid_ropes,
-     'phrase': {'text': '学汉语很有意思', 'vertical': False, 'x': 35, 'y': 161}},
+     'phrase': {'text': '学汉语很有意思', 'alt': '学习进步', 'vertical': False, 'x': 35, 'y': 161}},
     {'cols': 9, 'x': 448, 'drop': 56, 'rows': right, 'ropes': right_ropes,
-     'phrase': {'text': '天天向上', 'vertical': True, 'x': 49, 'y': 98}},
+     'phrase': {'text': '天天向上', 'alt': '万事如意', 'vertical': True, 'x': 49, 'y': 98}},
 ]
 
 
@@ -127,7 +127,7 @@ export type Lantern = {
   drop: number;
   rows: LanternRow[];
   ropes: LanternRope[];
-  phrase: { text: string; vertical: boolean; x: number; y: number };
+  phrase: { text: string; alt: string; vertical: boolean; x: number; y: number }; // alt: shown while fully lit
 };
 export const PANEL_W = 574;
 export const lanterns: Lantern[] = '''

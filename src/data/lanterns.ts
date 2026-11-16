@@ -9,7 +9,7 @@ export type Lantern = {
   drop: number;
   rows: LanternRow[];
   ropes: LanternRope[];
-  phrase: { text: string; vertical: boolean; x: number; y: number };
+  phrase: { text: string; alt: string; vertical: boolean; x: number; y: number }; // alt: shown while fully lit
 };
 export const PANEL_W = 574;
 export const lanterns: Lantern[] = [{"cols":9,"x":0,"drop":40,"rows":[{"hw":0,"f":"G","fh":"你","bh":"认"},
@@ -31,7 +31,7 @@ export const lanterns: Lantern[] = [{"cols":9,"x":0,"drop":40,"rows":[{"hw":0,"f
 {"hw":4,"f":"GRGRGRGRG","fh":"师生上课同工作公司","bh":"什么谁请问中国哪儿"},
 {"hw":3,"f":"RRRRRRR","fh":"忙班脑病医院你","bh":"去今天文朋友认"},
 {"hw":3,"f":"GGGGGGG","fh":"好谢再见要喝吃","bh":"识高兴我们他岁"},
-{"hw":2,"f":"GGGGG","fh":"茶喜欢叫名","bh":"几年大家爸"}],"ropes":[{"dx":-2,"tiles":[{"k":"G","ch":"字"},{"k":"G","ch":"什"},{"k":"G","ch":"么"}]},{"dx":0,"tiles":[{"k":"G","ch":"谁"},{"k":"G","ch":"请"},{"k":"G","ch":"问"},{"k":"G","ch":"中"},{"k":"R","ch":"国哪儿"},{"k":"G","ch":"去"},{"k":"G","ch":"今"},{"k":"G","ch":"天"}]},{"dx":2,"tiles":[{"k":"G","ch":"文"},{"k":"G","ch":"朋"},{"k":"G","ch":"友"}]}],"phrase":{"text":"好好学习","vertical":true,"x":49,"y":98}},{"cols":19,"x":154,"drop":72,"rows":[{"hw":0,"f":"G","fh":"你","bh":"明"},
+{"hw":2,"f":"GGGGG","fh":"茶喜欢叫名","bh":"几年大家爸"}],"ropes":[{"dx":-2,"tiles":[{"k":"G","ch":"字"},{"k":"G","ch":"什"},{"k":"G","ch":"么"}]},{"dx":0,"tiles":[{"k":"G","ch":"谁"},{"k":"G","ch":"请"},{"k":"G","ch":"问"},{"k":"G","ch":"中"},{"k":"R","ch":"国哪儿"},{"k":"G","ch":"去"},{"k":"G","ch":"今"},{"k":"G","ch":"天"}]},{"dx":2,"tiles":[{"k":"G","ch":"文"},{"k":"G","ch":"朋"},{"k":"G","ch":"友"}]}],"phrase":{"text":"好好学习","alt":"心想事成","vertical":true,"x":49,"y":98}},{"cols":19,"x":154,"drop":72,"rows":[{"hw":0,"f":"G","fh":"你","bh":"明"},
 {"hw":0,"f":"G","fh":"好","bh":"现"},
 {"hw":3,"f":"GGGGGGG","fh":"谢再见要喝吃茶","bh":"在点床睡觉时间"},
 {"hw":4,"f":"GGGGGGGGG","fh":"喜欢叫名字什么谁请","bh":"早饭米饺水果买钱贵"},
@@ -53,7 +53,7 @@ export const lanterns: Lantern[] = [{"cols":9,"x":0,"drop":40,"rows":[{"hw":0,"f
 {"hw":6,"f":"GRGGGRGRGGGRG","fh":"好谢再见要喝吃茶喜欢叫名字","bh":"现在点床睡觉时间早饭米饺水"},
 {"hw":4,"f":"RRGRGRGRR","fh":"什么谁请问中国哪儿","bh":"果买钱贵便宜超市衣"},
 {"hw":4,"f":"GGGGGGGGG","fh":"去今天文朋友认识高","bh":"服穿看新漂亮住房找"},
-{"hw":3,"f":"GGGGGGG","fh":"兴我们他岁几年","bh":"桌里来回火车出"}],"ropes":[{"dx":-2,"tiles":[{"k":"G","ch":"大"},{"k":"G","ch":"家"},{"k":"G","ch":"爸"},{"k":"G","ch":"妈"}]},{"dx":0,"tiles":[{"k":"G","ch":"哥"},{"k":"G","ch":"妹"},{"k":"G","ch":"电"},{"k":"G","ch":"话"},{"k":"G","ch":"手"},{"k":"G","ch":"机"},{"k":"R","ch":"打给孩"},{"k":"G","ch":"子"},{"k":"G","ch":"女"},{"k":"G","ch":"狗"},{"k":"G","ch":"猫"}]},{"dx":2,"tiles":[{"k":"G","ch":"月"},{"k":"G","ch":"号"},{"k":"G","ch":"星"},{"k":"G","ch":"期"}]}],"phrase":{"text":"学汉语很有意思","vertical":false,"x":35,"y":161}},{"cols":9,"x":448,"drop":56,"rows":[{"hw":0,"f":"G","fh":"衣","bh":"雪"},
+{"hw":3,"f":"GGGGGGG","fh":"兴我们他岁几年","bh":"桌里来回火车出"}],"ropes":[{"dx":-2,"tiles":[{"k":"G","ch":"大"},{"k":"G","ch":"家"},{"k":"G","ch":"爸"},{"k":"G","ch":"妈"}]},{"dx":0,"tiles":[{"k":"G","ch":"哥"},{"k":"G","ch":"妹"},{"k":"G","ch":"电"},{"k":"G","ch":"话"},{"k":"G","ch":"手"},{"k":"G","ch":"机"},{"k":"R","ch":"打给孩"},{"k":"G","ch":"子"},{"k":"G","ch":"女"},{"k":"G","ch":"狗"},{"k":"G","ch":"猫"}]},{"dx":2,"tiles":[{"k":"G","ch":"月"},{"k":"G","ch":"号"},{"k":"G","ch":"星"},{"k":"G","ch":"期"}]}],"phrase":{"text":"学汉语很有意思","alt":"学习进步","vertical":false,"x":35,"y":161}},{"cols":9,"x":448,"drop":56,"rows":[{"hw":0,"f":"G","fh":"衣","bh":"雪"},
 {"hw":0,"f":"G","fh":"服","bh":"学"},
 {"hw":2,"f":"GGGGG","fh":"穿看新漂亮","bh":"写汉题知道"},
 {"hw":3,"f":"GGGGGGG","fh":"住房找桌里来回","bh":"校老师生上课同"},
@@ -72,7 +72,7 @@ export const lanterns: Lantern[] = [{"cols":9,"x":0,"drop":40,"rows":[{"hw":0,"f
 {"hw":4,"f":"GRGRGRGRG","fh":"时间早饭米饺水果买","bh":"火车出租飞影听唱玩"},
 {"hw":3,"f":"RRRRRRR","fh":"钱贵便宜超市衣","bh":"视气冷热下雨雪"},
 {"hw":3,"f":"GGGGGGG","fh":"服穿看新漂亮住","bh":"学写汉题知道校"},
-{"hw":2,"f":"GGGGG","fh":"房找桌里来","bh":"老师生上课"}],"ropes":[{"dx":-2,"tiles":[{"k":"G","ch":"回"},{"k":"G","ch":"火"},{"k":"G","ch":"车"}]},{"dx":0,"tiles":[{"k":"G","ch":"出"},{"k":"G","ch":"租"},{"k":"G","ch":"飞"},{"k":"G","ch":"影"},{"k":"R","ch":"听唱玩"},{"k":"G","ch":"视"},{"k":"G","ch":"气"},{"k":"G","ch":"冷"}]},{"dx":2,"tiles":[{"k":"G","ch":"热"},{"k":"G","ch":"下"},{"k":"G","ch":"雨"}]}],"phrase":{"text":"天天向上","vertical":true,"x":49,"y":98}}];
+{"hw":2,"f":"GGGGG","fh":"房找桌里来","bh":"老师生上课"}],"ropes":[{"dx":-2,"tiles":[{"k":"G","ch":"回"},{"k":"G","ch":"火"},{"k":"G","ch":"车"}]},{"dx":0,"tiles":[{"k":"G","ch":"出"},{"k":"G","ch":"租"},{"k":"G","ch":"飞"},{"k":"G","ch":"影"},{"k":"R","ch":"听唱玩"},{"k":"G","ch":"视"},{"k":"G","ch":"气"},{"k":"G","ch":"冷"}]},{"dx":2,"tiles":[{"k":"G","ch":"热"},{"k":"G","ch":"下"},{"k":"G","ch":"雨"}]}],"phrase":{"text":"天天向上","alt":"万事如意","vertical":true,"x":49,"y":98}}];
 
 // The small lantern of the easter egg: tiles all the way round. k: R red, D dark red rib.
 export type MiniLantern = {

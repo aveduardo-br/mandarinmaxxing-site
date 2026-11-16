@@ -26,6 +26,9 @@ const HALF_PI = Math.PI / 2;
 const CLICKS = 8; // clicks to light it fully
 const RELEASED = 26; // small lanterns let go
 const GLOW = '255,72,40';
+const FLIP_TIME = 0.42; // one hanzi of the phrase closing and opening, s
+const FLIP_GAP = 0.09; // between one hanzi and the next
+const HOLD = 6000; // ms the wishes stay before the lanterns go back to normal
 
 // physics, in px and seconds
 const GRAVITY = 2200;
@@ -49,6 +52,9 @@ type Body = {
   back: HTMLCanvasElement;
   strip: HTMLCanvasElement; // rope tiles side by side
   turned: HTMLCanvasElement; // the body while it is turned, drawn upright
+  gf: CanvasRenderingContext2D; // the front sheet, repainted while the phrase flips
+  alt: boolean; // which phrase it shows (or is flipping to)
+  flip: number; // seconds into the flip; < 0 = not flipping
   tg: CanvasRenderingContext2D;
   ropes: Rope[];
   a: number; // swing angle
@@ -60,7 +66,7 @@ type Body = {
 export const panelHeight = Math.max(...lanterns.map((d) => d.drop + (d.rows.length + Math.max(...d.ropes.map((r) => r.tiles.length))) * T)) + 20;
 
 export async function mountLanterns(canvas: HTMLCanvasElement, area: HTMLElement) {
-  const text = lanterns.map((d) => d.phrase.text + d.rows.map((r) => r.fh + r.bh).join('') + d.ropes.map((r) => r.tiles.map((t) => t.ch).join('')).join('')).join('');
+  const text = lanterns.map((d) => d.phrase.text + d.phrase.alt + d.rows.map((r) => r.fh + r.bh).join('') + d.ropes.map((r) => r.tiles.map((t) => t.ch).join('')).join('')).join('');
   try {
     await Promise.all([document.fonts.load('500 12px Zpix', text), document.fonts.load('500 24px Zpix', text)]);
   } catch {
@@ -92,6 +98,37 @@ export async function mountLanterns(canvas: HTMLCanvasElement, area: HTMLElement
     g.fillText(ch, x + 1, y + 11);
   };
 
+  // The gold phrase, each hanzi over 2×2 tiles. `t` < 0 paints it still; otherwise it is `t` seconds
+  // into a flip to the phrase `alt` selects: hanzi by hanzi, each closes like a flap and opens as the
+  // new one, the same move as every other tile on the site.
+  const paintPhrase = (g: CanvasRenderingContext2D, d: Lantern, alt: boolean, t: number) => {
+    const p = d.phrase;
+    const from = [...(alt ? p.text : p.alt)];
+    const to = [...(alt ? p.alt : p.text)];
+    const slots = Math.max(from.length, to.length, [...p.text].length);
+    g.fillStyle = RED;
+    g.fillRect(p.x, p.y, p.vertical ? 28 : slots * 28, p.vertical ? slots * 28 : 28);
+    g.fillStyle = GOLD;
+    g.font = '500 24px Zpix';
+    const glyph = (chars: string[], i: number, open: number) => {
+      if (i >= chars.length || open <= 0.02) return;
+      const off = ((slots - chars.length) * 28) / 2 + i * 28; // a shorter phrase sits in the middle
+      const x = p.x + 3 + (p.vertical ? 0 : off);
+      const y = p.y + (p.vertical ? off : 0);
+      g.save();
+      g.translate(0, y + 14);
+      g.scale(1, open);
+      g.fillText(chars[i], x, 8);
+      g.restore();
+    };
+    for (let i = 0; i < slots; i++) {
+      const k = t < 0 ? 1 : Math.max(0, Math.min(1, (t - i * FLIP_GAP) / FLIP_TIME));
+      if (k < 0.5) glyph(from, i, 1 - (k * 2) ** 2);
+      else glyph(to, i, 1 - (2 - k * 2) ** 2);
+    }
+  };
+  const flipDone = (d: Lantern) => (Math.max([...d.phrase.text].length, [...d.phrase.alt].length) - 1) * FLIP_GAP + FLIP_TIME;
+
   const bodies: Body[] = lanterns.map((d) => {
     const w = d.cols * T;
     const h = d.rows.length * T;
@@ -104,14 +141,7 @@ export async function mountLanterns(canvas: HTMLCanvasElement, area: HTMLElement
         tile(gb, x0 + i * T, j * T, k, [...row.bh][i]);
       });
     });
-    // the gold phrase, each hanzi over 2×2 tiles
-    gf.fillStyle = GOLD;
-    gf.font = '500 24px Zpix';
-    [...d.phrase.text].forEach((ch, i) => {
-      const x = d.phrase.x + 3 + (d.phrase.vertical ? 0 : i * 28);
-      const y = d.phrase.y + 22 + (d.phrase.vertical ? i * 28 : 0);
-      gf.fillText(ch, x, y);
-    });
+    paintPhrase(gf, d, false, -1);
 
     const total = d.ropes.reduce((n, r) => n + r.tiles.reduce((m, t) => m + [...t.ch].length, 0), 0);
     const [strip, gs] = sheet(total * T, T);
@@ -137,7 +167,7 @@ export async function mountLanterns(canvas: HTMLCanvasElement, area: HTMLElement
       return rope;
     });
     const [turned, tg] = sheet(w, h);
-    return { d, w, h, pivot, len: d.drop + h / 2, front, back, strip, turned, tg, ropes, a: 0, va: 0, s: 0, vs: 0 };
+    return { d, w, h, pivot, len: d.drop + h / 2, front, back, strip, turned, tg, gf, alt: false, flip: -1, ropes, a: 0, va: 0, s: 0, vs: 0 };
   });
 
   // ---------- drawing ----------
@@ -264,6 +294,13 @@ export async function mountLanterns(canvas: HTMLCanvasElement, area: HTMLElement
     return [((e.clientX - box.left) / box.width) * W, ((e.clientY - box.top) / box.height) * H] as const;
   };
   let lastClick = 0;
+  // fully lit: the three phrases flip to wishes, one lantern after the other; and back afterwards
+  const setPhrases = (alt: boolean) =>
+    bodies.forEach((b, i) => {
+      if (b.alt === alt) return;
+      b.alt = alt;
+      b.flip = -0.001 - i * 0.18; // counts up to 0, then flips
+    });
   let letGo = false; // fully lit: the small lanterns are leaving, clicks wait
   area.addEventListener('pointerdown', (e) => {
     const [x, y] = at(e);
@@ -275,6 +312,7 @@ export async function mountLanterns(canvas: HTMLCanvasElement, area: HTMLElement
     if (charge >= 1) {
       letGo = true;
       release(area, RELEASED);
+      setPhrases(true);
     }
     wake();
   });
@@ -386,9 +424,23 @@ export async function mountLanterns(canvas: HTMLCanvasElement, area: HTMLElement
     // the light: stays while the clicks keep coming, then fades; after letting go it fades and resets
     clock += dt;
     if (letGo) {
-      if (now - lastClick > 1600) charge = Math.max(0, charge - dt * 0.7);
-      if (charge === 0) letGo = false;
+      if (now - lastClick > HOLD) charge = Math.max(0, charge - dt * 0.7);
+      if (charge === 0) {
+        letGo = false;
+        setPhrases(false);
+      }
     } else if (now - lastClick > 2500) charge = Math.max(0, charge - dt * 0.12);
+    for (const b of bodies) {
+      if (b.flip === -1) continue;
+      moving = 1;
+      const before = b.flip;
+      b.flip += dt;
+      if (before < 0 && b.flip < 0) continue; // still waiting its turn
+      if (b.flip >= flipDone(b.d)) {
+        paintPhrase(b.gf, b.d, b.alt, -1);
+        b.flip = -1;
+      } else paintPhrase(b.gf, b.d, b.alt, Math.max(0, b.flip));
+    }
     shown += (charge - shown) * Math.min(1, dt * 8);
     if (shown < 0.004 && charge === 0) shown = 0;
     vsize += ((1 + 0.14 * charge - size) * 110 - vsize * 9) * dt;
