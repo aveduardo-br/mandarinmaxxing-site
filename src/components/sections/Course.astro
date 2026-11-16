@@ -156,8 +156,9 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     color: var(--text);
   }
 
-  /* 168: a band of light crosses each red tile; the delay set per tile makes it one diagonal sweep
-     over the whole number, and it passes twice */
+  /* 168: a band of light crosses each tile while it turns; the delay set per tile makes it one
+     diagonal sweep over the whole number. It runs once when the red tiles come in and once when they
+     turn back. */
   .num :global(.tile.shine)::after {
     content: '';
     position: absolute;
@@ -166,13 +167,12 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     background: linear-gradient(115deg, transparent 35%, rgba(255, 233, 160, 0.85) 50%, transparent 65%);
     background-size: 320% 100%;
     background-position: 110% 0;
-    animation: shine 1.25s linear var(--shine-delay, 0ms) 2 both;
+    animation: shine 0.7s linear var(--shine-delay, 0ms) 1 both;
   }
   @keyframes shine {
     from {
       background-position: 110% 0;
     }
-    45%,
     to {
       background-position: -10% 0;
     }
@@ -377,7 +377,11 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
       const moving = animate && !reduceMotion();
       const want = new Map<number, TileVal>([
         ...next.pad.map((c): [number, TileVal] => [c.y * COLS + c.x, { ch: '', bg: 'transparent' }]),
-        ...next.tiles.map((t): [number, TileVal] => [t.y * COLS + t.x, { ch: t.ch, bg: t.bg }]),
+        // 168 comes in already red with gold hanzi (see below)
+        ...next.tiles.map((t): [number, TileVal] => [
+          t.y * COLS + t.x,
+          next.n === LUCKY && moving ? { ch: t.ch, bg: RED, fg: GOLD } : { ch: t.ch, bg: t.bg },
+        ]),
       ]);
       const mapped = !!D.levels[level - 1].fixed;
       const delay = (i: number) => ((i % COLS) + Math.floor(i / COLS)) * STEP;
@@ -387,27 +391,26 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
         if (moving) flipTile(slot, v, delay(i));
         else applyTile(slot, v);
       });
-      // 168: once the number has settled, its tiles turn red with gold hanzi for a moment, and a band of
-      // light runs across them diagonally as they turn (twice), then they go back to their colours
+      // 168: the number forms already in red with gold hanzi, and a band of light runs across the tiles
+      // diagonally as they turn. After a moment they turn back to their colours, with the light again.
       window.clearTimeout(luckyTimer);
       lucky.hidden = next.n !== LUCKY;
       slots.forEach((sl) => sl.el.classList.remove('shine'));
       if (next.n === LUCKY && moving) {
         const lit = next.tiles.map((t) => ({ i: t.y * COLS + t.x, v: { ch: t.ch, bg: t.bg } }));
-        luckyTimer = window.setTimeout(() => {
+        const shine = (extra: number) =>
           lit.forEach((o) => {
             const el = slots[o.i].el;
-            flipTile(slots[o.i], { ch: o.v.ch, bg: RED, fg: GOLD }, delay(o.i));
-            el.style.setProperty('--shine-delay', `${delay(o.i) * 1.6 + 200}ms`); // starts as the tile opens in red
+            el.classList.remove('shine');
+            void el.offsetWidth; // restart the animation
+            el.style.setProperty('--shine-delay', `${delay(o.i) + extra}ms`);
             el.classList.add('shine');
           });
-          luckyTimer = window.setTimeout(() => {
-            lit.forEach((o) => {
-              slots[o.i].el.classList.remove('shine');
-              flipTile(slots[o.i], o.v, delay(o.i));
-            });
-          }, 3200);
-        }, (COLS + ROWS) * STEP + 500);
+        shine(120); // as each tile opens in red
+        luckyTimer = window.setTimeout(() => {
+          shine(0); // and again as it turns back
+          lit.forEach((o) => flipTile(slots[o.i], o.v, delay(o.i)));
+        }, (COLS + ROWS) * STEP + 2600);
       }
       // one sentence on the chosen level only
       const date = dateOf(next.n, mapped);
