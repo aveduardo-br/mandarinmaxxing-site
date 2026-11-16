@@ -35,6 +35,9 @@ bookLessons.forEach((l, li) => {
   col += Math.ceil(l.words.length / ROWS);
 });
 const COLS = col;
+// The book has no entry for 你好: lesson 1 is titled 你好 and lists 你 and 好 as its first two words.
+// The greeting points at 你, so it lights up where the book starts.
+cellOf.set('你好', cellOf.get('你')!);
 // owner[i] = the example situation that teaches textbook word i; NONE for every other word
 const NONE = -9;
 const owner: number[] = Array(cells.length).fill(NONE);
