@@ -642,6 +642,7 @@ const stripData = topics.map((t) => ({
 
 <script>
   import { gsap } from 'gsap';
+  import { DUR, EASE_CLOSE, EASE_OPEN } from '../../scripts/tiles';
 
   // Accordion: click a topic to open it, click again to close. One open at a time.
   // The header grows from h4 to h3 in place (FLIP): record where the arrow, number and title are, let
@@ -805,12 +806,12 @@ const stripData = topics.map((t) => ({
         window.setTimeout(() => {
           if (gens[k] !== g || el.classList.contains('on') === on) return;
           if (matchMedia('(prefers-reduced-motion: reduce)').matches) return void el.classList.toggle('on', on);
-          const a = el.animate([{ transform: 'scaleY(1)' }, { transform: 'scaleY(0)' }], { duration: 110, easing: 'steps(3, end)', fill: 'forwards' });
+          const a = el.animate([{ transform: 'scaleY(1)' }, { transform: 'scaleY(0)' }], { duration: DUR, easing: EASE_CLOSE, fill: 'forwards' });
           a.onfinish = () => {
             a.cancel();
             if (gens[k] !== g) return;
             el.classList.toggle('on', on);
-            el.animate([{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }], { duration: 110, easing: 'steps(3, end)' });
+            el.animate([{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }], { duration: DUR, easing: EASE_OPEN });
           };
         }, k * 28);
       });

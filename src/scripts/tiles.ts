@@ -1,6 +1,6 @@
 // Tiles ("ladrilhos"): 28px squares with one pixel-font hanzi each. See docs/ladrilhos.md.
 // Every tile change on the site uses the same transition: the tile closes and opens again like a
-// small flap, in hard steps, and a group of tiles changes in a wave from the top-left corner.
+// small flap, smoothly, and a group of tiles changes in a wave from the top-left corner.
 export type TileVal = { ch: string; bg: string; fg?: string } | null;
 export type Slot = { el: HTMLElement; span: HTMLElement; val: TileVal; gen?: number };
 
@@ -36,8 +36,11 @@ export function applyTile(slot: Slot, v: TileVal) {
 export const sameTile = (a: TileVal, b: TileVal) =>
   (!a && !b) || (!!a && !!b && a.ch === b.ch && a.bg === b.bg && (a.fg ?? '') === (b.fg ?? ''));
 
-const DUR = 110;
-const EASE = 'steps(3, end)';
+// Smooth, not stepped: the tile closes speeding up and opens slowing down (same feel as the belt of
+// section 01). Every flip on the site imports these, so they all move the same way.
+export const DUR = 190;
+export const EASE_CLOSE = 'cubic-bezier(.6,0,.8,.3)';
+export const EASE_OPEN = 'cubic-bezier(.2,.7,.2,1)';
 const OUT = [{ transform: 'scaleY(1)' }, { transform: 'scaleY(0)' }];
 const IN = [{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }];
 /** Delay between neighbouring tiles in a wave. */
@@ -57,10 +60,10 @@ export function flipTile(slot: Slot, v: TileVal, delay = 0) {
     if (slot.gen !== gen) return;
     const comeIn = () => {
       applyTile(slot, v);
-      if (v) slot.el.animate(IN, { duration: DUR, easing: EASE });
+      if (v) slot.el.animate(IN, { duration: DUR, easing: EASE_OPEN });
     };
     if (slot.el.style.visibility === 'visible') {
-      const a = slot.el.animate(OUT, { duration: DUR, easing: EASE, fill: 'forwards' });
+      const a = slot.el.animate(OUT, { duration: DUR, easing: EASE_CLOSE, fill: 'forwards' });
       a.onfinish = () => {
         a.cancel();
         if (slot.gen === gen) comeIn();

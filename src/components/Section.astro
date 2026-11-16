@@ -127,7 +127,7 @@ const tileTitle = tiled ? { digit: String(Number(num)), num: NUM_ZH[Number(num)]
 <script>
   // Tiled section titles: the number tile flips to orange while its section is the active one.
   // SideNav marks the active section with .is-active.
-  const DUR = 110, EASE = 'steps(3, end)';
+  import { DUR, EASE_CLOSE, EASE_OPEN } from '../scripts/tiles';
   const OUT = [{ transform: 'scaleY(1)' }, { transform: 'scaleY(0)' }];
   const IN = [{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }];
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -146,13 +146,13 @@ const tileTitle = tiled ? { digit: String(Number(num)), num: NUM_ZH[Number(num)]
         tile.firstElementChild!.textContent = on ? tile.dataset.digit! : tile.dataset.zh!;
         return;
       }
-      const a = tile.animate(OUT, { duration: DUR, easing: EASE, fill: 'forwards' });
+      const a = tile.animate(OUT, { duration: DUR, easing: EASE_CLOSE, fill: 'forwards' });
       a.onfinish = () => {
         a.cancel();
         if (g !== gen) return;
         tile.classList.toggle('on', on);
         tile.firstElementChild!.textContent = on ? tile.dataset.digit! : tile.dataset.zh!;
-        tile.animate(IN, { duration: DUR, easing: EASE });
+        tile.animate(IN, { duration: DUR, easing: EASE_OPEN });
       };
     };
     const sync = () => set(sec.classList.contains('is-active'));

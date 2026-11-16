@@ -119,7 +119,7 @@ Em aberto:
 
 ## Decisões de 14/11/2026 (segunda rodada)
 
-**Transição padrão.** Toda troca de ladrilho no site usa a mesma transição, a "virada": o ladrilho fecha e abre no lugar, em passos secos, e um grupo troca em onda a partir do canto de cima à esquerda. O código está em `src/scripts/tiles.ts` (`flipTile`, `setRow`). Não criar outra transição para ladrilhos.
+**Transição padrão.** Toda troca de ladrilho no site usa a mesma transição, a "virada": o ladrilho fecha e abre no lugar, de forma suave (190 ms para fechar acelerando, 190 ms para abrir desacelerando; desde 16/11/2026, antes era em passos secos), e um grupo troca em onda a partir do canto de cima à esquerda. O código está em `src/scripts/tiles.ts` (`flipTile`, `setRow`). Não criar outra transição para ladrilhos.
 
 **Onde os ladrilhos entraram, e onde não.**
 

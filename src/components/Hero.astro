@@ -226,7 +226,7 @@ import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
 </style>
 
 <script>
-  import { makeSlot, applyTile, flipTile, ORANGE, MUTED, WAVE, TILE, type Slot } from '../scripts/tiles';
+  import { makeSlot, applyTile, flipTile, ORANGE, MUTED, WAVE, TILE, DUR, EASE_CLOSE, EASE_OPEN, type Slot } from '../scripts/tiles';
   import CELLS from '../data/hero-cells.json';
 
   // Settings approved in the lab artifact "Hero em ladrilhos — laboratório" (14/11/2026).
@@ -241,7 +241,6 @@ import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
   ];
   // the easter egg: all seven MAXXING tiles turned at once read 学汉语很有意思, "Learning Chinese is fun"
   const MX_PHRASE = [...'学汉语很有意思'];
-  const DUR = 110, EASE = 'steps(3, end)';
   const OUT = [{ transform: 'scaleY(1)' }, { transform: 'scaleY(0)' }];
   const IN = [{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }];
 
@@ -419,12 +418,12 @@ import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
     window.setTimeout(() => {
       if (m.gen !== gen) return;
       if (reduce) return mxSet(m, han);
-      const a = m.el.animate(OUT, { duration: DUR, easing: EASE, fill: 'forwards' });
+      const a = m.el.animate(OUT, { duration: DUR, easing: EASE_CLOSE, fill: 'forwards' });
       a.onfinish = () => {
         a.cancel();
         if (m.gen !== gen) return;
         mxSet(m, han);
-        m.el.animate(IN, { duration: DUR, easing: EASE });
+        m.el.animate(IN, { duration: DUR, easing: EASE_OPEN });
       };
     }, delay);
   }
@@ -451,8 +450,8 @@ import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
       clearTimeout(m.back);
       m.gen++;
       window.setTimeout(() => {
-        const a = m.el.animate(OUT, { duration: DUR, easing: EASE, fill: 'forwards' });
-        a.onfinish = () => { a.cancel(); mxSet(m, true); m.el.animate(IN, { duration: DUR, easing: EASE }); };
+        const a = m.el.animate(OUT, { duration: DUR, easing: EASE_CLOSE, fill: 'forwards' });
+        a.onfinish = () => { a.cancel(); mxSet(m, true); m.el.animate(IN, { duration: DUR, easing: EASE_OPEN }); };
       }, i * WAVE * 1.5);
     });
     mxCap.classList.add('on');
