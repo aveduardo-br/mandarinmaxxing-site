@@ -45,7 +45,8 @@ const entries = bookLessons.flatMap((l) => l.words);
 const find = (h: string): { cell: number; via: string } => {
   if (cellOf.has(h)) return { cell: cellOf.get(h)!, via: '' };
   if (PART[h]) return { cell: cellOf.get(PART[h])!, via: h === '你好' ? '' : PART[h] };
-  const e = entries.find((w) => w.includes(h));
+  // only for words of two characters or more: one character is inside too many unrelated entries
+  const e = [...h].length > 1 ? entries.find((w) => w.includes(h)) : undefined;
   return e ? { cell: cellOf.get(e)!, via: e } : { cell: -1, via: '' };
 };
 // owner[i] = the example situation that teaches textbook word i; NONE for every other word
