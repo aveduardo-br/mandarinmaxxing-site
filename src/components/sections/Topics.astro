@@ -10,7 +10,7 @@
 // Only words the books also teach can light up; the label says how many. Data: src/data/book.ts.
 import Section from '../Section.astro';
 import { situations, bookLesson } from '../../data/situations';
-import { bookLessons, HSK1_HANZI, BOOK_SOURCE } from '../../data/book';
+import { bookLessons, HSK1_HANZI } from '../../data/book';
 
 // Ten examples, spread from the start of the level to the end. `num` is the map's number.
 const SAMPLE = ['01', '02', '05', '07', '08', '12', '13', '16', '18', '22'];
@@ -173,7 +173,6 @@ const book2At = (bookStart[1] / COLS) * 100;
       <p class="books" aria-hidden="true">
         <span style={`width:${book2At}%`}>HSK Standard Course 1 · lessons 1–15</span>
         <span class="b2">HSK Standard Course 2 · lessons 1–15</span>
-        <a href={BOOK_SOURCE} target="_blank" rel="noopener">Source ↗</a>
       </p>
     </div>
   </div>
@@ -658,9 +657,6 @@ const book2At = (bookStart[1] / COLS) * 100;
   .books .b2 {
     flex: 1 1 0;
     min-width: 0;
-  }
-  .books a:hover {
-    color: var(--text);
   }
   .strip rect {
     fill: #262626;

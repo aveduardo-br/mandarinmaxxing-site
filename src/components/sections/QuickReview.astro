@@ -2,9 +2,11 @@
 // Bento card "01 Quick review" — visual part.
 // Shows what the review does. The first example is already finished: the line of thought (last
 // lesson's word, today's word, mixing them), the question, and two tags saying where each word came
-// from, with a light-orange "Next ↓". Clicking it plays the next example below and pushes the chat
-// up, like the Written translation card: a single shimmering status line swaps its text in place
-// (like Claude thinking), then opens up into the line of thought and the question lands.
+// from, with a light-orange "Next ↓". Clicking it plays the next example: the finished one slides up
+// and out of the card, and the new one has the whole card to itself, from top to bottom (every round
+// is as tall as the card, with its content at the bottom, like a chat). A single shimmering status
+// line swaps its text in place (like Claude thinking), then opens up into the line of thought and the
+// question lands.
 
 type Round = {
   old: string; // word brought back from an earlier lesson
@@ -45,15 +47,20 @@ const rounds: Round[] = [
     display: flex;
     flex-direction: column;
   }
-  /* gap between rounds only once the new one has content (no jump when it's added) */
-  .qr-block + .qr-block:not(:empty) {
-    margin-top: 20px;
+  /* room between rounds, so nothing of the one before shows at the top edge */
+  .qr-block + .qr-block {
+    margin-top: 40px;
   }
+  /* one round fills the card: as tall as the visible area, content at the bottom. The round before it
+     sits wholly above the card, out of sight. */
   .qr-block {
     display: flex;
     flex-direction: column;
+    justify-content: flex-end;
     align-items: flex-start;
     gap: 10px;
+    box-sizing: border-box;
+    min-height: var(--qr-h, 200px);
   }
 
   /* thinking: three dots pulsing one after the other (neutral, not any app's logo) */
@@ -99,14 +106,14 @@ const rounds: Round[] = [
     color: var(--text) !important;
     transition: color 0.15s ease;
   }
-  /* hovering a tag lights it and its word in the question (and in the steps): yesterday dark
-     orange, today light orange */
+  /* hovering a tag lights it and its word in the question (and in the steps), both in the same
+     light orange */
   .qr-tag {
     cursor: default;
   }
   .qr .qr-block.show-old .old,
   .qr .qr-block.show-old .old :is(.zh, .lb) {
-    color: var(--accent) !important;
+    color: var(--accent-light) !important;
   }
   .qr .qr-block.show-now .now,
   .qr .qr-block.show-now .now :is(.zh, .lb) {
@@ -417,7 +424,9 @@ const rounds: Round[] = [
       const block = el('div', 'qr-block');
       // keep only the previous round above the new one
       while (track.children.length > 1) track.firstElementChild!.remove();
-      track.append(block);
+      // the new round is as tall as the card: adding it slides the finished one up and out
+      add(track, block);
+      await wait(380);
 
       // 1. one status line, text swapping in place
       const line = el('div', 'qr-status');
@@ -468,6 +477,11 @@ const rounds: Round[] = [
       cur = (cur + 1) % rounds.length;
       play(cur);
     }
+
+    // every round is as tall as the visible part of the card (the track sits 20 px above the bottom)
+    const fitRound = () => root.style.setProperty('--qr-h', `${Math.max(120, root.clientHeight - 20)}px`);
+    fitRound();
+    new ResizeObserver(fitRound).observe(root);
 
     // the first example is already done; the process plays on Next
     show(cur);
