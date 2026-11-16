@@ -85,6 +85,15 @@ function drawOne(l: Sky) {
   ctx.save();
   ctx.translate(l.x - scrollX, l.y - scrollY);
   ctx.scale(l.scale, l.scale);
+  // the flame's flicker; the whole lantern breathes with it, a little
+  const f = 0.82 + 0.12 * Math.sin(clock * 9 * l.flick + l.phase) + 0.06 * Math.sin(clock * 23 * l.flick + l.phase * 3);
+  const cy = BODY_TOP + BODY_H / 2;
+  // light around the lantern
+  const halo = ctx.createRadialGradient(0, cy, BODY_H * 0.3, 0, cy, BODY_H * 1.15);
+  halo.addColorStop(0, `rgba(255,80,40,${0.3 * f})`);
+  halo.addColorStop(1, 'rgba(255,80,40,0)');
+  ctx.fillStyle = halo;
+  ctx.fillRect(-BODY_H * 1.15, cy - BODY_H * 1.15, BODY_H * 2.3, BODY_H * 2.3);
   // threads first, so the base sits over their first tile
   for (const t of l.threads) {
     for (let i = 0; i < t.n; i++) {
@@ -123,24 +132,29 @@ function drawOne(l: Sky) {
     }
   });
   // a candle inside, just above the base: a flame of light that flickers, seen through the paper
-  const f = 0.82 + 0.12 * Math.sin(clock * 9 * l.flick + l.phase) + 0.06 * Math.sin(clock * 23 * l.flick + l.phase * 3);
   const lean = Math.sin(clock * 3.1 * l.flick + l.phase) * 2.5 - 2; // the wind leans it a little
   ctx.save();
   ctx.beginPath();
-  ctx.arc(0, BODY_TOP + BODY_H / 2, BODY_H / 2, 0, TAU);
+  ctx.arc(0, cy, BODY_H / 2, 0, TAU);
   ctx.clip();
   ctx.globalCompositeOperation = 'lighter';
+  // the whole body lit from inside: a more vivid red, strongest in the middle
+  const lit = ctx.createRadialGradient(0, cy, 0, 0, cy, BODY_H / 2);
+  lit.addColorStop(0, `rgba(255,96,48,${0.42 * f})`);
+  lit.addColorStop(1, `rgba(255,70,36,${0.2 * f})`);
+  ctx.fillStyle = lit;
+  ctx.fillRect(-BODY_H / 2, BODY_TOP, BODY_H, BODY_H);
   ctx.translate(0, BASE_Y - 1.2 * T);
   ctx.transform(1, 0, -lean / (4 * T), 1, 0, 0); // top of the flame pushed sideways
   ctx.scale(1, 1.75 * f);
   const wide = ctx.createRadialGradient(0, -T * 1.1, 0, 0, -T * 1.1, T * 3.4);
-  wide.addColorStop(0, `rgba(255,190,70,${0.62 * f})`);
-  wide.addColorStop(0.45, `rgba(255,120,30,${0.3 * f})`);
+  wide.addColorStop(0, `rgba(255,190,70,${0.36 * f})`);
+  wide.addColorStop(0.45, `rgba(255,120,30,${0.16 * f})`);
   wide.addColorStop(1, 'rgba(255,90,20,0)');
   ctx.fillStyle = wide;
   ctx.fillRect(-T * 4, -T * 5, T * 8, T * 6);
   const core = ctx.createRadialGradient(0, -T * 0.5, 0, 0, -T * 0.5, T * 1.25);
-  core.addColorStop(0, `rgba(255,244,190,${0.9 * f})`);
+  core.addColorStop(0, `rgba(255,244,190,${0.55 * f})`);
   core.addColorStop(1, 'rgba(255,200,90,0)');
   ctx.fillStyle = core;
   ctx.fillRect(-T * 2, -T * 2, T * 4, T * 3);
