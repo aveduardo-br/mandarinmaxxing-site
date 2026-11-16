@@ -371,6 +371,34 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     const lucky = root.querySelector<HTMLElement>('[data-lucky]')!;
     const LUCKY = 168, RED = '#C8281E', GOLD = '#E3B341'; // the colours of a red envelope
     let luckyTimer = 0;
+    // The lucky-number note opens like a flap a moment after the number starts to form, and closes the
+    // same way. `luckyOn` is what it should be showing, so a quick change of mind never leaves it stuck.
+    let luckyOn = false;
+    const setLucky = (on: boolean, animate: boolean) => {
+      if (on === luckyOn) return;
+      luckyOn = on;
+      lucky.getAnimations().forEach((a) => a.cancel());
+      if (!animate) {
+        lucky.hidden = !on;
+        return;
+      }
+      if (on) {
+        lucky.hidden = false;
+        lucky.animate(
+          [{ transform: 'scaleY(0)', opacity: 0 }, { transform: 'scaleY(1)', opacity: 1 }],
+          { duration: 320, delay: 450, easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'backwards' },
+        );
+      } else {
+        const a = lucky.animate(
+          [{ transform: 'scaleY(1)', opacity: 1 }, { transform: 'scaleY(0)', opacity: 0 }],
+          { duration: 260, easing: 'cubic-bezier(.6,0,.8,.3)', fill: 'forwards' },
+        );
+        a.onfinish = () => {
+          a.cancel();
+          if (!luckyOn) lucky.hidden = true;
+        };
+      }
+    };
 
     function show(animate: boolean) {
       const next = build(level, pace);
@@ -394,28 +422,8 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
       // 168: the number forms already in red with gold hanzi, and a band of light runs across the tiles
       // diagonally as they turn. After a moment they turn back to their colours, with the light again.
       window.clearTimeout(luckyTimer);
-      // the note opens like a flap a moment after the number starts to form, and closes the same way
-      const on = next.n === LUCKY;
-      if (on === lucky.hidden) {
-        lucky.getAnimations().forEach((a) => a.cancel());
-        if (!moving) lucky.hidden = !on;
-        else if (on) {
-          lucky.hidden = false;
-          lucky.animate(
-            [{ transform: 'scaleY(0)', opacity: 0 }, { transform: 'scaleY(1)', opacity: 1 }],
-            { duration: 320, delay: 450, easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'backwards' },
-          );
-        } else {
-          const a = lucky.animate(
-            [{ transform: 'scaleY(1)', opacity: 1 }, { transform: 'scaleY(0)', opacity: 0 }],
-            { duration: 200, easing: 'cubic-bezier(.6,0,.8,.3)', fill: 'forwards' },
-          );
-          a.onfinish = () => {
-            lucky.hidden = true;
-            a.cancel();
-          };
-        }
-      }
+      // the note opens with the red number and closes when the number goes back to its colours
+      setLucky(next.n === LUCKY, moving);
       slots.forEach((sl) => sl.el.classList.remove('shine'));
       if (next.n === LUCKY && moving) {
         const lit = next.tiles.map((t) => ({ i: t.y * COLS + t.x, v: { ch: t.ch, bg: t.bg } }));
@@ -430,6 +438,7 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
         shine(120); // as each tile opens in red
         luckyTimer = window.setTimeout(() => {
           shine(0); // and again as it turns back
+          setLucky(false, true); // the note leaves with the red
           lit.forEach((o) => flipTile(slots[o.i], o.v, delay(o.i)));
         }, (COLS + ROWS) * STEP + 2600);
       }
