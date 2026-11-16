@@ -11,6 +11,7 @@
 //   place. At rest the lantern is drawn exactly as the flat design.
 import { lanterns, PANEL_W, type Lantern } from '../data/lanterns';
 import { reduceMotion } from './tiles';
+import { release } from './sky-lanterns';
 
 const T = 14; // tile size
 const RED = '#C8281E';
@@ -19,6 +20,12 @@ const INK = 'rgba(0,0,0,0.18)'; // hanzi, tone on tone over either colour
 const STRING = '#2a2a2a';
 export const MARGIN = 120; // room on each side of the panel for the swing
 const HALF_PI = Math.PI / 2;
+
+// Easter egg: clicking the middle lantern lights it up a little more each time; fully lit, small
+// lanterns rise out of the footer (src/scripts/sky-lanterns.ts).
+const CLICKS = 8; // clicks to light it fully
+const RELEASED = 14; // small lanterns let go
+const GLOW = '255,72,40';
 
 // physics, in px and seconds
 const GRAVITY = 2200;
@@ -168,13 +175,29 @@ export async function mountLanterns(canvas: HTMLCanvasElement, area: HTMLElement
     }
   };
 
+  let charge = 0; // 0 to 1: how lit the middle lantern is
+  let shown = 0; // what is drawn; follows charge smoothly
+  let clock = 0;
+  const lit = bodies[1];
+
   const draw = () => {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, W, H);
     for (const b of bodies) {
+      const glow = b === lit ? shown * (0.9 + 0.1 * Math.sin(clock * 5)) : 0;
       ctx.save();
       ctx.translate(b.pivot, 0);
       ctx.rotate(b.a);
+      if (glow > 0.01) {
+        // light around the body
+        const cy = b.d.drop + b.h / 2;
+        const rad = b.w * (0.75 + 0.35 * glow);
+        const halo = ctx.createRadialGradient(0, cy, b.w * 0.2, 0, cy, rad);
+        halo.addColorStop(0, `rgba(${GLOW},${0.5 * glow})`);
+        halo.addColorStop(1, `rgba(${GLOW},0)`);
+        ctx.fillStyle = halo;
+        ctx.fillRect(-rad, cy - rad, rad * 2, rad * 2);
+      }
       ctx.fillStyle = STRING;
       ctx.fillRect(-1, 0, 2, b.d.drop);
       ctx.translate(-b.w / 2, b.d.drop);
@@ -187,6 +210,14 @@ export async function mountLanterns(canvas: HTMLCanvasElement, area: HTMLElement
           drawRow(b, b.front, j, row.hw, false, shade);
         });
         ctx.drawImage(b.turned, 0, 0, b.w, b.h);
+      }
+      if (glow > 0.01) {
+        // the lantern's own colours added to themselves: a more vivid red and gold
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = 0.55 * glow;
+        ctx.drawImage(Math.abs(b.s) < 0.003 ? b.front : b.turned, 0, 0, b.w, b.h);
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = 'source-over';
       }
       ctx.restore();
       for (const r of b.ropes) {
@@ -209,10 +240,37 @@ export async function mountLanterns(canvas: HTMLCanvasElement, area: HTMLElement
   // ---------- pointer ----------
   const mouse = { x: 0, y: 0, vx: 0, vy: 0, on: false, t: 0 };
   let idle = 0;
-  area.addEventListener('pointermove', (e) => {
+  /** Distance from the pivot down the lantern if (x, y) is on its rigid body, else -1. */
+  const hit = (b: Body, x: number, y: number) => {
+    const dx = x - b.pivot;
+    const cos = Math.cos(b.a);
+    const sin = Math.sin(b.a);
+    const lx = dx * cos + y * sin;
+    const ly = -dx * sin + y * cos;
+    const row = b.d.rows[Math.floor((ly - b.d.drop) / T)];
+    return row && Math.abs(lx) < (row.hw + 0.5) * T + 8 ? ly : -1;
+  };
+  const at = (e: PointerEvent) => {
     const box = canvas.getBoundingClientRect();
-    const x = ((e.clientX - box.left) / box.width) * W;
-    const y = ((e.clientY - box.top) / box.height) * H;
+    return [((e.clientX - box.left) / box.width) * W, ((e.clientY - box.top) / box.height) * H] as const;
+  };
+  let lastClick = 0;
+  let letGo = false; // fully lit: the small lanterns are leaving, clicks wait
+  area.addEventListener('pointerdown', (e) => {
+    const [x, y] = at(e);
+    if (letGo || hit(lit, x, y) < 0) return;
+    charge = Math.min(1, charge + 1 / CLICKS);
+    lastClick = performance.now();
+    lit.vs += (x < lit.pivot ? 1 : -1) * 0.9; // a tap turns it a little
+    if (charge >= 1) {
+      letGo = true;
+      release(area, RELEASED);
+    }
+    wake();
+  });
+  area.addEventListener('pointermove', (e) => {
+    const [x, y] = at(e);
+    area.style.cursor = hit(lit, x, y) >= 0 ? 'pointer' : '';
     const now = performance.now();
     const dt = Math.max(8, now - mouse.t) / 1000;
     if (mouse.on && dt < 0.2) {
@@ -233,14 +291,8 @@ export async function mountLanterns(canvas: HTMLCanvasElement, area: HTMLElement
     let moving = 0;
     for (const b of bodies) {
       if (mouse.on) {
-        // the pointer in the lantern's own frame
-        const dx = mouse.x - b.pivot;
-        const cos = Math.cos(b.a);
-        const sin = Math.sin(b.a);
-        const lx = dx * cos + mouse.y * sin;
-        const ly = -dx * sin + mouse.y * cos;
-        const row = b.d.rows[Math.floor((ly - b.d.drop) / T)];
-        if (row && Math.abs(lx) < (row.hw + 0.5) * T + 8 && Math.abs(mouse.vx) > 30) {
+        const ly = hit(b, mouse.x, mouse.y);
+        if (ly >= 0 && Math.abs(mouse.vx) > 30) {
           // touching: the body follows the pointer sideways and is turned by it
           const reach = Math.max(80, ly);
           b.va += (clamp((-mouse.vx / reach) * 0.45, 1.1) - b.va) * Math.min(1, 10 * h);
@@ -320,6 +372,15 @@ export async function mountLanterns(canvas: HTMLCanvasElement, area: HTMLElement
     // the pointer's speed fades if it stops sending moves
     mouse.vx *= 0.85;
     mouse.vy *= 0.85;
+    // the light: stays while the clicks keep coming, then fades; after letting go it fades and resets
+    clock += dt;
+    if (letGo) {
+      if (now - lastClick > 1600) charge = Math.max(0, charge - dt * 0.7);
+      if (charge === 0) letGo = false;
+    } else if (now - lastClick > 2500) charge = Math.max(0, charge - dt * 0.12);
+    shown += (charge - shown) * Math.min(1, dt * 8);
+    if (shown < 0.004 && charge === 0) shown = 0;
+    if (shown > 0) moving = 1;
     idle = moving < 0.02 ? idle + dt : 0;
     if (idle > 0.4 || !visible) {
       // settled: draw the flat design once and stop

@@ -73,3 +73,23 @@ export const lanterns: Lantern[] = [{"cols":9,"x":0,"drop":40,"rows":[{"hw":0,"f
 {"hw":3,"f":"RRRRRRR","fh":"钱贵便宜超市衣","bh":"视气冷热下雨雪"},
 {"hw":3,"f":"GGGGGGG","fh":"服穿看新漂亮住","bh":"学写汉题知道校"},
 {"hw":2,"f":"GGGGG","fh":"房找桌里来","bh":"老师生上课"}],"ropes":[{"dx":-2,"tiles":[{"k":"G","ch":"回"},{"k":"G","ch":"火"},{"k":"G","ch":"车"}]},{"dx":0,"tiles":[{"k":"G","ch":"出"},{"k":"G","ch":"租"},{"k":"G","ch":"飞"},{"k":"G","ch":"影"},{"k":"R","ch":"听唱玩"},{"k":"G","ch":"视"},{"k":"G","ch":"气"},{"k":"G","ch":"冷"}]},{"dx":2,"tiles":[{"k":"G","ch":"热"},{"k":"G","ch":"下"},{"k":"G","ch":"雨"}]}],"phrase":{"text":"天天向上","vertical":true,"x":49,"y":98}}];
+
+// The small lantern of the easter egg: tiles all the way round. k: R red, D dark red rib.
+export type MiniLantern = {
+  hook: string;
+  cap: string;
+  rows: { hw: number; k: string; h: string }[];
+  base: string;
+  ropes: { dx: number; ch: string }[];
+};
+export const mini: MiniLantern = {"hook":"哥","cap":"妹电话","rows":[{"hw":2,"k":"DRRRDRRRDRRRDRRR","h":"叫名字什么谁请问中国哪儿去今天文"},
+{"hw":3,"k":"DRRDRRDRDRRDRRDRDRRDRR","h":"朋友认识高兴我们他岁几年大家爸妈哥妹电话手机"},
+{"hw":4,"k":"DRRRDRRDRRDRRRDRRRDRRDRRDRRR","h":"打给孩子女狗猫月号星期明现在点床睡觉时间早饭米饺水果买钱"},
+{"hw":5,"k":"DRRRDRRRDRRRRDRRRDRRRDRRRRDRRRDRRR","h":"贵便宜超市衣服穿看新漂亮住房找桌里来回火车出租飞影听唱玩视气冷热下雨"},
+{"hw":5,"k":"DRRRDRRRDRRRRDRRRDRRRDRRRRDRRRDRRR","h":"雪学写汉题知道校老师生上课同工作公司忙班脑病医院你好谢再见要喝吃茶喜"},
+{"hw":5,"k":"DRRRDRRRDRRRRDRRRDRRRDRRRRDRRRDRRR","h":"欢叫名字什么谁请问中国哪儿去今天文朋友认识高兴我们他岁几年大家爸妈哥"},
+{"hw":5,"k":"DRRRDRRRDRRRRDRRRDRRRDRRRRDRRRDRRR","h":"妹电话手机打给孩子女狗猫月号星期明现在点床睡觉时间早饭米饺水果买钱贵"},
+{"hw":5,"k":"DRRRDRRRDRRRRDRRRDRRRDRRRRDRRRDRRR","h":"便宜超市衣服穿看新漂亮住房找桌里来回火车出租飞影听唱玩视气冷热下雨雪"},
+{"hw":4,"k":"DRRRDRRDRRDRRRDRRRDRRDRRDRRR","h":"学写汉题知道校老师生上课同工作公司忙班脑病医院你好谢再见"},
+{"hw":3,"k":"DRRDRRDRDRRDRRDRDRRDRR","h":"要喝吃茶喜欢叫名字什么谁请问中国哪儿去今天文"},
+{"hw":2,"k":"DRRRDRRRDRRRDRRR","h":"朋友认识高兴我们他岁几年大家爸妈"}],"base":"手机打","ropes":[{"dx":-1,"ch":"给孩子女"},{"dx":1,"ch":"狗猫月号星"}]};
