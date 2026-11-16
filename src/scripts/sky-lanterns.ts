@@ -20,6 +20,9 @@ const W = 11 * T; // the lantern, before scaling
 const BODY_TOP = 2 * T; // under the hook and the cap
 const BODY_H = mini.rows.length * T;
 const BASE_Y = BODY_TOP + BODY_H;
+const GLOW_Y = BASE_Y - 3.5 * T; // centre of the light inside, above the base
+const GLOW_IN = 'rgba(255,170,60,0.34)';
+const GLOW_OUT = 'rgba(255,110,40,0.17)';
 
 type Thread = { dx: number; n: number; x: Float64Array; y: Float64Array; px: Float64Array; py: Float64Array; sx: number };
 type Sky = {
@@ -34,6 +37,9 @@ type Sky = {
   phase: number;
   age: number;
   wait: number; // s before it starts
+  vx: number; // what the pointer's push adds, px/s; fades
+  vy: number;
+  kick: number; // extra turn from a push, rad/s; fades
   threads: Thread[];
 };
 
@@ -72,6 +78,23 @@ let last = 0;
 let line: HTMLElement; // the footer: nothing is drawn below its top edge
 let clock = 0;
 
+const mouse = { x: 0, y: 0, vx: 0, vy: 0, on: false, t: 0 }; // page coordinates
+const clamp = (v: number, m: number) => Math.max(-m, Math.min(m, v));
+function onMove(e: PointerEvent) {
+  const x = e.clientX + scrollX;
+  const y = e.clientY + scrollY;
+  const now = performance.now();
+  const dt = Math.max(8, now - mouse.t) / 1000;
+  if (mouse.on && dt < 0.2) {
+    mouse.vx += ((x - mouse.x) / dt - mouse.vx) * 0.5;
+    mouse.vy += ((y - mouse.y) / dt - mouse.vy) * 0.5;
+  } else mouse.vx = mouse.vy = 0;
+  mouse.x = x;
+  mouse.y = y;
+  mouse.t = now;
+  mouse.on = true;
+}
+
 function resize() {
   if (!canvas) return;
   const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -108,6 +131,7 @@ function drawOne(l: Sky) {
   }
   ctx.drawImage(img, FIX.hook * q, 0, T * q, T * q, -T / 2, 0, T, T);
   ctx.drawImage(img, FIX.cap * q, 0, 3 * T * q, T * q, -1.5 * T, T, 3 * T, T);
+  const glowR = T * (3.1 + 0.5 * f); // it breathes a little
   mini.rows.forEach((row, j) => {
     const n = row.k.length;
     const r = (row.hw + 0.5) * T;
@@ -129,36 +153,19 @@ function drawOne(l: Sky) {
       ctx.fillStyle = '#000';
       ctx.fillRect(x0, y, wd, T + 0.4);
       ctx.globalAlpha = 1;
+      // The light inside, low in the body: no gradient, each tile is simply lit or not, in two flat
+      // steps, so the tiles and their hanzi stay readable. It stays put while the tiles turn past.
+      const gx = (x0 + x1) / 2;
+      const gy = y + T / 2 - GLOW_Y;
+      const d = Math.hypot(gx, gy * 0.8);
+      if (d < glowR) {
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = d < glowR * 0.55 ? GLOW_IN : GLOW_OUT;
+        ctx.fillRect(x0, y, wd, T + 0.4);
+        ctx.globalCompositeOperation = 'source-over';
+      }
     }
   });
-  // a candle inside, just above the base: a flame of light that flickers, seen through the paper
-  const lean = Math.sin(clock * 3.1 * l.flick + l.phase) * 2.5 - 2; // the wind leans it a little
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(0, cy, BODY_H / 2, 0, TAU);
-  ctx.clip();
-  ctx.globalCompositeOperation = 'lighter';
-  // the whole body lit from inside: a more vivid red, strongest in the middle
-  const lit = ctx.createRadialGradient(0, cy, 0, 0, cy, BODY_H / 2);
-  lit.addColorStop(0, `rgba(255,96,48,${0.2 * f})`);
-  lit.addColorStop(1, `rgba(255,70,36,${0.08 * f})`);
-  ctx.fillStyle = lit;
-  ctx.fillRect(-BODY_H / 2, BODY_TOP, BODY_H, BODY_H);
-  ctx.translate(0, BASE_Y - 1.2 * T);
-  ctx.transform(1, 0, -lean / (4 * T), 1, 0, 0); // top of the flame pushed sideways
-  ctx.scale(1, 1.75 * f);
-  const wide = ctx.createRadialGradient(0, -T * 1.1, 0, 0, -T * 1.1, T * 3.4);
-  wide.addColorStop(0, `rgba(255,190,70,${0.36 * f})`);
-  wide.addColorStop(0.45, `rgba(255,120,30,${0.16 * f})`);
-  wide.addColorStop(1, 'rgba(255,90,20,0)');
-  ctx.fillStyle = wide;
-  ctx.fillRect(-T * 4, -T * 5, T * 8, T * 6);
-  const core = ctx.createRadialGradient(0, -T * 0.5, 0, 0, -T * 0.5, T * 1.25);
-  core.addColorStop(0, `rgba(255,244,190,${0.55 * f})`);
-  core.addColorStop(1, 'rgba(255,200,90,0)');
-  ctx.fillStyle = core;
-  ctx.fillRect(-T * 2, -T * 2, T * 4, T * 3);
-  ctx.restore();
   ctx.drawImage(img, FIX.base * q, 0, 3 * T * q, T * q, -1.5 * T, BASE_Y, 3 * T, T);
   ctx.restore();
 }
@@ -213,6 +220,8 @@ function frame(now: number) {
   ctx.beginPath();
   ctx.rect(0, 0, innerWidth, Math.max(0, edge));
   ctx.clip();
+  mouse.vx *= 0.85; // the pointer's speed fades if it stops sending moves
+  mouse.vy *= 0.85;
   for (const l of list) {
     if (l.wait > 0) {
       l.wait -= dt;
@@ -220,11 +229,29 @@ function frame(now: number) {
     }
     l.age += dt;
     const sway = Math.cos(l.age * 0.9 + l.phase) * l.sway * 0.9; // px/s
-    const moved = (sway - 6) * dt; // a slow drift to the left with the wind
-    const rose = l.rise * Math.min(1, l.age / 1.2) * dt; // eases into its speed
+    // the pointer pushes a lantern it touches: sideways, a little up or down, and it turns it
+    if (mouse.on) {
+      const rad = (BODY_H / 2) * l.scale + 10;
+      const dx = l.x - mouse.x;
+      const dy = l.y + (BODY_TOP + BODY_H / 2) * l.scale - mouse.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist < rad) {
+        const k = Math.min(1, dt * 10);
+        const away = (1 - dist / rad) * 90; // and it slides off the pointer
+        l.vx += (clamp(mouse.vx * 0.55, 420) + (dx / (dist || 1)) * away - l.vx) * k;
+        l.vy += (clamp(mouse.vy * 0.4, 260) + (dy / (dist || 1)) * away - l.vy) * k;
+        l.kick += (clamp(mouse.vx * 0.012, 5) - l.kick) * k;
+      }
+    }
+    const fade = Math.exp(-dt * 1.4);
+    l.vx *= fade;
+    l.vy *= fade;
+    l.kick *= Math.exp(-dt * 0.9);
+    const moved = (sway - 6 + l.vx) * dt; // a slow drift to the left with the wind
+    const rose = (l.rise * Math.min(1, l.age / 1.2) - l.vy) * dt; // eases into its speed
     l.x += moved;
     l.y -= rose;
-    l.spin += l.rate * dt;
+    l.spin += (l.rate + l.kick) * dt;
     for (let n = 2; n > 0; n--) stepThreads(l, dt / 2, moved / l.scale / 2, rose / l.scale / 2);
     if (l.y - scrollY < innerHeight + 40) drawOne(l);
   }
@@ -236,6 +263,8 @@ function frame(now: number) {
     canvas!.remove();
     canvas = null;
     removeEventListener('resize', resize);
+    removeEventListener('pointermove', onMove);
+    mouse.on = false;
   }
 }
 
@@ -274,6 +303,9 @@ export function release(footer: HTMLElement, count = 26) {
       sway: 5 + Math.random() * 8,
       phase: Math.random() * TAU,
       age: 0,
+      vx: 0,
+      vy: 0,
+      kick: 0,
       wait: (1 - Math.sqrt(Math.max(0, 1 - u * u))) * 5.5 + Math.random() * 1.2,
       threads,
     };
@@ -287,6 +319,7 @@ export function release(footer: HTMLElement, count = 26) {
     ctx = canvas.getContext('2d')!;
     resize();
     addEventListener('resize', resize);
+    addEventListener('pointermove', onMove, { passive: true });
     last = performance.now();
     requestAnimationFrame(frame);
   }

@@ -179,6 +179,9 @@ export async function mountLanterns(canvas: HTMLCanvasElement, area: HTMLElement
   let shown = 0; // what is drawn; follows charge smoothly
   let clock = 0;
   const lit = bodies[1];
+  // each click makes it jump a size up; it springs to the size its light asks for and back to 1
+  let size = 1;
+  let vsize = 0;
 
   const draw = () => {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -188,6 +191,14 @@ export async function mountLanterns(canvas: HTMLCanvasElement, area: HTMLElement
       ctx.save();
       ctx.translate(b.pivot, 0);
       ctx.rotate(b.a);
+      ctx.fillStyle = STRING;
+      ctx.fillRect(-1, 0, 2, b.d.drop);
+      if (b === lit && size !== 1) {
+        // grows from its own middle
+        ctx.translate(0, b.d.drop + b.h / 2);
+        ctx.scale(size, size);
+        ctx.translate(0, -(b.d.drop + b.h / 2));
+      }
       if (glow > 0.01) {
         // light around the body
         const cy = b.d.drop + b.h / 2;
@@ -198,8 +209,6 @@ export async function mountLanterns(canvas: HTMLCanvasElement, area: HTMLElement
         ctx.fillStyle = halo;
         ctx.fillRect(-rad, cy - rad, rad * 2, rad * 2);
       }
-      ctx.fillStyle = STRING;
-      ctx.fillRect(-1, 0, 2, b.d.drop);
       ctx.translate(-b.w / 2, b.d.drop);
       if (Math.abs(b.s) < 0.003) ctx.drawImage(b.front, 0, 0, b.w, b.h);
       else {
@@ -262,6 +271,7 @@ export async function mountLanterns(canvas: HTMLCanvasElement, area: HTMLElement
     charge = Math.min(1, charge + 1 / CLICKS);
     lastClick = performance.now();
     lit.vs += (x < lit.pivot ? 1 : -1) * 0.9; // a tap turns it a little
+    vsize += 1.5; // and makes it jump
     if (charge >= 1) {
       letGo = true;
       release(area, RELEASED);
@@ -315,10 +325,11 @@ export async function mountLanterns(canvas: HTMLCanvasElement, area: HTMLElement
 
       const cos = Math.cos(b.a);
       const sin = Math.sin(b.a);
-      const top = b.d.drop + b.h;
+      const grow = b === lit ? size : 1;
+      const top = b.d.drop + b.h / 2 + (b.h / 2) * grow;
       for (const r of b.ropes) {
         // the rope hangs from the base of the lantern, which swings and turns
-        const ax = r.dx * T * Math.cos(b.s);
+        const ax = r.dx * T * Math.cos(b.s) * grow;
         r.x[0] = b.pivot + ax * cos - top * sin;
         r.y[0] = ax * sin + top * cos;
         for (let i = 1; i <= r.n; i++) {
@@ -380,12 +391,18 @@ export async function mountLanterns(canvas: HTMLCanvasElement, area: HTMLElement
     } else if (now - lastClick > 2500) charge = Math.max(0, charge - dt * 0.12);
     shown += (charge - shown) * Math.min(1, dt * 8);
     if (shown < 0.004 && charge === 0) shown = 0;
-    if (shown > 0) moving = 1;
+    vsize += ((1 + 0.2 * charge - size) * 110 - vsize * 9) * dt;
+    size += vsize * dt;
+    if (shown > 0 || Math.abs(size - 1) > 0.002 || Math.abs(vsize) > 0.02) moving = 1;
     idle = moving < 0.02 ? idle + dt : 0;
     if (idle > 0.4 || !visible) {
       // settled: draw the flat design once and stop
       running = false;
-      if (idle > 0.4) for (const b of bodies) b.a = b.va = b.s = b.vs = 0;
+      if (idle > 0.4) {
+        for (const b of bodies) b.a = b.va = b.s = b.vs = 0;
+        size = 1;
+        vsize = 0;
+      }
       draw();
       return;
     }
