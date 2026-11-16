@@ -385,10 +385,22 @@ const rounds: Round[] = [
     // much it grew, so new content pushes the older content up instead of jumping.
     function add(block: HTMLElement, node: Node, replace?: Element) {
       const before = track.offsetHeight;
+      const kids = [...block.children];
+      const tops = kids.map((k) => k.getBoundingClientRect().top);
       if (replace) replace.replaceWith(node);
       else block.append(node);
       const grow = track.offsetHeight - before;
-      if (reduce || !grow) return;
+      if (reduce) return;
+      if (!grow) {
+        // a round is as tall as the card, so new content does not make the chat taller: it moves what
+        // is already in the round up. Glide those pieces to their new place instead of jumping.
+        kids.forEach((k, i) => {
+          if (!k.isConnected) return;
+          const dy = tops[i] - k.getBoundingClientRect().top;
+          if (dy) k.animate([{ translate: `0 ${dy}px` }, { translate: '0 0' }], { duration: 420, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' });
+        });
+        return;
+      }
       track.style.transition = 'none';
       track.style.transform = `translateY(${grow}px)`;
       void track.offsetHeight;
