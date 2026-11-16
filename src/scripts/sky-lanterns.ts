@@ -275,7 +275,7 @@ export function release(footer: HTMLElement, count = 26) {
   const box = footer.getBoundingClientRect();
   const top = box.top + scrollY;
   let sx = FIX.threads;
-  const fresh: Sky[] = Array.from({ length: count }, () => {
+  const fresh: Sky[] = Array.from({ length: count }, (_, i) => {
     // many small ones, a few big: the small ones read as further away
     const scale = 0.2 + Math.random() ** 1.9 * 0.5;
     sx = FIX.threads;
@@ -289,9 +289,11 @@ export function release(footer: HTMLElement, count = 26) {
       }
       return t;
     });
-    // Most leave from the middle, and the middle leaves first; the sides follow. Together they rise
-    // as a dome, like the top of a circle. u: -1 (left edge) to 1 (right edge), bunched around 0.
-    const u = Math.random() + Math.random() - 1;
+    // Each has its own lane across the width, so they keep apart; the lanes are a little closer
+    // together in the middle. The middle leaves first and the sides follow: together they rise as a
+    // dome, like the top of a circle. u: -1 (left edge) to 1 (right edge).
+    const lane = ((i + 0.2 + Math.random() * 0.6) / count) * 2 - 1;
+    const u = Math.sign(lane) * Math.abs(lane) ** 1.2;
     return {
       x: innerWidth * (0.5 + u * 0.48),
       y: top + 14 + Math.random() * 30,
