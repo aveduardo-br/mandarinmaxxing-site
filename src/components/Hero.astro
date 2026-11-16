@@ -512,8 +512,38 @@ import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
     // most 90 fly at once
     const LIFE = [6, 14];
     const MAX_PARTS = 90;
-    type E = { t: T; left: number; since: number; wait: number; speed: number };
+    type E = { t: T; left: number; since: number; wait: number; speed: number; inner?: boolean };
     let emitters: E[] = [];
+    // Variant B (try it with ?hero=b): every column is a small conveyor. When the top tile lets go and
+    // rises, the tiles under it move up one place and a new tile opens at the bottom. A letter with a
+    // hole (A, D, R) has more than one stack in a column; the lower stacks move too, without a flying
+    // tile. A tile carries its colour with it.
+    const CONVEYOR = new URLSearchParams(location.search).get('hero') === 'b';
+    const SLIDE = 420;
+    function lift(top: T, warming: boolean) {
+      const col: T[] = [];
+      for (let r = top.r; ; r++) {
+        const n = at.get(key(top.c, r));
+        if (!n) break;
+        col.push(n);
+      }
+      const bump = (t: T) => (t.slot.gen = (t.slot.gen ?? 0) + 1); // drops a flip that is still on its way
+      for (let i = 0; i + 1 < col.length; i++) {
+        const a = col[i], b = col[i + 1];
+        bump(a);
+        a.bg = b.bg;
+        applyTile(a.slot, { ch: b.slot.val?.ch ?? pick(), bg: b.bg });
+        if (!warming) a.slot.el.animate([{ translate: `0 ${TILE}px` }, { translate: '0 0' }], { duration: SLIDE, easing: 'cubic-bezier(.3,0,.2,1)' });
+      }
+      const last = col[col.length - 1];
+      bump(last);
+      if (Math.random() < 1 / CFG.run) last.bg = newColor(last.bg); // now and then a new colour run starts
+      if (warming) applyTile(last.slot, { ch: pick(), bg: last.bg });
+      else {
+        applyTile(last.slot, null);
+        flip(last, last.bg, SLIDE * 0.55);
+      }
+    }
     // emitters: the top tile of every column (redone when the grid is rebuilt)
     onGrid = () => {
       const tops = new Map<number, T>();
@@ -522,6 +552,10 @@ import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
         if (!o || t.r < o.r) tops.set(t.c, t);
       }
       emitters = [...tops.values()].map((t) => ({ t, left: 0, since: 0, wait: rnd(0, 8), speed: 0 }));
+      if (CONVEYOR)
+        for (const t of tiles)
+          if (tops.get(t.c) !== t && !at.has(key(t.c, t.r - 1)) && at.has(key(t.c, t.r + 1)))
+            emitters.push({ t, left: 0, since: 0, wait: rnd(0, 12), speed: 0, inner: true });
       parts = [];
     };
     onGrid();
@@ -554,8 +588,9 @@ import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
             e.since -= gap;
             e.left--;
             const t = e.t;
-            if (parts.length < MAX_PARTS) parts.push({ x: t.c, y: t.r, y0: t.r, ch: t.slot.val?.ch ?? pick(), bg: t.bg, speed: e.speed, life: rnd(LIFE[0], LIFE[1]), vx: 0, vy: 0, rot: 0, vr: 0 });
-            if (warming) applyTile(t.slot, { ch: pick(), bg: t.bg });
+            if (!e.inner && parts.length < MAX_PARTS) parts.push({ x: t.c, y: t.r, y0: t.r, ch: t.slot.val?.ch ?? pick(), bg: t.bg, speed: e.speed, life: rnd(LIFE[0], LIFE[1]), vx: 0, vy: 0, rot: 0, vr: 0 });
+            if (CONVEYOR) lift(t, warming);
+            else if (warming) applyTile(t.slot, { ch: pick(), bg: t.bg });
             else {
               applyTile(t.slot, null);
               flip(t, t.bg, gap * 850);
