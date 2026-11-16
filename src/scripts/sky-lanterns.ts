@@ -89,8 +89,8 @@ function drawOne(l: Sky) {
   const f = 0.82 + 0.12 * Math.sin(clock * 9 * l.flick + l.phase) + 0.06 * Math.sin(clock * 23 * l.flick + l.phase * 3);
   const cy = BODY_TOP + BODY_H / 2;
   // light around the lantern
-  const halo = ctx.createRadialGradient(0, cy, BODY_H * 0.3, 0, cy, BODY_H * 1.15);
-  halo.addColorStop(0, `rgba(255,80,40,${0.3 * f})`);
+  const halo = ctx.createRadialGradient(0, cy, BODY_H * 0.35, 0, cy, BODY_H * 0.95);
+  halo.addColorStop(0, `rgba(255,80,40,${0.09 * f})`);
   halo.addColorStop(1, 'rgba(255,80,40,0)');
   ctx.fillStyle = halo;
   ctx.fillRect(-BODY_H * 1.15, cy - BODY_H * 1.15, BODY_H * 2.3, BODY_H * 2.3);
@@ -140,8 +140,8 @@ function drawOne(l: Sky) {
   ctx.globalCompositeOperation = 'lighter';
   // the whole body lit from inside: a more vivid red, strongest in the middle
   const lit = ctx.createRadialGradient(0, cy, 0, 0, cy, BODY_H / 2);
-  lit.addColorStop(0, `rgba(255,96,48,${0.42 * f})`);
-  lit.addColorStop(1, `rgba(255,70,36,${0.2 * f})`);
+  lit.addColorStop(0, `rgba(255,96,48,${0.2 * f})`);
+  lit.addColorStop(1, `rgba(255,70,36,${0.08 * f})`);
   ctx.fillStyle = lit;
   ctx.fillRect(-BODY_H / 2, BODY_TOP, BODY_H, BODY_H);
   ctx.translate(0, BASE_Y - 1.2 * T);
