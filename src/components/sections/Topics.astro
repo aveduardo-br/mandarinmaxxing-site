@@ -35,23 +35,34 @@ bookLessons.forEach((l, li) => {
   col += Math.ceil(l.words.length / ROWS);
 });
 const COLS = col;
-// The book has no entry for 你好: lesson 1 is titled 你好 and lists 你 and 好 as its first two words.
-// The greeting points at 你, so it lights up where the book starts.
-cellOf.set('你好', cellOf.get('你')!);
+// The books list some of today's HSK 1 words only inside another entry, or as their parts:
+// - 你好: lesson 1 is titled 你好 and lists 你 and 好 as its first two words;
+// - 他们, 她们: the books list 他 and 她 (and 我们, 你们), never the plural on its own;
+// - a word that is part of a longer entry: 电话 is taught as 打电话, 火车 as 火车站.
+// find() returns the textbook cell for a word and, when it is not the word itself, the entry it is in.
+const PART: Record<string, string> = { 你好: '你', 他们: '他', 她们: '她' };
+const entries = bookLessons.flatMap((l) => l.words);
+const find = (h: string): { cell: number; via: string } => {
+  if (cellOf.has(h)) return { cell: cellOf.get(h)!, via: '' };
+  if (PART[h]) return { cell: cellOf.get(PART[h])!, via: h === '你好' ? '' : PART[h] };
+  const e = entries.find((w) => w.includes(h));
+  return e ? { cell: cellOf.get(e)!, via: e } : { cell: -1, via: '' };
+};
 // owner[i] = the example situation that teaches textbook word i; NONE for every other word
 const NONE = -9;
 const owner: number[] = Array(cells.length).fill(NONE);
 const stripData = topics.map((t, ti) => {
   const all = [...t.words.map((w) => w.hanzi), ...t.rest.map((n) => HSK1_HANZI[n])];
-  const mine = all.map((h) => cellOf.get(h) ?? -1).filter((c) => c >= 0);
+  const mine = [...new Set(all.map((h) => find(h).cell).filter((c) => c >= 0))];
   for (const c of mine) if (owner[c] === NONE) owner[c] = ti;
   return {
     count: t.count,
     inBook: mine.length,
     lessons: new Set(mine.map((c) => cells[c].li)).size,
     words: t.words.map((w) => {
-      const cell = cellOf.get(w.hanzi) ?? -1;
-      return { zh: w.hanzi, en: w.en, cell, where: cell < 0 ? '' : `Book ${cells[cell].book}, lesson ${cells[cell].lesson}` };
+      const { cell, via } = find(w.hanzi);
+      const at = cell < 0 ? '' : `HSK Standard Course ${cells[cell].book}, lesson ${cells[cell].lesson}`;
+      return { zh: w.hanzi, en: w.en, cell, where: at && via ? `taught as ${via} · ${at}` : at };
     }),
   };
 });
@@ -159,8 +170,8 @@ const book2At = (bookStart[1] / COLS) * 100;
         }
       </svg>
       <p class="books" aria-hidden="true">
-        <span style={`width:${book2At}%`}>Book 1 · lessons 1–15</span>
-        <span class="b2">Book 2 · lessons 1–15</span>
+        <span style={`width:${book2At}%`}>HSK Standard Course 1 · lessons 1–15</span>
+        <span class="b2">HSK Standard Course 2 · lessons 1–15</span>
         <a href={BOOK_SOURCE} target="_blank" rel="noopener">Source ↗</a>
       </p>
     </div>
@@ -778,10 +789,10 @@ const book2At = (bookStart[1] / COLS) * 100;
       if (wordFocus === 'more') {
         label.innerHTML =
           `${span('o', String(d.count - d.words.length))} more words ` +
-          span('dim', '· the lit ones are in the textbooks too');
+          span('dim', '· the lit ones are in the two HSK textbooks too');
       } else {
         const w = d.words[wordFocus];
-        label.innerHTML = `${span('o', w.zh)} ${w.en} ` + span('dim', w.where ? `· ${w.where}` : '· not in these two textbooks');
+        label.innerHTML = `${span('o', w.zh)} ${w.en} ` + span('dim', w.where ? `· ${w.where}` : '· no entry in the word lists of HSK Standard Course 1 or 2');
       }
       return;
     }
@@ -796,7 +807,7 @@ const book2At = (bookStart[1] / COLS) * 100;
       // the hovered situation if there is one, otherwise the open one
       const d = data[h < 0 ? active : h];
       label.innerHTML =
-        `${span(h < 0 ? 'w' : 'o', String(d.inBook))} of this situation’s ${d.count} words are in the textbooks ` +
+        `${span(h < 0 ? 'w' : 'o', String(d.inBook))} of this situation’s ${d.count} words are in the two HSK textbooks ` +
         span('dim', `· spread over ${les(d.lessons)}. Here they’re one situation.`);
     }
   }
