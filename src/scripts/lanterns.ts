@@ -24,7 +24,7 @@ const HALF_PI = Math.PI / 2;
 // Easter egg: clicking the middle lantern lights it up a little more each time; fully lit, small
 // lanterns rise out of the footer (src/scripts/sky-lanterns.ts).
 const CLICKS = 8; // clicks to light it fully
-const RELEASED = 14; // small lanterns let go
+const RELEASED = 26; // small lanterns let go
 const GLOW = '255,72,40';
 
 // physics, in px and seconds

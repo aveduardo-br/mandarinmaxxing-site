@@ -29,6 +29,7 @@ type Sky = {
   rise: number; // px/s
   spin: number; // rad
   rate: number; // rad/s
+  flick: number; // the flame's own rhythm
   sway: number;
   phase: number;
   age: number;
@@ -121,6 +122,29 @@ function drawOne(l: Sky) {
       ctx.globalAlpha = 1;
     }
   });
+  // a candle inside, just above the base: a flame of light that flickers, seen through the paper
+  const f = 0.82 + 0.12 * Math.sin(clock * 9 * l.flick + l.phase) + 0.06 * Math.sin(clock * 23 * l.flick + l.phase * 3);
+  const lean = Math.sin(clock * 3.1 * l.flick + l.phase) * 2.5 - 2; // the wind leans it a little
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(0, BODY_TOP + BODY_H / 2, BODY_H / 2, 0, TAU);
+  ctx.clip();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.translate(0, BASE_Y - 1.2 * T);
+  ctx.transform(1, 0, -lean / (4 * T), 1, 0, 0); // top of the flame pushed sideways
+  ctx.scale(1, 1.75 * f);
+  const wide = ctx.createRadialGradient(0, -T * 1.1, 0, 0, -T * 1.1, T * 3.4);
+  wide.addColorStop(0, `rgba(255,190,70,${0.62 * f})`);
+  wide.addColorStop(0.45, `rgba(255,120,30,${0.3 * f})`);
+  wide.addColorStop(1, 'rgba(255,90,20,0)');
+  ctx.fillStyle = wide;
+  ctx.fillRect(-T * 4, -T * 5, T * 8, T * 6);
+  const core = ctx.createRadialGradient(0, -T * 0.5, 0, 0, -T * 0.5, T * 1.25);
+  core.addColorStop(0, `rgba(255,244,190,${0.9 * f})`);
+  core.addColorStop(1, 'rgba(255,200,90,0)');
+  ctx.fillStyle = core;
+  ctx.fillRect(-T * 2, -T * 2, T * 4, T * 3);
+  ctx.restore();
   ctx.drawImage(img, FIX.base * q, 0, 3 * T * q, T * q, -1.5 * T, BASE_Y, 3 * T, T);
   ctx.restore();
 }
@@ -128,7 +152,8 @@ function drawOne(l: Sky) {
 function stepThreads(l: Sky, h: number, moved: number, rose: number) {
   // in the lantern's own unscaled frame; the lantern moving up and sideways shows as the opposite
   // drift of the free tiles
-  const wind = -520 - 160 * Math.sin(clock * 1.7 + l.phase) - 90 * Math.sin(clock * 4.3 + l.phase * 2);
+  // the wind blows to the left, in gusts
+  const wind = -620 - 340 * Math.sin(clock * 1.9 + l.phase) - 240 * Math.sin(clock * 5.3 + l.phase * 2);
   for (const t of l.threads) {
     t.x[0] = t.dx * T;
     t.y[0] = BASE_Y + T;
@@ -137,8 +162,10 @@ function stepThreads(l: Sky, h: number, moved: number, rose: number) {
       const vy = (t.y[i] - t.py[i]) * 0.97;
       t.px[i] = t.x[i];
       t.py[i] = t.y[i];
-      t.x[i] += vx + wind * h * h - moved * 0.25;
-      t.y[i] += vy + 900 * h * h + rose * 0.25;
+      // a ripple that runs down the thread, stronger towards the loose end
+      const flap = Math.sin(clock * 11 - i * 1.4 + l.phase + t.dx) * 260 * i;
+      t.x[i] += vx + (wind + flap) * h * h - moved * 0.25;
+      t.y[i] += vy + (760 + flap * 0.4) * h * h + rose * 0.25;
     }
     for (let it = 0; it < 5; it++) {
       for (let i = 0; i < t.n; i++) {
@@ -199,14 +226,15 @@ function frame(now: number) {
 }
 
 /** Let `count` small lanterns rise from behind the top edge of `footer`. */
-export function release(footer: HTMLElement, count = 14) {
+export function release(footer: HTMLElement, count = 26) {
   if (!sheet) buildSheet();
   line = footer;
   const box = footer.getBoundingClientRect();
   const top = box.top + scrollY;
   let sx = FIX.threads;
-  const fresh: Sky[] = Array.from({ length: count }, (_, i) => {
-    const scale = 0.42 + Math.random() * 0.4;
+  const fresh: Sky[] = Array.from({ length: count }, () => {
+    // many small ones, a few big: the small ones read as further away
+    const scale = 0.2 + Math.random() ** 1.9 * 0.5;
     sx = FIX.threads;
     const threads = mini.ropes.map((r) => {
       const n = [...r.ch].length;
@@ -218,32 +246,29 @@ export function release(footer: HTMLElement, count = 14) {
       }
       return t;
     });
+    // Most leave from the middle, and the middle leaves first; the sides follow. Together they rise
+    // as a dome, like the top of a circle. u: -1 (left edge) to 1 (right edge), bunched around 0.
+    const u = (Math.random() + Math.random() + Math.random()) / 1.5 - 1;
     return {
-      // spread over the width, each in its own lane so they do not bunch up
-      x: innerWidth * (0.06 + (0.88 * (i + Math.random() * 0.8)) / count),
-      y: top + 16 + Math.random() * 60,
+      x: innerWidth * (0.5 + u * 0.46),
+      y: top + 14 + Math.random() * 30,
       scale,
-      rise: 34 + scale * 46 + Math.random() * 14, // the nearer (bigger) ones a little faster
+      rise: 50 + scale * 22 + Math.random() * 8,
       spin: Math.random() * TAU,
-      rate: 0.42 + Math.random() * 0.22,
-      sway: 6 + Math.random() * 10,
+      rate: -(0.42 + Math.random() * 0.22), // the front goes left, with the wind
+      flick: 0.8 + Math.random() * 0.5,
+      sway: 5 + Math.random() * 8,
       phase: Math.random() * TAU,
       age: 0,
-      wait: 0,
+      wait: (1 - Math.sqrt(Math.max(0, 1 - u * u))) * 7 + Math.random() * 0.9,
       threads,
     };
   });
-  // they leave one after the other, in no particular order, the far (small) ones drawn first
-  fresh
-    .map((l) => [Math.random(), l] as const)
-    .sort((a, b) => a[0] - b[0])
-    .forEach(([, l], i) => (l.wait = i * 0.16 + Math.random() * 0.1));
-  fresh.sort((a, b) => a.scale - b.scale);
-  list = [...list, ...fresh].sort((a, b) => a.scale - b.scale);
+  list = [...list, ...fresh].sort((a, b) => a.scale - b.scale); // the far (small) ones drawn first
   if (!canvas) {
     canvas = document.createElement('canvas');
     canvas.setAttribute('aria-hidden', 'true');
-    canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:5';
+    canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30';
     document.body.appendChild(canvas);
     ctx = canvas.getContext('2d')!;
     resize();
