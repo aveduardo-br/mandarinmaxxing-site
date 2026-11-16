@@ -30,6 +30,18 @@ const {
     <!-- reveal-on-scroll only hides content when JS is running -->
     <script is:inline>
       document.documentElement.classList.add('js');
+      // easter egg: the tab says goodbye (再见) while you are away and hello (你好) when you come back
+      (function () {
+        var title = document.title, back = 0;
+        document.addEventListener('visibilitychange', function () {
+          clearTimeout(back);
+          if (document.hidden) document.title = '再见 · ' + title;
+          else {
+            document.title = '你好 · ' + title;
+            back = setTimeout(function () { document.title = title; }, 2500);
+          }
+        });
+      })();
     </script>
     <!-- TODO: self-host Geist / Geist Mono in public/fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />

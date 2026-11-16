@@ -80,6 +80,9 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
 
   <div class="board" data-course={JSON.stringify(data)} data-start={START}>
     <div class="tile-tag top">Lessons</div>
+    <!-- easter egg: HSK 3 at three words a lesson is 168 lessons, and 168 (yī liù bā) sounds like 一路发,
+         "prosper all the way": a well-known lucky number -->
+    <div class="tile-tag lucky" data-lucky hidden><span lang="zh-Hans">一路发</span> · 168 sounds like “prosper all the way”. A lucky number.</div>
     <div class="num" data-num role="img" aria-label={`${MAPPED[START]} lessons`}></div>
     <div class="controls">
       <div class="mod">
@@ -151,6 +154,25 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--text);
+  }
+
+  /* the lucky-number note, at the right end of the LESSONS line */
+  .lucky {
+    position: absolute;
+    right: 0;
+    top: 5px;
+    z-index: 1;
+    background: #c8281e;
+    text-transform: none;
+    letter-spacing: 0.02em;
+    font-weight: 500;
+  }
+  @media (max-width: 720px) {
+    .lucky {
+      position: static;
+      margin-bottom: 8px;
+      white-space: normal;
+    }
   }
 
   /* one panel under the number, as wide as it, split into three equal modules */
@@ -318,6 +340,9 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
 
     let level = 1;
     let pace = root.dataset.start!;
+    const lucky = root.querySelector<HTMLElement>('[data-lucky]')!;
+    const LUCKY = 168, RED = '#C8281E', GOLD = '#E3B341'; // the colours of a red envelope
+    let luckyTimer = 0;
 
     function show(animate: boolean) {
       const next = build(level, pace);
@@ -334,6 +359,16 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
         if (moving) flipTile(slot, v, delay(i));
         else applyTile(slot, v);
       });
+      // 168: once the number has settled, its tiles turn red and gold for a moment, then go back
+      window.clearTimeout(luckyTimer);
+      lucky.hidden = next.n !== LUCKY;
+      if (next.n === LUCKY && moving) {
+        const lit = next.tiles.map((t) => ({ i: t.y * COLS + t.x, v: { ch: t.ch, bg: t.bg } }));
+        luckyTimer = window.setTimeout(() => {
+          lit.forEach((o, k) => flipTile(slots[o.i], { ch: o.v.ch, bg: k % 2 ? GOLD : RED }, delay(o.i)));
+          luckyTimer = window.setTimeout(() => lit.forEach((o) => flipTile(slots[o.i], o.v, delay(o.i))), 2200);
+        }, (COLS + ROWS) * STEP + 500);
+      }
       // one sentence on the chosen level only
       const date = dateOf(next.n, mapped);
       const words = D.levels[level - 1].words.toLocaleString('en-US');
