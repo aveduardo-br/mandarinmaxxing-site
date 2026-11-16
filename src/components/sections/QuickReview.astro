@@ -2,11 +2,11 @@
 // Bento card "01 Quick review" — visual part.
 // Shows what the review does. The first example is already finished: the line of thought (last
 // lesson's word, today's word, mixing them), the question, and two tags saying where each word came
-// from, with a light-orange "Next ↓". Clicking it plays the next example: the finished one slides up
-// and out of the card, and the new one has the whole card to itself, from top to bottom (every round
-// is as tall as the card, with its content at the bottom, like a chat). A single shimmering status
-// line swaps its text in place (like Claude thinking), then opens up into the line of thought and the
-// question lands.
+// from, with a light-orange "Next ↓". Clicking it plays the next example below and pushes the chat
+// up, like a normal chat: a single shimmering status line swaps its text in place (like Claude
+// thinking), then opens up into the line of thought, one step at a time, and the question lands.
+// The text is sized so that one finished round is about as tall as the card: while the new round
+// builds, the one before it goes up bit by bit, and it is out of sight when the new one is done.
 
 type Round = {
   old: string; // word brought back from an earlier lesson
@@ -47,20 +47,15 @@ const rounds: Round[] = [
     display: flex;
     flex-direction: column;
   }
-  /* room between rounds, so nothing of the one before shows at the top edge */
-  .qr-block + .qr-block {
-    margin-top: 40px;
+  /* gap between rounds only once the new one has content (no jump when it's added) */
+  .qr-block + .qr-block:not(:empty) {
+    margin-top: 32px;
   }
-  /* one round fills the card: as tall as the visible area, content at the bottom. The round before it
-     sits wholly above the card, out of sight. */
   .qr-block {
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
     align-items: flex-start;
-    gap: 10px;
-    box-sizing: border-box;
-    min-height: var(--qr-h, 200px);
+    gap: 14px;
   }
 
   /* thinking: three dots pulsing one after the other (neutral, not any app's logo) */
@@ -125,11 +120,11 @@ const rounds: Round[] = [
     display: flex;
     align-items: center;
     gap: 10px;
-    min-height: 20px;
+    min-height: 26px;
   }
   .qr-status-text {
-    font-size: 13px;
-    line-height: 20px;
+    font-size: 15px;
+    line-height: 26px;
     white-space: nowrap;
     color: transparent;
     background-image: linear-gradient(90deg, #5c5c5c 0%, #5c5c5c 35%, #f2f2f2 50%, #5c5c5c 65%, #5c5c5c 100%);
@@ -146,7 +141,7 @@ const rounds: Round[] = [
     translate: 0 4px;
   }
   .qr-status-text .zh {
-    font-size: 16px;
+    font-size: 19px;
   }
   @keyframes qr-shimmer {
     from {
@@ -169,19 +164,19 @@ const rounds: Round[] = [
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 13px;
-    line-height: 20px;
+    font-size: 15px;
+    line-height: 26px;
     color: var(--text-dim);
     white-space: nowrap;
   }
   .qr-thought .ck {
-    width: 14px;
+    width: 16px;
     flex-shrink: 0;
-    font-size: 12px;
+    font-size: 13px;
     color: var(--ok);
   }
   .qr-thought .zh {
-    font-size: 18px;
+    font-size: 22px;
     color: var(--text);
   }
   .qr-thought .en {
@@ -203,8 +198,8 @@ const rounds: Round[] = [
     transform-origin: 0% 100%;
   }
   .qr .qr-q {
-    font-size: 14px;
-    line-height: 20px;
+    font-size: 16px;
+    line-height: 24px;
     color: var(--text-soft);
   }
   .qr-tags {
@@ -212,25 +207,25 @@ const rounds: Round[] = [
     align-items: center;
     gap: 8px;
     padding-left: 2px;
-    min-height: 24px;
+    min-height: 30px;
   }
   .qr-tag {
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 3px 8px;
+    padding: 5px 10px;
     border-radius: 6px;
     background: #1a1a1a;
     transform-origin: 0% 50%;
   }
   .qr-tag .zh {
-    font-size: 14px;
-    line-height: 18px;
+    font-size: 17px;
+    line-height: 20px;
     color: var(--text);
   }
   .qr-tag .lb {
     font-family: var(--f-mono);
-    font-size: 10px;
+    font-size: 11px;
     line-height: 12px;
     letter-spacing: 0.06em;
     color: var(--muted);
@@ -241,8 +236,8 @@ const rounds: Round[] = [
     border: 0;
     background: none;
     font: inherit;
-    font-size: 13px;
-    line-height: 20px;
+    font-size: 15px;
+    line-height: 22px;
     color: var(--accent-light);
     cursor: pointer;
     white-space: nowrap;
@@ -345,7 +340,6 @@ const rounds: Round[] = [
       rows.forEach((row, k) => {
         const p = el('p', animate ? 'in' : '');
         p.append(el('span', 'ck', '✓'), ...row);
-        if (animate) p.style.animationDelay = `${k * 0.08}s`;
         box.append(p);
       });
       return box;
@@ -385,22 +379,10 @@ const rounds: Round[] = [
     // much it grew, so new content pushes the older content up instead of jumping.
     function add(block: HTMLElement, node: Node, replace?: Element) {
       const before = track.offsetHeight;
-      const kids = [...block.children];
-      const tops = kids.map((k) => k.getBoundingClientRect().top);
       if (replace) replace.replaceWith(node);
       else block.append(node);
       const grow = track.offsetHeight - before;
-      if (reduce) return;
-      if (!grow) {
-        // a round is as tall as the card, so new content does not make the chat taller: it moves what
-        // is already in the round up. Glide those pieces to their new place instead of jumping.
-        kids.forEach((k, i) => {
-          if (!k.isConnected) return;
-          const dy = tops[i] - k.getBoundingClientRect().top;
-          if (dy) k.animate([{ translate: `0 ${dy}px` }, { translate: '0 0' }], { duration: 420, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' });
-        });
-        return;
-      }
+      if (reduce || !grow) return;
       track.style.transition = 'none';
       track.style.transform = `translateY(${grow}px)`;
       void track.offsetHeight;
@@ -436,9 +418,7 @@ const rounds: Round[] = [
       const block = el('div', 'qr-block');
       // keep only the previous round above the new one
       while (track.children.length > 1) track.firstElementChild!.remove();
-      // the new round is as tall as the card: adding it slides the finished one up and out
-      add(track, block);
-      await wait(380);
+      track.append(block);
 
       // 1. one status line, text swapping in place
       const line = el('div', 'qr-status');
@@ -456,9 +436,16 @@ const rounds: Round[] = [
         await wait(1400);
       }
 
-      // 2. the line of thought opens up where the status line was
-      add(block, thought(r, true), line);
-      await wait(350);
+      // 2. the line of thought opens up where the status line was, one step at a time
+      const box = thought(r, true);
+      const steps3 = [...box.children];
+      box.replaceChildren(steps3[0]);
+      add(block, box, line);
+      for (const row of steps3.slice(1)) {
+        await wait(520);
+        add(box, row);
+      }
+      await wait(450);
 
       // 3. the question lands
       const b = bubble(r);
@@ -489,11 +476,6 @@ const rounds: Round[] = [
       cur = (cur + 1) % rounds.length;
       play(cur);
     }
-
-    // every round is as tall as the visible part of the card (the track sits 20 px above the bottom)
-    const fitRound = () => root.style.setProperty('--qr-h', `${Math.max(120, root.clientHeight - 20)}px`);
-    fitRound();
-    new ResizeObserver(fitRound).observe(root);
 
     // the first example is already done; the process plays on Next
     show(cur);
