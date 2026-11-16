@@ -394,7 +394,28 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
       // 168: the number forms already in red with gold hanzi, and a band of light runs across the tiles
       // diagonally as they turn. After a moment they turn back to their colours, with the light again.
       window.clearTimeout(luckyTimer);
-      lucky.hidden = next.n !== LUCKY;
+      // the note opens like a flap a moment after the number starts to form, and closes the same way
+      const on = next.n === LUCKY;
+      if (on === lucky.hidden) {
+        lucky.getAnimations().forEach((a) => a.cancel());
+        if (!moving) lucky.hidden = !on;
+        else if (on) {
+          lucky.hidden = false;
+          lucky.animate(
+            [{ transform: 'scaleY(0)', opacity: 0 }, { transform: 'scaleY(1)', opacity: 1 }],
+            { duration: 320, delay: 450, easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'backwards' },
+          );
+        } else {
+          const a = lucky.animate(
+            [{ transform: 'scaleY(1)', opacity: 1 }, { transform: 'scaleY(0)', opacity: 0 }],
+            { duration: 200, easing: 'cubic-bezier(.6,0,.8,.3)', fill: 'forwards' },
+          );
+          a.onfinish = () => {
+            lucky.hidden = true;
+            a.cancel();
+          };
+        }
+      }
       slots.forEach((sl) => sl.el.classList.remove('shine'));
       if (next.n === LUCKY && moving) {
         const lit = next.tiles.map((t) => ({ i: t.y * COLS + t.x, v: { ch: t.ch, bg: t.bg } }));
