@@ -248,9 +248,9 @@ export function release(footer: HTMLElement, count = 26) {
     });
     // Most leave from the middle, and the middle leaves first; the sides follow. Together they rise
     // as a dome, like the top of a circle. u: -1 (left edge) to 1 (right edge), bunched around 0.
-    const u = (Math.random() + Math.random() + Math.random()) / 1.5 - 1;
+    const u = Math.random() + Math.random() - 1;
     return {
-      x: innerWidth * (0.5 + u * 0.46),
+      x: innerWidth * (0.5 + u * 0.48),
       y: top + 14 + Math.random() * 30,
       scale,
       rise: 50 + scale * 22 + Math.random() * 8,
@@ -260,7 +260,7 @@ export function release(footer: HTMLElement, count = 26) {
       sway: 5 + Math.random() * 8,
       phase: Math.random() * TAU,
       age: 0,
-      wait: (1 - Math.sqrt(Math.max(0, 1 - u * u))) * 7 + Math.random() * 0.9,
+      wait: (1 - Math.sqrt(Math.max(0, 1 - u * u))) * 5.5 + Math.random() * 1.2,
       threads,
     };
   });
