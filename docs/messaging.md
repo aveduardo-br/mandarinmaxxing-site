@@ -147,7 +147,7 @@ Revisão de copy aplicada em 15/11/2026, aprovada pelo Eduardo seção por seç�
 | --- | --- |
 | Hero | Linha nova abaixo do título: explica o HSK em meia frase e traz a mensagem 3 (grátis, melhora com o uso). |
 | 01 What it is | Explica o HSK para quem não conhece. Legenda da esteira: "regrouped into situations". |
-| 02 Situations, not chapters | Abertura entra direto no livro (o HSK já foi explicado na 01). Lista apresentada como "The first ten situations of HSK 1". |
+| 02 Situations, not chapters | Abertura entra direto no livro (o HSK já foi explicado na 01). Lista apresentada como "Ten situations from HSK 1" (são dez exemplos espalhados pelo nível, não as dez primeiras). |
 | 03 Chunks | Segundo parágrafo abre com o exemplo do reaproveitamento (太贵了 → 太热了). |
 | 04 A lesson, step by step | Título igual ao da side nav. Cada card diz para que serve o passo. |
 | 05 Your course | Abertura sobre ritmo próprio, legendas dos seletores que ajudam a escolher, frase viva começando pelo número, linha final "None of this is locked". Saiu "Every tile is one lesson" (não era verdade). |
