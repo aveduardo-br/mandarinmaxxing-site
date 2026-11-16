@@ -156,6 +156,34 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     color: var(--text);
   }
 
+  /* 168: a band of light crosses each red tile; the delay set per tile makes it one diagonal sweep
+     over the whole number, and it passes twice */
+  .num :global(.tile.shine)::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(115deg, transparent 35%, rgba(255, 233, 160, 0.85) 50%, transparent 65%);
+    background-size: 320% 100%;
+    background-position: 110% 0;
+    animation: shine 1.25s linear var(--shine-delay, 0ms) 2 both;
+  }
+  @keyframes shine {
+    from {
+      background-position: 110% 0;
+    }
+    45%,
+    to {
+      background-position: -10% 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .num :global(.tile.shine)::after {
+      animation: none;
+      background: none;
+    }
+  }
+
   /* the lucky-number note, at the right end of the LESSONS line */
   .lucky {
     position: absolute;
@@ -359,14 +387,26 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
         if (moving) flipTile(slot, v, delay(i));
         else applyTile(slot, v);
       });
-      // 168: once the number has settled, its tiles turn red and gold for a moment, then go back
+      // 168: once the number has settled, its tiles turn red with gold hanzi for a moment, and a band of
+      // light runs across them diagonally as they turn (twice), then they go back to their colours
       window.clearTimeout(luckyTimer);
       lucky.hidden = next.n !== LUCKY;
+      slots.forEach((sl) => sl.el.classList.remove('shine'));
       if (next.n === LUCKY && moving) {
         const lit = next.tiles.map((t) => ({ i: t.y * COLS + t.x, v: { ch: t.ch, bg: t.bg } }));
         luckyTimer = window.setTimeout(() => {
-          lit.forEach((o, k) => flipTile(slots[o.i], { ch: o.v.ch, bg: k % 2 ? GOLD : RED }, delay(o.i)));
-          luckyTimer = window.setTimeout(() => lit.forEach((o) => flipTile(slots[o.i], o.v, delay(o.i))), 2200);
+          lit.forEach((o) => {
+            const el = slots[o.i].el;
+            flipTile(slots[o.i], { ch: o.v.ch, bg: RED, fg: GOLD }, delay(o.i));
+            el.style.setProperty('--shine-delay', `${delay(o.i) * 1.6 + 200}ms`); // starts as the tile opens in red
+            el.classList.add('shine');
+          });
+          luckyTimer = window.setTimeout(() => {
+            lit.forEach((o) => {
+              slots[o.i].el.classList.remove('shine');
+              flipTile(slots[o.i], o.v, delay(o.i));
+            });
+          }, 3200);
         }, (COLS + ROWS) * STEP + 500);
       }
       // one sentence on the chosen level only
