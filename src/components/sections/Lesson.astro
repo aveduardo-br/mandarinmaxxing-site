@@ -37,10 +37,13 @@ const vocab = [
     hanzi: '便宜',
     pinyin: 'piányi',
     meaning: 'cheap',
-    zh: ['', '便宜', '一点儿，可以吗？'],
-    en: ['A bit ', 'cheaper', ', OK?'],
+    zh: ['', '便宜', '一点儿'],
+    en: ['A bit ', 'cheaper', '.'],
   },
 ];
+// Chunks are kept short (three to five tiles), and the box around them is as wide as the chunk it
+// shows: it resizes when the chunk changes. tilesIn() counts a chunk's tiles (punctuation has none).
+const tilesIn = (zh: string[]) => [...zh.join('')].filter((c) => !/[\s,.?!？，。、！]/.test(c)).length;
 
 ---
 
@@ -89,7 +92,7 @@ const vocab = [
               ))
             }
           </div>
-          <div class="fieldset chunk">
+          <div class="fieldset chunk" data-chunk-box style={`--n:${tilesIn(vocab[0].zh)}`}>
             <div class="edge top">
               <span class="line"></span><span class="cap label cap-label">USEFUL CHUNK</span><span class="line"></span>
             </div>
@@ -329,9 +332,12 @@ const vocab = [
     line-height: 14px;
     color: var(--muted-2);
   }
+  /* as wide as its chunk: the tiles plus 28 px of air on each side, never narrower than its label */
   .chunk {
-    width: 252px;
+    width: max(150px, calc(var(--n, 5) * 28px + 56px));
+    max-width: 100%;
     margin-top: 24px;
+    transition: width 0.38s cubic-bezier(0.22, 1, 0.36, 1);
   }
   .cap-label {
     font-size: var(--fs-label);
@@ -376,6 +382,7 @@ const vocab = [
     const rows = [...table.querySelectorAll<HTMLElement>('[data-row]')];
     const zhEl = document.querySelector<HTMLElement>('[data-chunk-zh]')!;
     const enEl = document.querySelector<HTMLElement>('[data-chunk-en]')!;
+    const boxEl = document.querySelector<HTMLElement>('[data-chunk-box]')!;
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const PUNCT = /[\s,.?!？，。、！]/;
     const tilesOf = (parts: Parts): TileVal[] => [
@@ -428,6 +435,7 @@ const vocab = [
       rows[i].classList.add('active');
       active = i;
       setRow(zhEl, chunkSlots, tilesOf(data[i].zh));
+      boxEl.style.setProperty('--n', String(tilesOf(data[i].zh).length)); // the box follows the chunk
       zhEl.setAttribute('aria-label', data[i].zh.join(''));
       glitch(enEl, data[i].en, LATIN);
     };
