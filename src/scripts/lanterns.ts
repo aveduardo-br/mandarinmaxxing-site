@@ -270,8 +270,8 @@ export async function mountLanterns(canvas: HTMLCanvasElement, area: HTMLElement
     if (letGo || hit(lit, x, y) < 0) return;
     charge = Math.min(1, charge + 1 / CLICKS);
     lastClick = performance.now();
-    lit.vs += (x < lit.pivot ? 1 : -1) * 0.9; // a tap turns it a little
-    vsize += 1.5; // and makes it jump
+    lit.vs += (x < lit.pivot ? 1 : -1) * 0.35; // a tap turns it a little
+    vsize += 1.1; // and makes it jump
     if (charge >= 1) {
       letGo = true;
       release(area, RELEASED);
@@ -391,7 +391,7 @@ export async function mountLanterns(canvas: HTMLCanvasElement, area: HTMLElement
     } else if (now - lastClick > 2500) charge = Math.max(0, charge - dt * 0.12);
     shown += (charge - shown) * Math.min(1, dt * 8);
     if (shown < 0.004 && charge === 0) shown = 0;
-    vsize += ((1 + 0.2 * charge - size) * 110 - vsize * 9) * dt;
+    vsize += ((1 + 0.14 * charge - size) * 110 - vsize * 9) * dt;
     size += vsize * dt;
     if (shown > 0 || Math.abs(size - 1) > 0.002 || Math.abs(vsize) > 0.02) moving = 1;
     idle = moving < 0.02 ? idle + dt : 0;
