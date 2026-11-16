@@ -3,7 +3,8 @@
 // MAXXING in black tiles overlapping its bottom edge. Settings come from the lab artifact
 // "Hero em ladrilhos — laboratório". Tiles flip on their own; the cursor flips MANDARIN tiles orange
 // (they go back to a colour a moment later) and turns MAXXING letters into hanzi for a while. The top
-// tile of each column lets go and rises, pushed by the cursor. All seven MAXXING letters turned at
+// tile of each column lets go and rises, pushed by the cursor, and the column under it moves up one
+// place like a conveyor, with a new tile opening at the bottom. All seven MAXXING letters turned at
 // once read 学汉语很有意思, "Learning Chinese is fun".
 import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
 ---
@@ -514,11 +515,10 @@ import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
     const MAX_PARTS = 90;
     type E = { t: T; left: number; since: number; wait: number; speed: number; inner?: boolean };
     let emitters: E[] = [];
-    // Variant B (try it with ?hero=b): every column is a small conveyor. When the top tile lets go and
-    // rises, the tiles under it move up one place and a new tile opens at the bottom. A letter with a
-    // hole (A, D, R) has more than one stack in a column; the lower stacks move too, without a flying
-    // tile. A tile carries its colour with it.
-    const CONVEYOR = new URLSearchParams(location.search).get('hero') === 'b';
+    // Every column is a small conveyor (approved 16/11/2026). When the top tile lets go and rises, the
+    // tiles under it move up one place and a new tile opens at the bottom. A letter with a hole (A, D,
+    // R) has more than one stack in a column; the lower stacks move too, without a flying tile. A tile
+    // carries its colour with it.
     const SLIDE = 420;
     function lift(top: T, warming: boolean) {
       const col: T[] = [];
@@ -552,8 +552,7 @@ import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
         if (!o || t.r < o.r) tops.set(t.c, t);
       }
       emitters = [...tops.values()].map((t) => ({ t, left: 0, since: 0, wait: rnd(0, 8), speed: 0 }));
-      if (CONVEYOR)
-        for (const t of tiles)
+      for (const t of tiles)
           if (tops.get(t.c) !== t && !at.has(key(t.c, t.r - 1)) && at.has(key(t.c, t.r + 1)))
             emitters.push({ t, left: 0, since: 0, wait: rnd(0, 12), speed: 0, inner: true });
       parts = [];
@@ -589,12 +588,7 @@ import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
             e.left--;
             const t = e.t;
             if (!e.inner && parts.length < MAX_PARTS) parts.push({ x: t.c, y: t.r, y0: t.r, ch: t.slot.val?.ch ?? pick(), bg: t.bg, speed: e.speed, life: rnd(LIFE[0], LIFE[1]), vx: 0, vy: 0, rot: 0, vr: 0 });
-            if (CONVEYOR) lift(t, warming);
-            else if (warming) applyTile(t.slot, { ch: pick(), bg: t.bg });
-            else {
-              applyTile(t.slot, null);
-              flip(t, t.bg, gap * 850);
-            }
+            lift(t, warming);
           }
         } else if (rate > 0) {
           e.wait -= dt * rate;

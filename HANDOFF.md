@@ -52,7 +52,7 @@ Os títulos da side nav vêm de `sections` em `site.ts`. Se um título mudar, mu
 
 ## Hero em ladrilhos (14/11/2026)
 
-O hero agora é o MANDARIN em ladrilhos sobre o contorno do hero antigo (as 750 células em `src/data/hero-cells.json`), com MAXXING em ladrilhos pretos sobreposto embaixo. A configuração veio do artifact "Hero em ladrilhos — laboratório" (https://claude.ai/artifact/LdamsWc6y52qae8fuULxU9) e está em `CFG`, no script de `src/components/Hero.astro`. Easter egg: as sete letras viradas juntas formam 学汉语很有意思. `public/hero-art.json` não é mais usado pelo site.
+O hero agora é o MANDARIN em ladrilhos sobre o contorno do hero antigo (as 750 células em `src/data/hero-cells.json`), com MAXXING em ladrilhos pretos sobreposto embaixo. A configuração veio do artifact "Hero em ladrilhos — laboratório" (https://claude.ai/artifact/LdamsWc6y52qae8fuULxU9) e está em `CFG`, no script de `src/components/Hero.astro`. Easter egg: as sete letras viradas juntas formam 学汉语很有意思. Desde 16/11/2026 cada coluna é uma esteira: quando o ladrilho do topo se solta e sobe, os de baixo sobem uma casa e um novo abre embaixo (função `lift`). `public/hero-art.json` não é mais usado pelo site.
 
 ## Copy v0.4.0 (14/11/2026)
 
