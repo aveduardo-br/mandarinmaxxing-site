@@ -40,6 +40,8 @@ type Sky = {
   vx: number; // what the pointer's push adds, px/s; fades
   vy: number;
   kick: number; // extra turn from a push, rad/s; fades
+  tilt: number; // lean from a push, rad; springs back upright
+  vtilt: number;
   threads: Thread[];
 };
 
@@ -108,6 +110,12 @@ function drawOne(l: Sky) {
   ctx.save();
   ctx.translate(l.x - scrollX, l.y - scrollY);
   ctx.scale(l.scale, l.scale);
+  if (Math.abs(l.tilt) > 0.001) {
+    // leans about the middle of the body
+    ctx.translate(0, BODY_TOP + BODY_H / 2);
+    ctx.rotate(l.tilt);
+    ctx.translate(0, -(BODY_TOP + BODY_H / 2));
+  }
   // the flame's flicker; the whole lantern breathes with it, a little
   const f = 0.82 + 0.12 * Math.sin(clock * 9 * l.flick + l.phase) + 0.06 * Math.sin(clock * 23 * l.flick + l.phase * 3);
   const cy = BODY_TOP + BODY_H / 2;
@@ -247,6 +255,9 @@ function frame(now: number) {
     l.vx *= fade;
     l.vy *= fade;
     l.kick *= Math.exp(-dt * 0.9);
+    // a push leans it the way it is going; then it rights itself, with a small wobble
+    l.vtilt += ((clamp(l.vx * 0.0016, 0.42) - l.tilt) * 34 - l.vtilt * 4.2) * dt;
+    l.tilt += l.vtilt * dt;
     const moved = (sway - 6 + l.vx) * dt; // a slow drift to the left with the wind
     const rose = (l.rise * Math.min(1, l.age / 1.2) - l.vy) * dt; // eases into its speed
     l.x += moved;
@@ -308,6 +319,8 @@ export function release(footer: HTMLElement, count = 26) {
       vx: 0,
       vy: 0,
       kick: 0,
+      tilt: 0,
+      vtilt: 0,
       wait: (1 - Math.sqrt(Math.max(0, 1 - u * u))) * 5.5 + Math.random() * 1.2,
       threads,
     };
