@@ -1,6 +1,9 @@
 ---
 // FAQ. The first answer is the only place where Eduardo speaks in the first person.
 // Answers are plain strings; a few carry a link, so they are rendered as HTML.
+// Each question is collapsible. A tile before the question holds the arrow: grey with a down arrow
+// while closed; on opening it flips (the same flip as every tile) to orange with a dark up arrow.
+// The first question starts open. Without JavaScript every answer is shown.
 import { SKILL_ISSUES } from '../../data/site';
 
 const items = [
@@ -55,12 +58,25 @@ const items = [
   <p class="kicker">FAQ</p>
   <h2 class="title display">Questions</h2>
   {
-    items.map((it) => (
-      <div id={it.id} class="item">
-        <h3 class="q display">{it.q}</h3>
-        {it.a.map((p) => (
-          <p class="prose" set:html={p} />
-        ))}
+    items.map((it, i) => (
+      <div id={it.id} class:list={['item', { open: i === 0 }]} data-faq>
+        <h3 class="q display">
+          <button class="head" type="button" aria-expanded={i === 0 ? 'true' : 'false'} aria-controls={`${it.id}-a`}>
+            <span class:list={['ftile', { on: i === 0 }]} aria-hidden="true">
+              <svg viewBox="0 0 7 6" shape-rendering="crispEdges">
+                <path d="M3 0h1v3h-1zM1 3h1v1h-1zM5 3h1v1h-1zM2 4h3v1h-3zM3 3h1v3h-1z" />
+              </svg>
+            </span>
+            <span>{it.q}</span>
+          </button>
+        </h3>
+        <div class="body" id={`${it.id}-a`}>
+          <div class="inner">
+            {it.a.map((p) => (
+              <p class="prose" set:html={p} />
+            ))}
+          </div>
+        </div>
       </div>
     ))
   }
@@ -85,10 +101,6 @@ const items = [
     color: var(--text);
   }
   .item {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding-block: 16px;
     border-top: 1px solid var(--outline);
     scroll-margin-top: 48px;
   }
@@ -105,4 +117,114 @@ const items = [
     line-height: var(--lh-h4);
     color: var(--text);
   }
+  .head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 16px 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .head:focus-visible {
+    outline: 1px dashed var(--accent-light);
+    outline-offset: -2px;
+  }
+  /* the arrow tile: like a tile that is "off" (grey, light arrow) while closed, orange with a dark
+     arrow pointing up while open */
+  .ftile {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    background: #1e1e1e;
+  }
+  .ftile svg {
+    width: 14px;
+    height: 12px;
+    fill: #8a8a8a;
+  }
+  .ftile.on {
+    background: #d2430e;
+  }
+  .ftile.on svg {
+    fill: #161616;
+    transform: scaleY(-1);
+  }
+  .head:hover .ftile:not(.on) svg {
+    fill: var(--text);
+  }
+  /* the answer: opens by growing its grid row, so it works for any length */
+  .body {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .inner {
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-left: 42px; /* under the question, past the tile */
+  }
+  .inner > :last-child {
+    padding-bottom: 20px;
+  }
+  /* closed only when the script is there to open it again */
+  :global(.js) .item:not(.open) .body {
+    grid-template-rows: 0fr;
+  }
+  :global(.js) .item:not(.open) .inner {
+    visibility: hidden;
+    transition: visibility 0s 0.4s;
+  }
+  @media (max-width: 720px) {
+    .inner {
+      padding-left: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .body {
+      transition: none;
+    }
+  }
 </style>
+
+<script>
+  import { DUR, EASE_CLOSE, EASE_OPEN, reduceMotion } from '../../scripts/tiles';
+
+  const items = [...document.querySelectorAll<HTMLElement>('[data-faq]')];
+  const set = (item: HTMLElement, open: boolean) => {
+    if (item.classList.contains('open') === open) return;
+    item.classList.toggle('open', open);
+    item.querySelector('button')!.setAttribute('aria-expanded', String(open));
+    const tile = item.querySelector<HTMLElement>('.ftile')!;
+    if (reduceMotion()) return void tile.classList.toggle('on', open);
+    // the tile closes, changes colour and arrow, and opens again
+    const a = tile.animate([{ transform: 'scaleY(1)' }, { transform: 'scaleY(0)' }], { duration: DUR, easing: EASE_CLOSE, fill: 'forwards' });
+    a.onfinish = () => {
+      a.cancel();
+      tile.classList.toggle('on', item.classList.contains('open'));
+      tile.animate([{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }], { duration: DUR, easing: EASE_OPEN });
+    };
+  };
+  for (const item of items) item.querySelector('button')!.addEventListener('click', () => set(item, !item.classList.contains('open')));
+  // a link to a question (the side nav, or a shared address) opens it
+  const fromHash = () => {
+    const item = items.find((i) => `#${i.id}` === location.hash);
+    if (item) set(item, true);
+  };
+  addEventListener('hashchange', fromHash);
+  fromHash();
+  document.addEventListener('click', (e) => {
+    const link = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[href^="#faq-"]');
+    const item = link && items.find((i) => `#${i.id}` === link.getAttribute('href'));
+    if (item) set(item, true);
+  });
+</script>
