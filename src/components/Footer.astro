@@ -22,23 +22,25 @@ import { panelHeight, MARGIN } from '../scripts/lanterns';
         <a href={SKILL_RELEASES} target="_blank" rel="noopener">Releases ↗</a>
       </div>
       <div class="colm">
-        <p class="label">On this page</p>
+        <p class="label">How it works</p>
         <a href="#what-it-is">What it is</a>
         <a href="#topics">Situations, not chapters</a>
+        <a href="#chunks">Chunks</a>
         <a href="#lesson">A lesson, step by step</a>
+        <a href="#course">Your course</a>
         <a href="#faq">Questions</a>
       </div>
       <div class="colm wide">
         <p class="label">Help improve it</p>
-        <p class="note">A lesson felt off, or a word sits in the wrong situation? That’s how it gets better.</p>
+        <p class="note">A lesson felt off, or a word sits in the wrong situation? Say so. That’s how the map gets fixed.</p>
         <a class="issue" href={SKILL_ISSUES} target="_blank" rel="noopener">Open an issue ↗</a>
       </div>
     </div>
     <div class="fine">
-      <p>Made by Eduardo. Lessons taught by Claude. {SKILL_VERSION}</p>
+      <p>The community writes the maps. Claude teaches the lessons. {SKILL_VERSION}</p>
       <p class="dim">
-        An independent project. It uses the HSK syllabus released in November 2025 and isn’t affiliated with the
-        organization that runs the test.
+        An independent project, not affiliated with the organization that runs the test. Word lists from the November
+        2025 HSK syllabus, converted from <a class="credit" href="https://github.com/ofou/hsk" target="_blank" rel="noopener">ofou/hsk ↗</a> (MIT License).
       </p>
     </div>
   </div>
@@ -165,6 +167,13 @@ import { panelHeight, MARGIN } from '../scripts/lanterns';
   }
   .fine .dim {
     color: var(--muted-2);
+  }
+  .fine .credit {
+    color: var(--text-dim);
+    transition: color 0.15s ease;
+  }
+  .fine .credit:hover {
+    color: var(--text);
   }
 
   /* the lanterns hang from the top edge of the footer; the canvas is wider than its box so they

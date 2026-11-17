@@ -137,25 +137,23 @@ Regra prática: se a frase pode ir para o site de qualquer outro produto, ela es
 - Fluência, aprovação na prova, "mesmo nível de quem fez o livro".
 - Avaliação de pronúncia.
 - Qualquer função que a skill não tenha.
-- "Comunidade" como se já houvesse um lugar para ela. Hoje é o GitHub.
+- "Comunidade" como se já houvesse um lugar para ela. Hoje é o GitHub, com as issues.
+- Clichês de comunidade ("from the community, for the community").
 
-## Estado da copy por seção (15/11/2026, depois da revisão)
+## Estado da copy por seção (16/11/2026, segunda rodada)
 
-Revisão de copy aplicada em 15/11/2026, aprovada pelo Eduardo seção por seção.
+Segunda rodada de copy, aprovada pelo Eduardo em 16/11/2026. Direção nova: falar da comunidade sempre que der, sem dizer que o Eduardo fez tudo, e sem clichê ("from the community, for the community" foi rejeitado). O que a comunidade faz de verdade: aponta lições estranhas e palavras na situação errada, e os mapas são corrigidos.
 
-| Seção | O que mudou |
+| Seção | Como está |
 | --- | --- |
-| Hero | Linha nova abaixo do título: explica o HSK em meia frase e traz a mensagem 3 (grátis, melhora com o uso). |
-| 01 What it is | Explica o HSK para quem não conhece. Legenda da esteira: "regrouped into situations". |
-| 02 Situations, not chapters | Abertura entra direto no livro (o HSK já foi explicado na 01). Lista apresentada como "Ten situations from HSK 1" (são dez exemplos espalhados pelo nível, não as dez primeiras). |
-| 03 Chunks | Segundo parágrafo abre com o exemplo do reaproveitamento (太贵了 → 太热了). |
-| 04 A lesson, step by step | Título igual ao da side nav. Cada card diz para que serve o passo. |
-| 05 Your course | Abertura sobre ritmo próprio, legendas dos seletores que ajudam a escolher, frase viva começando pelo número, linha final "None of this is locked". Saiu "Every tile is one lesson" (não era verdade). |
-| 06 Install | Linha final convidando a abrir uma issue. |
-| FAQ | Última linha de "Why did you make this?" com o convite para reportar. |
-| Footer | Refeito em 16/11/2026. Nome, frase "The same HSK words, reorganized around everyday conversations. A free skill for Claude.", três colunas (The skill, On this page, Help improve it com o convite para abrir uma issue) e a linha de projeto independente. Ainda não revisado como copy: "On this page" não lista Chunks, Your course nem Install, e falta a linha de créditos da lista de palavras. Hanzi nas lanternas: 好好学习, 学汉语很有意思, 天天向上; no easter egg viram 心想事成, 学习进步, 万事如意. |
-
-Pendente: o card de áudio da seção 04 mostra um diálogo entre A e B, e a skill gera um clipe de uma voz só.
+| Hero | Sem "free". Linha: "A tutor in your Claude chat for the official word list of the Chinese proficiency test. Built in the open and shaped by the people who study with it." Linha pequena sem "Free". É o único lugar que explica o que é o HSK. |
+| 01 What it is | Segue o HSK nível a nível; mesmas palavras, outra ordem, por situação. Segundo parágrafo: como a aula funciona, "It's a method: use it however works for you", e melhora com quem estuda. Saiu "It isn't a complete method". |
+| 02 Situations, not chapters | Abertura nomeia o livro: "If you study with the HSK Standard Course, the textbook series made for the test…". Resto igual. |
+| 03 Chunks | A primeira frase do parágrafo de baixo muda com o chunk (太贵了/太热了, 我想看一下/我想问一下, 你什么时候来/你什么时候下班), com uma animação curta. |
+| 04 A lesson | Quick review sem "translate". Spaced review: "Old words keep coming back." Card 02 e 03 reescritos (o 03 fala do jeito natural de dizer). Pendente: o card de áudio mostra diálogo A/B e a skill gera uma voz só. |
+| 05, 06 | Sem mudança nesta rodada. |
+| FAQ | "Why did you make this?" reescrito com a história do Eduardo (ferramenta para estudar, progresso travado, amigo, HSK 1 e 2) e fecha com "Anyone who studies with it can make it better for the next person". Saiu o exemplo do quarto e do relógio (a 02 já mostra). |
+| Footer | Frase igual. Coluna "How it works" com todas as seções menos Install. "Say so. That's how the map gets fixed." Linha "The community writes the maps. Claude teaches the lessons." Aviso com créditos do ofou/hsk (MIT). |
 
 ## Em aberto
 

@@ -15,6 +15,7 @@ const chunks = [
     pre: '太',
     post: '了',
     label: 'So …!',
+    ex: ['太贵了', 'while shopping', 'say', '太热了', 'about the weather'],
     words: [
       ['贵', 'expensive'],
       ['热', 'hot'],
@@ -27,6 +28,7 @@ const chunks = [
     pre: '我想',
     post: '一下',
     label: 'I’d like to …',
+    ex: ['我想看一下', 'in a shop', 'say', '我想问一下', 'to someone on the street'],
     words: [
       ['看', 'have a look'],
       ['问', 'ask something'],
@@ -39,6 +41,7 @@ const chunks = [
     pre: '你什么时候',
     post: '',
     label: 'When do you …?',
+    ex: ['你什么时候来', 'making plans', 'ask', '你什么时候下班', 'at work'],
     words: [
       ['来', 'come'],
       ['下班', 'get off work'],
@@ -48,6 +51,10 @@ const chunks = [
     ],
   },
 ];
+// The sentence under the staircase changes with the chunk: learn it in one situation, reuse it in another.
+const lead = (ex: string[]) =>
+  `Learn <span class="hanzi" lang="zh-Hans">${ex[0]}</span> ${ex[1]} and you can already ${ex[2]} <span class="hanzi" lang="zh-Hans">${ex[3]}</span> ${ex[4]}.`;
+const leads = chunks.map((c) => lead(c.ex));
 ---
 
 <Section id="chunks" num="03" title="Chunks" tiled>
@@ -56,7 +63,7 @@ const chunks = [
     situation, with one word swapped.
   </p>
 
-  <div class="viz" data-chunks={JSON.stringify(chunks)}>
+  <div class="viz" data-chunks={JSON.stringify(chunks)} data-leads={JSON.stringify(leads)}>
     <div class="fit" data-fit>
       <div class="stage" data-stage role="button" tabindex="0" aria-label="Show the next chunk"></div>
     </div>
@@ -66,8 +73,7 @@ const chunks = [
   </div>
 
   <p class="prose after">
-    Learn <span class="hanzi" lang="zh-Hans">太贵了</span> while shopping and you can already say
-    <span class="hanzi" lang="zh-Hans">太热了</span> about the weather. Each chunk shows up in your translations and in the text
+    <span class="lead" data-lead set:html={leads[0]} /> Each chunk shows up in your translations and in the text
     that closes the lesson, then comes back later in new sentences.
   </p>
 </Section>
@@ -149,6 +155,16 @@ const chunks = [
     line-height: 18px;
   }
 
+  .after .lead {
+    display: inline;
+    transition:
+      opacity 0.22s ease,
+      filter 0.22s ease;
+  }
+  .after .lead.out {
+    opacity: 0;
+    filter: blur(3px);
+  }
   .after {
     margin-top: 40px;
   }
@@ -174,6 +190,18 @@ const chunks = [
     const stage = viz.querySelector<HTMLElement>('[data-stage]')!;
     const fit = viz.querySelector<HTMLElement>('[data-fit]')!;
     const live = viz.querySelector<HTMLElement>('[data-live]')!;
+    const leads: string[] = JSON.parse(viz.dataset.leads!);
+    const leadEl = document.querySelector<HTMLElement>('#chunks [data-lead]');
+    // the first sentence under the staircase slides out and the new one slides in
+    const swapLead = (k: number) => {
+      if (!leadEl) return;
+      if (reduceMotion()) return void (leadEl.innerHTML = leads[k]);
+      leadEl.classList.add('out');
+      window.setTimeout(() => {
+        leadEl.innerHTML = leads[k];
+        leadEl.classList.remove('out');
+      }, 220);
+    };
     const WORDS = 5;
     const ROWS = WORDS + 1; // the chunk itself, then one step per word
     const STEP = TILE; // each step starts one tile further right
@@ -264,6 +292,7 @@ const chunks = [
       cur = k;
       const c = chunks[k];
       live.textContent = `${c.label} ${c.words.map((w) => `${c.pre}${w[0]}${c.post} (${w[1]})`).join(', ')}`;
+      swapLead(k);
       if (reduceMotion()) return render(k);
       busy = true;
       let last = 0;
