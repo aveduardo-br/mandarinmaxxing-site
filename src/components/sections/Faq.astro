@@ -85,6 +85,10 @@ const items = [
   .item {
     scroll-margin-top: 48px;
   }
+  /* a little more room between the title and the first question, like the other sections' intro */
+  .item:first-of-type {
+    margin-top: 16px;
+  }
   .item :global(a) {
     color: var(--text);
     text-decoration: underline;
