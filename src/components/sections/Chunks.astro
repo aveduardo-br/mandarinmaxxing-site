@@ -155,22 +155,7 @@ const leads = chunks.map((c) => lead(c.ex));
     line-height: 18px;
   }
 
-  /* words of the changing sentence (wrapped by the script, hence :global) */
-  .after .lead :global(.w) {
-    display: inline-block;
-    transition:
-      opacity 0.26s ease,
-      filter 0.26s ease,
-      transform 0.26s ease;
-  }
-  .after .lead :global(.w.gone) {
-    opacity: 0;
-    filter: blur(4px);
-    transform: translateX(4px);
-  }
-  .after .lead :global(.w.from) {
-    transform: translateX(-4px);
-  }
+  /* the changing sentence's words: the rewrite effect in global.css (src/scripts/write.ts) */
   .after {
     margin-top: 40px;
   }
@@ -187,6 +172,7 @@ const leads = chunks.map((c) => lead(c.ex));
 <script>
   import { makeSlot, applyTile, flipTile, reduceMotion, TILE, ORANGE, MUTED, DIM, WAVE, FLIP } from '../../scripts/tiles';
   import type { Slot, TileVal } from '../../scripts/tiles';
+  import { makeInlineWriter } from '../../scripts/write';
 
   type Chunk = { pre: string; post: string; label: string; words: [string, string][] };
 
@@ -198,61 +184,10 @@ const leads = chunks.map((c) => lead(c.ex));
     const live = viz.querySelector<HTMLElement>('[data-live]')!;
     const leads: string[] = JSON.parse(viz.dataset.leads!);
     const leadEl = document.querySelector<HTMLElement>('#chunks [data-lead]');
-    // The first sentence under the staircase changes with the chunk. Its words fade out one after
-    // another from left to right, a short pause, then the new sentence fades in the same way, as if
-    // it were being written. Each English word is one unit; each hanzi is its own unit.
-    const OUT_STEP = 16; // ms between words going out
-    const IN_STEP = 26; // ms between words coming in
-    const FADE = 260; // each word's own fade
-    const PAUSE = 140; // between the last word out and the first word in
-    const wrap = (html: string) => {
-      const box = document.createElement('span');
-      box.innerHTML = html;
-      const out = document.createElement('span');
-      const unit = (text: string, zh: boolean) => {
-        const w = document.createElement('span');
-        w.className = zh ? 'w hanzi' : 'w';
-        if (zh) w.lang = 'zh-Hans';
-        w.textContent = text;
-        out.appendChild(w);
-      };
-      box.childNodes.forEach((n) => {
-        if (n.nodeType === Node.TEXT_NODE) {
-          (n.textContent ?? '').split(/(\s+)/).forEach((part) => {
-            if (!part) return;
-            if (/^\s+$/.test(part)) out.appendChild(document.createTextNode(part));
-            else unit(part, false);
-          });
-        } else {
-          [...(n.textContent ?? '')].forEach((ch) => unit(ch, true));
-        }
-      });
-      return out.innerHTML;
-    };
-    const words = () => [...(leadEl?.querySelectorAll<HTMLElement>('.w') ?? [])];
-    let leadRun = 0;
-    const swapLead = (k: number) => {
-      if (!leadEl) return;
-      if (reduceMotion()) return void (leadEl.innerHTML = wrap(leads[k]));
-      const run = ++leadRun;
-      const old = words();
-      old.forEach((w, i) => {
-        w.style.transitionDelay = `${i * OUT_STEP}ms`;
-        w.classList.add('gone');
-      });
-      window.setTimeout(() => {
-        if (run !== leadRun) return;
-        leadEl.innerHTML = wrap(leads[k]);
-        const fresh = words();
-        fresh.forEach((w) => w.classList.add('gone', 'from'));
-        void leadEl.offsetWidth; // start the new words from hidden
-        fresh.forEach((w, i) => {
-          w.style.transitionDelay = `${i * IN_STEP}ms`;
-          w.classList.remove('gone', 'from');
-        });
-      }, old.length * OUT_STEP + FADE + PAUSE);
-    };
-    if (leadEl) leadEl.innerHTML = wrap(leads[0]);
+    // The first sentence under the staircase changes with the chunk, rewritten word by word
+    // (src/scripts/write.ts): the new words follow right behind the old ones.
+    const write = leadEl ? makeInlineWriter(leadEl) : null;
+    const swapLead = (k: number) => write?.(leads[k]);
     const WORDS = 5;
     const ROWS = WORDS + 1; // the chunk itself, then one step per word
     const STEP = TILE; // each step starts one tile further right

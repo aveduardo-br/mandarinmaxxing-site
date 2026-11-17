@@ -163,7 +163,8 @@ const book2At = (bookStart[1] / COLS) * 100;
 
     <div class="bar" data-bar data-strip={JSON.stringify(stripData)}>
       <p class="bar-label" data-bar-label aria-live="polite">
-        HSK Standard Course 1 and 2: 30 lessons, one square per word, in the order the books teach them.
+        <span class="l1" data-l1>HSK Standard Course 1 and 2: 30 lessons.</span>
+        <span class="l2" data-l2><span class="dim">One square per word, in the order the books teach them.</span></span>
       </p>
       <svg class="strip" viewBox={`0 0 ${COLS * 4 - 1} ${ROWS * 4 - 1}`} preserveAspectRatio="none" aria-hidden="true">
         {
@@ -626,7 +627,11 @@ const book2At = (bookStart[1] / COLS) * 100;
     font-size: var(--fs-small);
     line-height: var(--lh-small);
     color: var(--muted);
-    text-wrap: pretty; /* no single word left alone on the second line */
+  }
+  /* always two lines: the first says what you're looking at, the second adds to it. Each line is
+     rewritten word by word when it changes (src/scripts/write.ts). */
+  .bar-label > span {
+    display: block;
   }
   .bar-label :global(.w) {
     color: var(--text);
@@ -705,6 +710,7 @@ const book2At = (bookStart[1] / COLS) * 100;
 <script>
   import { gsap } from 'gsap';
   import { DUR, EASE_CLOSE, EASE_OPEN } from '../../scripts/tiles';
+  import { writeLine } from '../../scripts/write';
 
   // Accordion: click a topic to open it, click again to close. One open at a time.
   // The header grows from h4 to h3 in place (FLIP): record where the arrow, number and title are, let
@@ -771,11 +777,21 @@ const book2At = (bookStart[1] / COLS) * 100;
   let hover = -1;
   let wordFocus: number | 'more' | null = null; // a word (or "+N more") hovered in the open topic
 
+  const l1 = label.querySelector<HTMLElement>('[data-l1]')!;
+  const l2 = label.querySelector<HTMLElement>('[data-l2]')!;
+  const lines = (a: string, b: string) => {
+    writeLine(l1, a);
+    writeLine(l2, b);
+  };
+
   function render() {
     const h = hover === active ? -1 : hover;
     const span = (cls: string, text: string) => `<span class="${cls}">${text}</span>`;
+    const head = (d: (typeof data)[number], cls: string) =>
+      `${span(cls, String(d.inBook))} of this situation’s ${d.count} words are in the two HSK textbooks.`;
 
-    // a word of the open topic: its square lights up, the rest of the topic dims
+    // a word of the open topic: its square lights up, the rest of the topic dims. The first line
+    // stays; only the second one changes to the word.
     if (active >= 0 && wordFocus !== null) {
       const d = data[active];
       const wordCells = d.words.map((w) => w.cell);
@@ -786,14 +802,11 @@ const book2At = (bookStart[1] / COLS) * 100;
         r.classList.toggle('dim', mine && !lit(i));
         r.classList.toggle('on', false);
       }
-      // the situation's sentence stays put; only its tail changes to the hovered word, so the line
-      // doesn't jump
-      const head = `${span('w', String(d.inBook))} of this situation’s ${d.count} words are in the two HSK textbooks `;
       if (wordFocus === 'more') {
-        label.innerHTML = head + span('dim', '· ') + `${span('o', String(d.count - d.words.length))} more ` + span('dim', '· lit where the books teach them');
+        lines(head(d, 'w'), `${span('o', String(d.count - d.words.length))} more words ` + span('dim', '· the lit ones are in the two textbooks too'));
       } else {
         const w = d.words[wordFocus];
-        label.innerHTML = head + span('dim', '· ') + `${span('o', w.zh)} ${w.en} ` + span('dim', w.where ? `· ${w.where}` : '· not in either book');
+        lines(head(d, 'w'), `${span('o', w.zh)} ${w.en} ` + span('dim', w.where ? `· ${w.where}` : '· not in either textbook'));
       }
       return;
     }
@@ -803,15 +816,14 @@ const book2At = (bookStart[1] / COLS) * 100;
       r.classList.remove('dim');
     }
     if (active < 0 && h < 0) {
-      label.innerHTML = 'HSK Standard Course 1 and 2: 30 lessons, one square per word, in the order the books teach them.';
+      lines('HSK Standard Course 1 and 2: 30 lessons.', span('dim', 'One square per word, in the order the books teach them.'));
     } else {
       // the hovered situation if there is one, otherwise the open one
       const d = data[h < 0 ? active : h];
-      label.innerHTML =
-        `${span(h < 0 ? 'w' : 'o', String(d.inBook))} of this situation’s ${d.count} words are in the two HSK textbooks ` +
-        span('dim', `· spread over ${les(d.lessons)}. Here they’re one situation.`);
+      lines(head(d, h < 0 ? 'w' : 'o'), span('dim', `Spread over ${les(d.lessons)} in the books. Here they’re one situation.`));
     }
   }
+  render();
 
   // Where the bar sticks: centred with the list when there's room, but never more than 8% of the
   // screen above the bottom, so the section title and most of the list (even with a topic open)

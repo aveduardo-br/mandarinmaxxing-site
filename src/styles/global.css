@@ -233,3 +233,31 @@ p {
   text-transform: uppercase;
   color: var(--text-dim);
 }
+
+/* ---------- the rewrite effect (src/scripts/write.ts) ---------- */
+.wu {
+  display: inline-block;
+  transition:
+    opacity 0.26s ease,
+    filter 0.26s ease,
+    transform 0.26s ease;
+}
+.wu.gone {
+  opacity: 0;
+  filter: blur(4px);
+  transform: translateX(4px);
+  transition-duration: 0.18s;
+}
+.wu.from {
+  transform: translateX(-4px);
+}
+/* a line written over itself: old and new text in the same cell */
+.wline {
+  display: grid;
+}
+.wline > .wl {
+  grid-area: 1 / 1;
+}
+.wline > .wl.leaving {
+  pointer-events: none;
+}
