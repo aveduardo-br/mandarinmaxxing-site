@@ -162,7 +162,7 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
   .num :global(.tile.shine)::after {
     content: '';
     position: absolute;
-    inset: 0;
+    inset: var(--tile-gap, 1px); /* the light stays on the colour, not in the gap */
     pointer-events: none;
     background: linear-gradient(115deg, transparent 35%, rgba(255, 233, 160, 0.85) 50%, transparent 65%);
     background-size: 320% 100%;
