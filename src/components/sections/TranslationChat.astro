@@ -107,6 +107,13 @@ const exercises: Exercise[] = [
   .tr .tr-ok {
     color: var(--ok);
   }
+  /* "✓ Natural." is a verdict, not Mandarin: the title font, not the brush one */
+  .tr .tr-zh.tr-ok {
+    font-family: var(--f-display);
+    font-weight: var(--fw-display);
+    font-size: 14px;
+    letter-spacing: var(--tr-display);
+  }
   .tr .tr-note {
     font-size: 13px;
     line-height: 20px;

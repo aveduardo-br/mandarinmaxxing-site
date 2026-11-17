@@ -55,14 +55,13 @@ import { panelHeight, MARGIN } from '../scripts/lanterns';
   const footer = document.querySelector<HTMLElement>('footer.footer')!;
   mountLanterns(footer.querySelector<HTMLCanvasElement>('[data-lanterns]')!, footer);
 
-  // The side nav is fixed at mid-height on the left: it steps aside while the footer is under it.
+  // The side nav is fixed at mid-height on the left: it closes from the bottom up while the footer
+  // is under it (styles in SideNav.astro). Its box keeps its place, so the check uses that.
   const nav = document.querySelector<HTMLElement>('.sidenav');
   if (nav) {
-    nav.style.transition = 'opacity 0.25s ease';
     const check = () => {
       const under = footer.getBoundingClientRect().top < nav.getBoundingClientRect().bottom + 24;
-      nav.style.opacity = under ? '0' : '';
-      nav.style.pointerEvents = under ? 'none' : '';
+      nav.classList.toggle('closed', under);
     };
     addEventListener('scroll', check, { passive: true });
     addEventListener('resize', check);
