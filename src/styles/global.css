@@ -188,7 +188,7 @@ p {
   visibility: hidden;
   /* a little air between neighbouring tiles: the colour stops --tile-gap short of each edge, so two
      tiles side by side show twice that much background between them. The glyph keeps its place. */
-  padding: var(--tile-gap, 1px);
+  padding: var(--tile-gap, 2px);
   background-clip: content-box;
 }
 .tile.abs {
