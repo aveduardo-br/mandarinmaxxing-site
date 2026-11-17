@@ -153,7 +153,7 @@ Segunda rodada de copy, aprovada pelo Eduardo em 16/11/2026. Direção nova: fal
 | 04 A lesson | Quick review sem "translate". Spaced review: "Old words keep coming back." Card 02 e 03 reescritos (o 03 fala do jeito natural de dizer). Pendente: o card de áudio mostra diálogo A/B e a skill gera uma voz só. |
 | 05, 06 | Sem mudança nesta rodada. |
 | FAQ | "Why did you make this?" reescrito com a história do Eduardo (ferramenta para estudar, progresso travado, amigo, HSK 1 e 2) e fecha com "Anyone who studies with it can make it better for the next person". Saiu o exemplo do quarto e do relógio (a 02 já mostra). |
-| Footer | Frase igual. Coluna "How it works" com todas as seções menos Install. "Say so. That's how the map gets fixed." Linha "The community writes the maps. Claude teaches the lessons." Aviso com créditos do ofou/hsk (MIT). |
+| Footer | Frase igual. Coluna "How it works" com todas as seções menos Install. Coluna "Join in": "The maps grow with the people who use them. Suggest a situation, improve a lesson, or point out a mistake." + "Contribute on GitHub ↗" (convite a colaborar, não só reportar erro). Linha "The community writes the maps. Claude teaches the lessons." Aviso com créditos do ofou/hsk (MIT). |
 
 ## Em aberto
 
