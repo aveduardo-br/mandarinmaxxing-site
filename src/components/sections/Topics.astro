@@ -547,15 +547,17 @@ const book2At = (bookStart[1] / COLS) * 100;
     font-size: 32px;
     line-height: 38px;
     color: var(--text-80);
+    transition: color 0.2s ease; /* hover fades to orange and back */
   }
   .word .en {
     font-size: var(--fs-caption);
     line-height: var(--lh-caption);
     color: var(--muted);
+    transition: color 0.2s ease;
   }
   /* each word arrives light orange and settles to its colour */
   .topic.open .word:not(.more) :is(.hanzi, .en) {
-    animation: word-tint 0.5s ease-out both;
+    animation: word-tint 0.5s ease-out backwards;
     animation-delay: calc(120ms + var(--i) * 45ms);
   }
   @keyframes word-tint {
@@ -783,13 +785,14 @@ const book2At = (bookStart[1] / COLS) * 100;
         r.classList.toggle('dim', mine && !lit(i));
         r.classList.toggle('on', false);
       }
+      // the situation's sentence stays put; only its tail changes to the hovered word, so the line
+      // doesn't jump
+      const head = `${span('w', String(d.inBook))} of this situation’s ${d.count} words are in the two HSK textbooks `;
       if (wordFocus === 'more') {
-        label.innerHTML =
-          `${span('o', String(d.count - d.words.length))} more words ` +
-          span('dim', '· the lit ones are in the two HSK textbooks too');
+        label.innerHTML = head + span('dim', '· ') + `${span('o', String(d.count - d.words.length))} more ` + span('dim', '· lit where the books teach them');
       } else {
         const w = d.words[wordFocus];
-        label.innerHTML = `${span('o', w.zh)} ${w.en} ` + span('dim', w.where ? `· ${w.where}` : '· no entry in the word lists of HSK Standard Course 1 or 2');
+        label.innerHTML = head + span('dim', '· ') + `${span('o', w.zh)} ${w.en} ` + span('dim', w.where ? `· ${w.where}` : '· not in either book');
       }
       return;
     }
