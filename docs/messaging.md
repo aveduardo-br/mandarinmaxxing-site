@@ -153,7 +153,7 @@ Revisão de copy aplicada em 15/11/2026, aprovada pelo Eduardo seção por seç�
 | 05 Your course | Abertura sobre ritmo próprio, legendas dos seletores que ajudam a escolher, frase viva começando pelo número, linha final "None of this is locked". Saiu "Every tile is one lesson" (não era verdade). |
 | 06 Install | Linha final convidando a abrir uma issue. |
 | FAQ | Última linha de "Why did you make this?" com o convite para reportar. |
-| Footer | Convite para abrir uma issue. |
+| Footer | Refeito em 16/11/2026. Nome, frase "The same HSK words, reorganized around everyday conversations. A free skill for Claude.", três colunas (The skill, On this page, Help improve it com o convite para abrir uma issue) e a linha de projeto independente. Ainda não revisado como copy: "On this page" não lista Chunks, Your course nem Install, e falta a linha de créditos da lista de palavras. Hanzi nas lanternas: 好好学习, 学汉语很有意思, 天天向上; no easter egg viram 心想事成, 学习进步, 万事如意. |
 
 Pendente: o card de áudio da seção 04 mostra um diálogo entre A e B, e a skill gera um clipe de uma voz só.
 
