@@ -71,7 +71,7 @@ A copy foi reescrita para a skill v0.3.0, com o messaging de `docs/messaging.md`
 
 **Em aberto**
 
-- **Card 04 do bento (áudio).** O exemplo ainda é o diálogo de duas vozes no restaurante. A skill agora gera um texto curto de uma voz (Sarah). Falta regravar o áudio e refazer os tempos em `DialogueCard.astro`.
+- **Card 04 do bento (áudio).** Desde a skill 0.5.0 o card se chama "Listen and write" e o texto fala em ditado e narração de uma pessoa, mas o exemplo ainda é o diálogo de duas vozes no restaurante. Falta gerar o áudio novo (Sarah, uma pessoa contando o dia, uns 10 segundos) e refazer os tempos em `DialogueCard.astro`. O Eduardo decidiu deixar para depois.
 - Ao mudar o mapa da skill, gere `src/data/situations.ts` de novo e atualize `SKILL_VERSION` em `src/data/site.ts`.
 
 ## Próxima fase: design, com o Paper como fonte da verdade
