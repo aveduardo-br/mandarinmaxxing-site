@@ -44,8 +44,9 @@ Estão no quadro `ref` da mesma página do Paper. O que vale levar de cada uma:
 
 | Uso | Cor |
 | --- | --- |
-| Jump start e item selecionado | `#D2430E` (o accent do site) |
-| Situações, em ciclo | `#7FA3B0`, `#9A9C5C`, `#C29A5B`, `#A0938B`, `#E8835A` |
+| Jump start e destaque | `#DF6E3B` (o accent do site, paleta A4) |
+| Item selecionado que conta (HSK 1→6, palavras 3→7, menu e números 1→6) | rampa `#F6D2BC` `#EFAE88` `#E88C5C` `#DF6E3B` `#CC5727` `#B0461C`, do fraco ao forte (`src/data/ramp.ts`) |
+| Situações, em ciclo | `#7FA3B0`, `#9A9C5C`, `#CDA24E`, `#A0938B`, `#C7756A` (no hero o cinza entra só a cada duas voltas) |
 | Ladrilho apagado (opção não escolhida) | fundo `#1E1E1E`, hanzi `#8A8A8A` |
 
 O laranja forte é um só. As outras cinco são apagadas de propósito, para o laranja continuar sendo o destaque.

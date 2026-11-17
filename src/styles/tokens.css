@@ -12,12 +12,12 @@
   --text-dim: #a3a3a3; /* side nav items, hero kicker and meta (Paper) */
   --muted: #8a8a8a;
   --muted-2: #5c5c5c;
-  --accent: #d2430e;
-  --accent-light: #f49a62;
-  --accent-mid: #e2652e;
+  --accent: #df6e3b;
+  --accent-light: #efae88;
+  --accent-mid: #e88c5c;
   --ok: #7fb37f;
   --bubble-ai: #262626; /* lighter now that the person's bubble is orange */
-  --bubble-user: #b53902; /* the person's chat bubble: accent orange, one shade darker */
+  --bubble-user: #cc5727; /* the person's chat bubble: accent orange, one shade darker */
 
   /* Type */
   /* Display face: placeholder until the final font is chosen (Geist SemiBold). Hanzi fall back to

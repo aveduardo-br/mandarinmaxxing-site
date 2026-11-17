@@ -14,8 +14,8 @@ import Section from '../Section.astro';
 import { situations } from '../../data/situations';
 import { hskLevels } from '../../data/levels';
 
-const ORANGE = '#D2430E';
-const MUTED = ['#7FA3B0', '#9A9C5C', '#C29A5B', '#A0938B', '#E8835A'];
+const ORANGE = '#DF6E3B';
+const MUTED = ['#7FA3B0', '#9A9C5C', '#CDA24E', '#A0938B', '#C7756A'];
 
 // Digits like a stadium scoreboard: seven segments on a 7 × 11 grid, one tile thick, the outer corners
 // left out so the shape reads as rounded. Every digit is part of the 8, so the three places always show
@@ -290,7 +290,7 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
 </style>
 
 <script>
-  import { makeSlot, applyTile, flipTile, reduceMotion, ORANGE, DIM } from '../../scripts/tiles';
+  import { makeSlot, applyTile, flipTile, reduceMotion, ORANGE, DIM, RAMP } from '../../scripts/tiles';
   import type { Slot, TileVal } from '../../scripts/tiles';
 
   type Info = { name: string; bg: string; chars: string; end: number };
@@ -454,8 +454,11 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
 
     // ---- selectors: hanzi on grey while off, the digit on orange when chosen (like the side nav) ----
     const tileOf = new Map<HTMLElement, Slot>();
+    // chosen tiles light up along the orange ramp: HSK 1 weakest, HSK 6 strongest; 3 words weak, 7 strong
+    const rampBg = (b: HTMLElement) =>
+      b.dataset.level ? RAMP[Number(b.dataset.level) - 1] ?? ORANGE : RAMP[Number(b.dataset.pace) - 3] ?? ORANGE;
     const valOf = (b: HTMLElement, on: boolean): TileVal =>
-      on ? { ch: b.dataset.level ?? b.dataset.pace!, bg: ORANGE } : { ch: b.dataset.zh!, bg: DIM.bg, fg: DIM.fg };
+      on ? { ch: b.dataset.level ?? b.dataset.pace!, bg: rampBg(b) } : { ch: b.dataset.zh!, bg: DIM.bg, fg: DIM.fg };
     root.querySelectorAll<HTMLElement>('button.st').forEach((b) => {
       const slot = makeSlot(b);
       applyTile(slot, valOf(b, b.getAttribute('aria-pressed') === 'true'));

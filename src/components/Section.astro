@@ -6,6 +6,7 @@
 // with the digit in black (1), like the side nav. Being
 // tried on section 01 first.
 import { numerals } from '../data/numerals';
+import { rampAt } from '../data/ramp';
 
 interface Props {
   id: string;
@@ -23,7 +24,7 @@ const tileTitle = tiled ? { digit: String(Number(num)), num: NUM_ZH[Number(num)]
   {
     tileTitle ? (
       <h2 class="title-row tiled" data-tile-title>
-        <span class="tt num" data-num data-digit={tileTitle.digit} data-zh={tileTitle.num} aria-hidden="true"><span>{tileTitle.num}</span></span>
+        <span class="tt num" style={`--on:${rampAt(Number(num))}`} data-num data-digit={tileTitle.digit} data-zh={tileTitle.num} aria-hidden="true"><span>{tileTitle.num}</span></span>
         <span class="title display">{title}</span>
       </h2>
     ) : (
@@ -33,7 +34,7 @@ const tileTitle = tiled ? { digit: String(Number(num)), num: NUM_ZH[Number(num)]
         <span class="numeral" aria-hidden="true">
           <svg viewBox={n.viewBox} preserveAspectRatio="none" style={`width:${n.w}px;height:${n.h}px`}>
             {n.paths.map((p) => (
-              <path d={p.d} transform={p.t} fill="#B53902" />
+              <path d={p.d} transform={p.t} fill="#CC5727" />
             ))}
           </svg>
         </span>
@@ -117,7 +118,7 @@ const tileTitle = tiled ? { digit: String(Number(num)), num: NUM_ZH[Number(num)]
     font-weight: 600;
   }
   .tt.num.on {
-    background: var(--accent);
+    background: var(--on, var(--accent));
   }
   .tt.num.on > span {
     color: #161616;
