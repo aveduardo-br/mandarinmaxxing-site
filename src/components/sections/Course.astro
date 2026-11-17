@@ -447,8 +447,7 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
       const words = D.levels[level - 1].words.toLocaleString('en-US');
       sayEl.innerHTML = mapped
         ? `${next.n} lessons to cover all ${words} words of HSK ${level}. One a day, that’s <b>${date}</b>.`
-        : `HSK ${level} has ${words} words: about ${next.n} lessons at this pace. ` +
-          `The lesson list is built when you start the level.`;
+        : `About ${next.n} lessons to cover all ${words} words of HSK ${level}. One a day, that’s around <b>${date}</b>.`;
       num.setAttribute('aria-label', `${mapped ? '' : 'about '}${next.n} lessons`);
     }
 
