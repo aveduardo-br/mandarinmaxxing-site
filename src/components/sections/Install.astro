@@ -14,7 +14,7 @@ const START = 'start mandarinmaxxing';
 
   <ol class="steps">
     <li class="step">
-      <span class="n display" aria-hidden="true">1</span>
+      <span class="n" aria-hidden="true"><span>1</span></span>
       <div class="body">
         <h3 class="display">Download the skill</h3>
         <p>One ZIP file. You don’t need to open it.</p>
@@ -22,7 +22,7 @@ const START = 'start mandarinmaxxing';
       </div>
     </li>
     <li class="step">
-      <span class="n display" aria-hidden="true">2</span>
+      <span class="n" aria-hidden="true"><span>2</span></span>
       <div class="body">
         <h3 class="display">Add it to Claude</h3>
         <p>
@@ -32,7 +32,7 @@ const START = 'start mandarinmaxxing';
       </div>
     </li>
     <li class="step">
-      <span class="n display" aria-hidden="true">3</span>
+      <span class="n" aria-hidden="true"><span>3</span></span>
       <div class="body">
         <h3 class="display">Create a project</h3>
         <p>Name it whatever you like, for example “Mandarin”. In the project’s instructions, paste this line:</p>
@@ -44,7 +44,7 @@ const START = 'start mandarinmaxxing';
       </div>
     </li>
     <li class="step">
-      <span class="n display" aria-hidden="true">4</span>
+      <span class="n" aria-hidden="true"><span>4</span></span>
       <div class="body">
         <h3 class="display">Start</h3>
         <p>Open a chat inside the project and write:</p>
@@ -103,14 +103,25 @@ const START = 'start mandarinmaxxing';
     gap: 20px;
     padding-block: 20px;
   }
+  /* step number: the same orange tile as the section titles, digit in Geist */
   .n {
     flex-shrink: 0;
-    width: 24px;
-    font-size: var(--fs-h3);
-    line-height: var(--lh-h3);
-    color: var(--accent);
+    width: 28px;
+    height: 28px;
+    margin-top: -2px;
+    display: grid;
+    place-items: center;
+    background: var(--accent);
+  }
+  .n > span {
+    font-family: var(--f-body);
+    font-size: 17px;
+    line-height: 28px;
+    font-weight: 600;
+    color: #161616;
   }
   .body {
+    flex: 1;
     min-width: 0;
     display: flex;
     flex-direction: column;
@@ -135,14 +146,11 @@ const START = 'start mandarinmaxxing';
   }
   .btn {
     padding: 12px 20px;
-    background: var(--text);
+    background: var(--accent);
     color: var(--bg);
     font-size: var(--fs-small);
     font-weight: 500;
     line-height: var(--lh-small);
-  }
-  .btn:hover {
-    background: var(--text-soft);
   }
   .copy {
     align-self: stretch;
