@@ -1,5 +1,4 @@
 ---
-import Section from '../Section.astro';
 // FAQ. The first answer is the only place where Eduardo speaks in the first person.
 // Answers are plain strings; a few carry a link, so they are rendered as HTML.
 // Each question is collapsible. A tile before the question holds the arrow: grey with a down arrow
@@ -55,7 +54,9 @@ const items = [
 ];
 ---
 
-<Section id="faq" num="" title="Questions" tiled digit="?" zh="问">
+<section id="faq" class="faq" data-section>
+  <p class="kicker">FAQ</p>
+  <h2 class="title display">Questions</h2>
   {
     items.map((it, i) => (
       <div id={it.id} class:list={['item', { open: i === 0 }]} data-faq>
@@ -79,15 +80,27 @@ const items = [
       </div>
     ))
   }
-</Section>
+</section>
 
 <style>
+  .faq {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-top: 48px;
+  }
+  .kicker {
+    font-size: var(--fs-caption);
+    line-height: var(--lh-caption);
+    color: var(--muted);
+  }
+  .title {
+    font-size: var(--fs-h2);
+    line-height: var(--lh-h2);
+    color: var(--text);
+  }
   .item {
     scroll-margin-top: 48px;
-  }
-  /* a little more room between the title and the first question, like the other sections' intro */
-  .item:first-of-type {
-    margin-top: 16px;
   }
   .item :global(a) {
     color: var(--text);
