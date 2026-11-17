@@ -100,7 +100,19 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
         <p>Three is light, seven is intense. Or ask for any number.</p>
       </div>
       <div class="mod out">
-        <div class="tile-label">At this pace</div>
+        <div class="label-row">
+          <div class="tile-label">At this pace</div>
+          <!-- HSK 5 and 6 only: their situations aren't mapped yet, so the count is an estimate -->
+          <span class="pinfo" data-pinfo hidden>
+            <button class="pinfo-btn" type="button" aria-label="About HSK 5 and 6" aria-describedby="pace-info" aria-expanded="false">
+              <svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="6.25"></circle><path d="M7 6.2v3.6M7 4.2v.01"></path></svg>
+            </button>
+            <span class="pinfo-pop" id="pace-info" role="tooltip">
+              HSK 5 and 6 aren’t mapped into situations yet. Claude groups the words as you go, so this count is an
+              estimate.
+            </span>
+          </span>
+        </div>
         <p class="say" data-say aria-live="polite"></p>
       </div>
     </div>
@@ -229,6 +241,77 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     line-height: var(--lh-caption);
     color: var(--muted);
   }
+  .label-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  /* (i) for HSK 5 and 6, the same as the one in Situations, in orange */
+  .pinfo {
+    position: relative;
+    display: inline-flex;
+  }
+  .pinfo[hidden] {
+    display: none;
+  }
+  .pinfo-btn {
+    display: grid;
+    place-items: center;
+    width: 14px;
+    height: 14px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--accent);
+    cursor: pointer;
+  }
+  .pinfo-btn svg {
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.3;
+    stroke-linecap: round;
+  }
+  .pinfo-btn:focus-visible {
+    outline: 1px dashed var(--outline);
+    outline-offset: 2px;
+  }
+  .pinfo-pop {
+    position: absolute;
+    z-index: 5;
+    left: 50%;
+    bottom: calc(100% + 10px);
+    width: 240px;
+    padding: 12px 14px;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    background: #181818;
+    font-size: var(--fs-caption);
+    line-height: var(--lh-caption);
+    color: var(--text-dim);
+    opacity: 0;
+    translate: -50% 4px;
+    pointer-events: none;
+    transition:
+      opacity 0.15s ease,
+      translate 0.15s ease;
+  }
+  .pinfo-pop::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    height: 12px;
+  }
+  .pinfo:hover .pinfo-pop,
+  .pinfo:focus-within .pinfo-pop,
+  .pinfo.open .pinfo-pop {
+    opacity: 1;
+    translate: -50% 0;
+    pointer-events: auto;
+  }
   .mod .say {
     font-size: 15px;
     line-height: 22px;
@@ -295,6 +378,16 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     const D: { digits: Record<string, string[]>; levels: Level[]; info: Info[]; muted: string[] } = JSON.parse(root.dataset.course!);
     const num = root.querySelector<HTMLElement>('[data-num]')!;
     const sayEl = root.querySelector<HTMLElement>('[data-say]')!;
+    // (i) next to "At this pace" for HSK 5 and 6: tap toggles it (hover/focus already show it)
+    const pinfo = root.querySelector<HTMLElement>('[data-pinfo]')!;
+    const pinfoBtn = pinfo.querySelector<HTMLButtonElement>('.pinfo-btn')!;
+    pinfoBtn.addEventListener('click', () => pinfoBtn.setAttribute('aria-expanded', String(pinfo.classList.toggle('open'))));
+    document.addEventListener('click', (e) => {
+      if (!pinfo.contains(e.target as Node)) {
+        pinfo.classList.remove('open');
+        pinfoBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
     const COLS = 23; // room for three digits of 7, with one empty column between them
     const ROWS = 11;
     const STEP = 14; // the wave runs diagonally across the whole number
@@ -436,11 +529,12 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
         }, (COLS + ROWS) * STEP + 2600);
       }
       // one sentence on the chosen level only
-      const date = dateOf(next.n, mapped);
+      // the same sentence for every level; for HSK 5 and 6 the orange (i) says the count is an estimate
+      const date = dateOf(next.n, true);
       const words = D.levels[level - 1].words.toLocaleString('en-US');
-      sayEl.innerHTML = mapped
-        ? `${next.n} lessons to cover all ${words} words of HSK ${level}. One a day, that’s <b>${date}</b>.`
-        : `About ${next.n} lessons to cover all ${words} words of HSK ${level}. One a day, that’s around <b>${date}</b>.`;
+      sayEl.innerHTML = `${next.n} lessons to cover all ${words} words of HSK ${level}. One a day, that’s <b>${date}</b>.`;
+      pinfo.hidden = mapped;
+      if (mapped) pinfo.classList.remove('open');
       num.setAttribute('aria-label', `${mapped ? '' : 'about '}${next.n} lessons`);
     }
 
