@@ -5,12 +5,12 @@ export type TileVal = { ch: string; bg: string; fg?: string } | null;
 export type Slot = { el: HTMLElement; span: HTMLElement; val: TileVal; gen?: number };
 
 export const TILE = 28;
-export const ORANGE = '#DF6E3B';
+export const ORANGE = '#F07A42';
 export { RAMP, rampAt } from '../data/ramp';
 // the five muted colours, used in a cycle for everything that is not the one orange highlight
-export const MUTED = ['#7FA3B0', '#9A9C5C', '#CDA24E', '#A0938B', '#C7756A'];
+export const MUTED = ['#8DB2BF', '#A9AB6A', '#DBB260', '#AEA299', '#D68478'];
 // the hero's cycle: the same colours, with the grey only every other round so it shows less
-export const MUTED_HERO = ['#7FA3B0', '#9A9C5C', '#CDA24E', '#A0938B', '#C7756A', '#7FA3B0', '#9A9C5C', '#CDA24E', '#C7756A'];
+export const MUTED_HERO = ['#8DB2BF', '#A9AB6A', '#DBB260', '#AEA299', '#D68478', '#8DB2BF', '#A9AB6A', '#DBB260', '#D68478'];
 export const DIM = { bg: '#1E1E1E', fg: '#8A8A8A' };
 
 export const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
