@@ -45,7 +45,7 @@ Estão no quadro `ref` da mesma página do Paper. O que vale levar de cada uma:
 | Uso | Cor |
 | --- | --- |
 | Jump start e destaque | `#F07A42` (o accent do site, paleta A4) |
-| Item que conta no menu lateral (1→6) e nos seletores da 05 (HSK 1→6, palavras 3→7) | rampa `#FCE3D3` `#F9CBAE` `#F6B289` `#F49A68` `#F28654` `#F07A42`, do fraco ao accent (`src/data/ramp.ts`); os números das seções na página usam só o accent |
+| Item escolhido (menu lateral, seletores da 05, números das seções) | só o accent `#F07A42`, o laranja do botão Download. Sem rampa nem tons claros. |
 | Situações, em ciclo | `#8DB2BF`, `#A9AB6A`, `#DBB260`, `#AEA299`, `#D68478` (no hero o cinza entra só a cada duas voltas) |
 | Ladrilho apagado (opção não escolhida) | fundo `#1E1E1E`, hanzi `#8A8A8A` |
 

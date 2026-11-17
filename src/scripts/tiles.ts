@@ -6,7 +6,6 @@ export type Slot = { el: HTMLElement; span: HTMLElement; val: TileVal; gen?: num
 
 export const TILE = 28;
 export const ORANGE = '#F07A42';
-export { RAMP, rampAt } from '../data/ramp';
 // the five muted colours, used in a cycle for everything that is not the one orange highlight
 export const MUTED = ['#8DB2BF', '#A9AB6A', '#DBB260', '#AEA299', '#D68478'];
 // the hero's cycle: the same colours, with the grey only every other round so it shows less

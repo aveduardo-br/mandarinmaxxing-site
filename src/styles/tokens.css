@@ -13,8 +13,8 @@
   --muted: #8a8a8a;
   --muted-2: #5c5c5c;
   --accent: #f07a42;
-  --accent-light: #f6b993;
-  --accent-mid: #f49a68;
+  --accent-light: var(--accent); /* one orange only: the lighter shades were retired */
+  --accent-mid: var(--accent);
   --ok: #7fb37f;
   --bubble-ai: #262626; /* lighter now that the person's bubble is orange */
   --bubble-user: #dd6533; /* the person's chat bubble: accent orange, one shade darker */

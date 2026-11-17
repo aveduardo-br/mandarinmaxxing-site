@@ -149,9 +149,9 @@ import { sections, faq, SKILL_REPO } from '../data/site';
 </style>
 
 <script>
-  import { makeSlot, applyTile, flipTile, rampAt, DIM, type Slot } from '../scripts/tiles';
+  import { makeSlot, applyTile, flipTile, ORANGE, DIM, type Slot } from '../scripts/tiles';
 
-  // number tiles: hanzi on grey while inactive, digit on the orange ramp step for its number while active
+  // number tiles: hanzi on grey while inactive, digit on orange while active
   const HANZI_NUM = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
   const numTiles = new Map<string, { slot: Slot; n: number }>();
   document.querySelectorAll<HTMLAnchorElement>('a.numbered').forEach((a) => {
@@ -163,7 +163,7 @@ import { sections, faq, SKILL_REPO } from '../data/site';
   const tileFor = (id: string | null, on: boolean) => {
     const t = id ? numTiles.get(id) : undefined;
     if (!t) return;
-    flipTile(t.slot, on ? { ch: String(t.n), bg: rampAt(t.n) } : { ch: HANZI_NUM[t.n] ?? String(t.n), bg: DIM.bg, fg: DIM.fg });
+    flipTile(t.slot, on ? { ch: String(t.n), bg: ORANGE } : { ch: HANZI_NUM[t.n] ?? String(t.n), bg: DIM.bg, fg: DIM.fg });
   };
 
   const links = new Map<string, HTMLAnchorElement>();
