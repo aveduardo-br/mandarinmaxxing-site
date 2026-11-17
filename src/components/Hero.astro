@@ -37,7 +37,7 @@ import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
 
     <div class="buttons">
       <a class="btn solid" href={SKILL_ZIP}>Download for Claude</a>
-      <a class="btn ghost" href="#install" data-install>How to install <span class="itile" data-itile aria-hidden="true"></span></a>
+      <a class="btn ghost" href="#install" data-install>How to install <span class="itile" data-itile aria-hidden="true"><svg class="plus" viewBox="0 0 7 7" shape-rendering="crispEdges"><path d="M3 1h1v5h-1zM1 3h5v1h-5z" /></svg><svg class="arrow" viewBox="0 0 7 6" shape-rendering="crispEdges"><path d="M3 0h1v3h-1zM1 3h1v1h-1zM5 3h1v1h-1zM2 4h3v1h-3zM3 3h1v3h-1z" /></svg></span></a>
     </div>
   </div>
 
@@ -197,7 +197,8 @@ import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
     cursor: pointer;
   }
   .btn.solid {
-    background: var(--text);
+    background: var(--accent);
+    border-color: var(--accent);
     color: var(--bg);
   }
   /* How to install: no frame, grey text and an off tile with +; on hover the text turns white and
@@ -206,7 +207,7 @@ import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 9px 4px 9px 12px;
+    padding: 7px 0 7px 12px;
     border-color: transparent;
     background: transparent;
     color: var(--text-dim);
@@ -216,27 +217,38 @@ import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
   .btn.ghost:focus-visible {
     color: var(--text);
   }
+  /* the same tile as the FAQ arrow: off (grey, light +) by default, orange with a dark down arrow on
+     hover; it flips with the same close-and-open as every tile */
   .itile {
-    position: relative;
     flex: none;
-    width: 24px;
-    height: 24px;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    background: #1e1e1e;
   }
-  .itile :global(.tile) {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 24px;
-    height: 24px;
+  .itile svg {
+    grid-area: 1 / 1;
+    fill: #8a8a8a;
   }
-  .itile :global(.tile > span) {
-    left: -10px;
-    right: -10px;
-    padding-left: 3px;
-    text-align: center;
-    top: 1.5px;
-    font-size: 20px;
-    line-height: 20px;
+  .itile .plus {
+    width: 14px;
+    height: 14px;
+  }
+  .itile .arrow {
+    width: 14px;
+    height: 12px;
+    display: none;
+  }
+  .itile.on {
+    background: var(--accent);
+  }
+  .itile.on .plus {
+    display: none;
+  }
+  .itile.on .arrow {
+    display: block;
+    fill: #161616;
   }
 
   .meta {
@@ -254,26 +266,36 @@ import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
 </style>
 
 <script>
-  import { makeSlot, applyTile, flipTile, ORANGE, DIM, MUTED_HERO as MUTED, WAVE, TILE, DUR, EASE_CLOSE, EASE_OPEN, type Slot } from '../scripts/tiles';
+  import { makeSlot, applyTile, flipTile, ORANGE, MUTED_HERO as MUTED, WAVE, TILE, DUR, EASE_CLOSE, EASE_OPEN, type Slot } from '../scripts/tiles';
 
-  // How to install: the tile flips from an off + to the orange arrow on hover or focus
+  import CELLS from '../data/hero-cells.json';
+
+  // How to install: the tile flips from the off + to the orange arrow on hover or focus (same flip as
+  // the FAQ tiles)
   {
     const btn = document.querySelector<HTMLElement>('[data-install]');
-    const box = btn?.querySelector<HTMLElement>('[data-itile]');
-    if (btn && box) {
-      const slot = makeSlot(box);
-      const OFF = { ch: '+', bg: DIM.bg, fg: DIM.fg };
-      const ON = { ch: '↓', bg: ORANGE };
-      applyTile(slot, OFF);
-      const on = () => flipTile(slot, ON);
-      const off = () => flipTile(slot, OFF);
-      btn.addEventListener('mouseenter', on);
-      btn.addEventListener('mouseleave', off);
-      btn.addEventListener('focus', on);
-      btn.addEventListener('blur', off);
+    const tile = btn?.querySelector<HTMLElement>('[data-itile]');
+    if (btn && tile) {
+      let target = false, gen = 0;
+      const set = (on: boolean) => {
+        if (target === on) return;
+        target = on;
+        const g = ++gen;
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) return void tile.classList.toggle('on', on);
+        const a = tile.animate([{ transform: 'scaleY(1)' }, { transform: 'scaleY(0)' }], { duration: DUR, easing: EASE_CLOSE, fill: 'forwards' });
+        a.onfinish = () => {
+          a.cancel();
+          if (g !== gen) return;
+          tile.classList.toggle('on', target);
+          tile.animate([{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }], { duration: DUR, easing: EASE_OPEN });
+        };
+      };
+      btn.addEventListener('mouseenter', () => set(true));
+      btn.addEventListener('mouseleave', () => set(false));
+      btn.addEventListener('focus', () => set(true));
+      btn.addEventListener('blur', () => set(false));
     }
   }
-  import CELLS from '../data/hero-cells.json';
 
   // Settings approved in the lab artifact "Hero em ladrilhos — laboratório" (14/11/2026).
   const CFG = {
