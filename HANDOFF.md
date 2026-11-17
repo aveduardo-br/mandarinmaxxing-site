@@ -115,3 +115,4 @@ Prioridade sugerida: celular, imagem de compartilhamento e favicon, card 4, Your
 ## Mensagem para abrir o novo chat
 
 > Quero continuar o redesenho do site mandarinmaxxing no Paper, no formato de ladrilhos que aprovei na seção 05. O repositório é `aveduardo-br/mandarinmaxxing-site`, o site está em https://mandarinmaxxing-site.vercel.app e o arquivo do Paper é https://app.paper.design/file/01M73ZX4CG7GXQAC76RFJZ8R94/p-2-0. Leia o `HANDOFF.md` e o `docs/ladrilhos.md`, olhe no Paper os quadros "05 Your course" e "ref", e me mostre opções antes de mudar. Converse comigo em português; o texto do site é em inglês.
+- **Seção 07 "How it's being built"** (17/11/2026): parágrafo curto antes do FAQ sobre o processo, em tom de projeto em andamento (versão A2 escolhida pelo Eduardo). O link vai para a seção "How it's made" do README da skill. O FAQ continua sem número.

@@ -13,6 +13,7 @@ export const sections = [
   { id: 'lesson', num: '04', title: 'A lesson, step by step' },
   { id: 'course', num: '05', title: 'Your course' },
   { id: 'install', num: '06', title: 'Install' },
+  { id: 'how-its-made', num: '07', title: 'How it’s being built' },
 ] as const;
 
 export const faq = [

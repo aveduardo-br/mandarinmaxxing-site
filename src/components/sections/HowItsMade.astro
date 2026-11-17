@@ -1,0 +1,17 @@
+---
+// Section 07 — How it's being built. A short note on the process (maps checked by script,
+// simulated lessons before each version), framed as a project still in progress. The full
+// account is in the skill's README ("How it's made") and in qa/benchmark/.
+import Section from '../Section.astro';
+import { SKILL_REPO } from '../../data/site';
+---
+
+<Section id="how-its-made" num="07" title="How it’s being built" tiled>
+  <p class="prose">
+    mandarinmaxxing is still being built, one version at a time. The words of each level were grouped by hand into
+    situations and checked by script so none is missing. Each new version is tested on simulated lessons before it
+    goes out, to catch lessons that use words you haven’t met or forget the older ones. It’s far from finished: what
+    really shapes it is people studying with it and saying what felt off. Everything, tests included, is
+    <a href={`${SKILL_REPO}#how-its-made`} target="_blank" rel="noopener">on GitHub ↗</a>.
+  </p>
+</Section>
