@@ -213,10 +213,13 @@ export async function mountLanterns(canvas: HTMLCanvasElement, area: HTMLElement
   let size = 1;
   let vsize = 0;
 
+  // the middle lantern hangs in front of the two side ones, so it is painted last
+  const paintOrder = [...bodies.filter((b) => b !== lit), lit];
+
   const draw = () => {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, W, H);
-    for (const b of bodies) {
+    for (const b of paintOrder) {
       const glow = b === lit ? shown * (0.9 + 0.1 * Math.sin(clock * 5)) : 0;
       ctx.save();
       ctx.translate(b.pivot, 0);
