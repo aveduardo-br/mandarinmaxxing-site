@@ -55,7 +55,7 @@ function fadeOut(words: HTMLElement[]) {
 
 // A line that lives on its own (a block): old and new text share the same spot, so the new words can
 // start right behind the old ones. `line` gets class "wline" (a one-cell grid); each text is a layer.
-export function writeLine(line: HTMLElement, html: string) {
+export function writeLine(line: HTMLElement, html: string, animate = true) {
   line.classList.add('wline');
   const current = line.querySelector<HTMLElement>('.wl:not(.leaving)');
   if (current && current.dataset.html === html) return;
@@ -63,7 +63,7 @@ export function writeLine(line: HTMLElement, html: string) {
   layer.className = 'wl';
   layer.dataset.html = html;
   layer.innerHTML = wrapWords(html);
-  if (!current || reduceMotion()) {
+  if (!current || !animate || reduceMotion()) {
     line.replaceChildren(layer);
     return;
   }

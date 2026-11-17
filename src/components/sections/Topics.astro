@@ -631,7 +631,11 @@ const book2At = (bookStart[1] / COLS) * 100;
   /* always two lines: the first says what you're looking at, the second adds to it. Each line is
      rewritten word by word when it changes (src/scripts/write.ts). */
   .bar-label > span {
-    display: block;
+    /* a one-cell grid, so the old and new text of a rewrite sit on top of each other */
+    display: grid;
+    height: var(--lh-small); /* one line each, always: the bar never changes height */
+    white-space: nowrap;
+    overflow: hidden;
   }
   .bar-label :global(.w) {
     color: var(--text);
@@ -779,9 +783,12 @@ const book2At = (bookStart[1] / COLS) * 100;
 
   const l1 = label.querySelector<HTMLElement>('[data-l1]')!;
   const l2 = label.querySelector<HTMLElement>('[data-l2]')!;
-  const lines = (a: string, b: string) => {
-    writeLine(l1, a);
-    writeLine(l2, b);
+  // Only the word hover inside an open situation rewrites (the second line, word by word); moving
+  // between situations swaps the text at once.
+  let wordMode = false;
+  const lines = (a: string, b: string, animate = false) => {
+    writeLine(l1, a, false);
+    writeLine(l2, b, animate);
   };
 
   function render() {
@@ -802,14 +809,18 @@ const book2At = (bookStart[1] / COLS) * 100;
         r.classList.toggle('dim', mine && !lit(i));
         r.classList.toggle('on', false);
       }
+      wordMode = true;
       if (wordFocus === 'more') {
-        lines(head(d, 'w'), `${span('o', String(d.count - d.words.length))} more words ` + span('dim', '· the lit ones are in the two textbooks too'));
+        lines(head(d, 'w'), `${span('o', String(d.count - d.words.length))} more words ` + span('dim', '· the lit ones are in the two textbooks too'), true);
       } else {
         const w = d.words[wordFocus];
-        lines(head(d, 'w'), `${span('o', w.zh)} ${w.en} ` + span('dim', w.where ? `· ${w.where}` : '· not in either textbook'));
+        lines(head(d, 'w'), `${span('o', w.zh)} ${w.en} ` + span('dim', w.where ? `· ${w.where}` : '· not in either textbook'), true);
       }
       return;
     }
+    // leaving a word for the open situation's own line rewrites back; anything else is instant
+    const back = wordMode && active >= 0 && h < 0;
+    wordMode = false;
     for (const { r, t } of rects) {
       r.classList.toggle('on', t === active);
       r.classList.toggle('hov', t === h);
@@ -820,7 +831,7 @@ const book2At = (bookStart[1] / COLS) * 100;
     } else {
       // the hovered situation if there is one, otherwise the open one
       const d = data[h < 0 ? active : h];
-      lines(head(d, h < 0 ? 'w' : 'o'), span('dim', `Spread over ${les(d.lessons)} in the books. Here they’re one situation.`));
+      lines(head(d, h < 0 ? 'w' : 'o'), span('dim', `Spread over ${les(d.lessons)} in the books. Here they’re one situation.`), back);
     }
   }
   render();
