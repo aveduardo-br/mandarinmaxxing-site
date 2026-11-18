@@ -1,15 +1,15 @@
 ---
-// Bento card "+ Spaced review" — visual part (Paper node AM8-0).
-// An infinite carousel of three chunks seen through a fisheye: the centre chunk is big, the neighbours
-// (orange) sit close by, turned away like on a drum, and the line fades out towards both edges.
-// Embla Carousel runs the carousel (loop, drag/swipe, click a neighbour, ←/→); the fisheye is applied
-// from Embla's scroll position on every frame. The timeline below is
-// fixed (lessons 0–20); its bars change to show when the centre chunk was learned and reviewed.
-// Reviews always come +1, +3, +7 and +14 lessons after the lesson where the chunk was learned.
+// Bento card "+ Spaced review" — visual part.
+// The word under review is a short row of orange tiles (src/scripts/tiles.ts), with its English below.
+// Clicking the card (or Enter / Space) moves to the next word: the tiles flip in place, in a wave, and
+// the row grows or shrinks, the same change as in Chunks. The English is rewritten (src/scripts/write.ts).
+// The timeline below is fixed (lessons 0–20); its bars change to show when the word was learned and
+// when it comes back. Reviews always come +1, +3, +7 and +14 lessons after the lesson where it was learned.
+// The tiles use the pixel font: every hanzi here must be in public/fonts/zpix-site.woff.
 
 const words = [
-  { zh: '喝茶', en: 'drink tea', learned: 2 },
   { zh: '多少钱', en: 'how much', learned: 4 },
+  { zh: '喝茶', en: 'drink tea', learned: 2 },
   { zh: '认识', en: 'know someone', learned: 3 },
   { zh: '朋友', en: 'friend', learned: 1 },
   { zh: '便宜', en: 'cheap', learned: 5 },
@@ -17,7 +17,6 @@ const words = [
   { zh: '米饭', en: 'rice', learned: 2 },
   { zh: '好吃', en: 'tasty', learned: 4 },
 ];
-const START = 1;
 const GAPS = [1, 3, 7, 14];
 const LESSONS = 21; // 0–20
 const CENTER = 10;
@@ -27,42 +26,25 @@ const fade = (i: number) => Math.max(0.06, 1 - ((i - CENTER) / CENTER) ** 2);
 const kindOf = (i: number, learned: number) =>
   i === learned ? 'learned' : reviewsOf(learned).includes(i) ? 'review' : 'idle';
 
-const first = words[START];
-// enough words for Embla's loop on their own (8 × 80px is wider than the card)
-const doubled = words;
-const slotOf = (i: number) => {
-  const N = doubled.length;
-  let r = (((i - START) % N) + N) % N;
-  if (r >= N / 2) r -= N;
-  return Math.max(-2, Math.min(2, r));
-};
+const first = words[0];
 ---
 
 <div
   class="sr"
   data-sr
-  data-start={START}
   data-words={JSON.stringify(words)}
   data-gaps={JSON.stringify(GAPS)}
+  role="button"
+  tabindex="0"
+  aria-label="Show the next word"
 >
   <div class="sr-slot">
-    <div class="sr-line" tabindex="0" role="spinbutton" aria-label="Chunk" aria-valuetext={first.zh}>
-      <div class="sr-track">
-        {
-          doubled.map((w, i) => (
-            <div class="sr-slide">
-              <span class="w" data-i={i} data-s={slotOf(i)}>
-                {w.zh}
-              </span>
-            </div>
-          ))
-        }
-      </div>
-    </div>
+    <div class="sr-row" data-row aria-hidden="true"></div>
     <span class="sr-en" data-en>{first.en}</span>
+    <span class="sr-only" aria-live="polite" data-live>{first.zh}, {first.en}</span>
   </div>
 
-  <div class="timeline" data-timeline aria-live="polite" aria-label={`Learned in lesson ${first.learned}, reviewed in lessons ${reviewsOf(first.learned).join(', ')}`}>
+  <div class="timeline" data-timeline aria-label={`Learned in lesson ${first.learned}, reviewed in lessons ${reviewsOf(first.learned).join(', ')}`}>
     {
       Array.from({ length: LESSONS }, (_, i) => {
         const kind = kindOf(i, first.learned);
@@ -93,93 +75,50 @@ const slotOf = (i: number) => {
     gap: 24px;
     padding: 44px 0 12px;
     overflow: hidden;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+  }
+  .sr:focus-visible {
+    outline: 1px dashed var(--outline);
+    outline-offset: -6px;
   }
   .sr-slot {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
+    gap: 10px;
     width: 100%;
   }
 
-  /* Carousel line: 40px tall; items are absolutely placed around the centre by the script */
-  .sr-line {
+  /* the word: tiles absolutely placed around the centre by setRow */
+  .sr-row {
     position: relative;
     width: 100%;
-    height: 40px;
-    overflow: hidden; /* Embla viewport */
-    outline: none;
-    user-select: none;
-    -webkit-user-select: none;
-    /* fade out towards both edges */
-    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 42%, #000 58%, transparent 100%);
-    mask-image: linear-gradient(90deg, transparent 0%, #000 42%, #000 58%, transparent 100%);
-  }
-  .sr-line:focus-visible {
-    outline: 1px dashed var(--outline);
-    outline-offset: 2px;
-  }
-  /* Embla track: every slide is 80px wide, the centre slide sits in the middle of the line */
-  .sr-track {
-    display: flex;
-    height: 100%;
-    touch-action: pan-y pinch-zoom;
-  }
-  /* landing "tchuk": slides overshoot a little past their spot and snap back (on top of Embla's
-     own transform, which moves the track) */
-  .sr-line.tchuk .sr-slide {
-    animation: sr-tchuk 0.32s cubic-bezier(0.3, 0, 0.2, 1);
-  }
-  @keyframes sr-tchuk {
-    30% {
-      translate: calc(var(--dir, 1) * 7px) 0;
-    }
-    60% {
-      translate: calc(var(--dir, 1) * -2px) 0;
-    }
-    100% {
-      translate: 0 0;
-    }
-  }
-  .sr-slide {
-    flex: 0 0 80px;
-    min-width: 0;
-    /* flex centres a word wider than the slide on both sides (grid pushed it to the right) */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: grab;
-  }
-  .sr-line:active .sr-slide {
-    cursor: grabbing;
-  }
-  /* one font for every word (no swap): size comes from the scale set by the script */
-  .w {
-    flex-shrink: 0;
-    white-space: pre;
-    font-family: var(--f-brush);
-    font-weight: var(--fw-brush);
-    font-size: 32px;
-    line-height: 40px;
-    color: var(--accent);
-    transition: color 0.15s ease;
-    /* fisheye (set per frame by the script): neighbours turn away like on a drum */
-    /* --dx moves the word from Embla's straight-line spot to its spot on the drum */
-    transform: translateX(var(--dx, 0px)) perspective(110px) rotateY(var(--ry, 0deg)) scale(var(--sc, 1));
-    pointer-events: none;
-  }
-  .w[data-s='0'] {
-    color: var(--text);
+    height: 28px;
   }
 
+  /* fixed-height line for the rewrite effect (layers overlap while one word replaces the other) */
   .sr-en {
+    display: grid; /* .wline: old and new word share the cell */
+    justify-items: center;
+    width: 100%;
     font-size: 13px;
     line-height: 18px;
+    height: 18px;
     color: var(--text);
     opacity: 0.7;
     white-space: pre;
-    min-height: 18px;
-    transition: opacity 0.15s ease;
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
 
   /* Timeline: fixed lessons 0–20; bars change kind with an overshoot, one by one */
@@ -259,165 +198,63 @@ const slotOf = (i: number) => {
 </style>
 
 <script>
-  import EmblaCarousel from 'embla-carousel';
+  import { makeSlot, setRow, ORANGE, WAVE, FLIP } from '../../scripts/tiles';
+  import type { Slot, TileVal } from '../../scripts/tiles';
+  import { writeLine } from '../../scripts/write';
 
   type Word = { zh: string; en: string; learned: number };
 
-  const root = document.querySelector<HTMLElement>('[data-sr]')!;
-  const line = root.querySelector<HTMLElement>('.sr-line')!;
-  const enEl = root.querySelector<HTMLElement>('[data-en]')!;
-  const timeline = root.querySelector<HTMLElement>('[data-timeline]')!;
-  const cols = [...timeline.querySelectorAll<HTMLElement>('.tcol')];
-  const words: Word[] = JSON.parse(root.dataset.words!);
-  const GAPS: number[] = JSON.parse(root.dataset.gaps!);
-  const n = words.length;
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const root = document.querySelector<HTMLElement>('[data-sr]');
+  if (root) {
+    const row = root.querySelector<HTMLElement>('[data-row]')!;
+    const enEl = root.querySelector<HTMLElement>('[data-en]')!;
+    const live = root.querySelector<HTMLElement>('[data-live]')!;
+    const timeline = root.querySelector<HTMLElement>('[data-timeline]')!;
+    const cols = [...timeline.querySelectorAll<HTMLElement>('.tcol')];
+    const words: Word[] = JSON.parse(root.dataset.words!);
+    const GAPS: number[] = JSON.parse(root.dataset.gaps!);
 
-  // Roulette feel: a quick fling can spin past many words (skipSnaps) and glides longer before it
-  // stops (duration); when it comes to rest it lands with a small "tchuk" (see settle below).
-  const embla = EmblaCarousel(line, {
-    loop: true,
-    align: 'center',
-    startIndex: Number(root.dataset.start),
-    skipSnaps: true,
-    duration: reduce ? 0 : 30,
-    dragThreshold: 4,
-  });
-  const slides = embla.slideNodes();
-  const ws = slides.map((s) => s.querySelector<HTMLElement>('.w')!);
+    const MAXC = Math.max(...words.map((w) => [...w.zh].length));
+    const slots: Slot[] = Array.from({ length: MAXC }, () => makeSlot(row, 'abs'));
+    const valsOf = (w: Word): TileVal[] => [...w.zh].map((ch) => ({ ch, bg: ORANGE }));
 
-  // Drum: Embla handles drag, fling and snapping on a straight line of 80px slides; each word is then
-  // placed as if it sat on a cylinder. A word d slides away from the centre is at angle d × STEP:
-  // its x follows R·sin(angle), so words spread out near the centre and bunch up towards the edges,
-  // turning away (rotateY = angle) and shrinking as they go round to the horizon, where they fade.
-  const SLIDE = 80;
-  const STEP = 40; // degrees between neighbours
-  const GAP = 12; // px between the centre word and its neighbours
-  const rad = (deg: number) => (deg * Math.PI) / 180;
-  const scaleAt = (a: number) => 1 - 0.22 * Math.min(a, 1) - 0.18 * Math.max(0, Math.min(a - 1, 1));
-  // radius: room for the widest word in the centre plus a turned, shrunk widest neighbour
-  const widest = Math.max(...ws.map((w) => w.offsetWidth));
-  const neighbourHalf = (widest * scaleAt(1) * Math.cos(rad(STEP))) / 2;
-  const R = (widest / 2 + GAP + neighbourHalf) / Math.sin(rad(STEP));
-
-  function drum(w: HTMLElement, d: number) {
-    const a = Math.abs(d);
-    const angle = Math.max(-90, Math.min(90, d * STEP));
-    const x = R * Math.sin(rad(angle));
-    w.style.setProperty('--dx', `${(x - d * SLIDE).toFixed(2)}px`);
-    w.style.setProperty('--ry', `${angle.toFixed(2)}deg`);
-    w.style.setProperty('--sc', scaleAt(a).toFixed(4));
-    const deg = Math.abs(angle);
-    w.style.opacity = String(deg <= STEP ? 1 - 0.15 * (deg / STEP) : deg < 70 ? 0.85 : Math.max(0, 0.85 * (90 - deg) / 20));
-    const s = a < 0.5 ? 0 : Math.sign(d);
-    if (w.dataset.s !== String(s)) w.dataset.s = String(s);
-  }
-
-  function fisheye() {
-    const engine = embla.internalEngine();
-    const progress = embla.scrollProgress();
-    const snaps = embla.scrollSnapList();
-    snaps.forEach((snap, snapIndex) => {
-      let diff = snap - progress;
-      engine.slideRegistry[snapIndex].forEach((slideIndex) => {
-        if (engine.options.loop) {
-          engine.slideLooper.loopPoints.forEach((loopItem) => {
-            const target = loopItem.target();
-            if (slideIndex === loopItem.index && target !== 0) {
-              const sign = Math.sign(target);
-              if (sign === -1) diff = snap - (1 + progress);
-              if (sign === 1) diff = snap + (1 - progress);
-            }
-          });
-        }
-        const d = diff * snaps.length; // in slides
-        drum(ws[slideIndex], d);
+    function updateTimeline(w: Word) {
+      const reviews = GAPS.map((g) => w.learned + g);
+      cols.forEach((c) => {
+        const i = Number(c.dataset.lesson);
+        const kind = i === w.learned ? 'learned' : reviews.includes(i) ? 'review' : 'idle';
+        const fade = Math.max(0.06, 1 - ((i - 10) / 10) ** 2);
+        c.classList.remove('learned', 'review', 'idle');
+        c.classList.add(kind);
+        c.style.opacity = (kind === 'idle' ? fade : Math.max(fade, 0.9)).toFixed(2);
+        c.querySelector('span')!.textContent = kind === 'review' ? String(i) : '·';
       });
-    });
-  }
-
-  function updateTimeline(w: Word) {
-    const reviews = GAPS.map((g) => w.learned + g);
-    cols.forEach((c) => {
-      const i = Number(c.dataset.lesson);
-      const kind = i === w.learned ? 'learned' : reviews.includes(i) ? 'review' : 'idle';
-      const fade = Math.max(0.06, 1 - ((i - 10) / 10) ** 2);
-      c.classList.remove('learned', 'review', 'idle');
-      c.classList.add(kind);
-      c.style.opacity = (kind === 'idle' ? fade : Math.max(fade, 0.9)).toFixed(2);
-      c.querySelector('span')!.textContent = kind === 'review' ? String(i) : '·';
-    });
-    timeline.setAttribute('aria-label', `Learned in lesson ${w.learned}, reviewed in lessons ${reviews.join(', ')}`);
-  }
-
-  let enTimer = 0;
-  let shown = embla.selectedScrollSnap() % n;
-  embla.on('select', () => {
-    const k = embla.selectedScrollSnap() % n;
-    if (k === shown) return;
-    shown = k;
-    const w = words[k];
-    line.setAttribute('aria-valuetext', w.zh);
-    updateTimeline(w);
-    // English line swaps as the new chunk settles
-    clearTimeout(enTimer);
-    enEl.style.opacity = '0';
-    enTimer = window.setTimeout(
-      () => {
-        enEl.textContent = w.en;
-        enEl.style.opacity = '';
-      },
-      reduce ? 0 : 230,
-    );
-  });
-  // direction of travel, so the landing kicks the right way
-  let lastProgress = embla.scrollProgress();
-  let dir = 1;
-  embla.on('scroll', () => {
-    const p = embla.scrollProgress();
-    let d = p - lastProgress;
-    if (d > 0.5) d -= 1; // wrapped around the loop
-    if (d < -0.5) d += 1;
-    if (Math.abs(d) > 0.0005) dir = d > 0 ? 1 : -1;
-    lastProgress = p;
-    fisheye();
-  });
-  embla.on('reInit', fisheye);
-  // landing: after a fling, overshoot a few px past the word, then click back into place.
-  // Clicks and arrow keys move one word and just settle (no tchuk, which read as a stutter).
-  let flung = false;
-  embla.on('pointerUp', () => (flung = true));
-  embla.on('settle', () => {
-    const wasFling = flung;
-    flung = false;
-    if (reduce || !wasFling) return;
-    line.style.setProperty('--dir', String(-dir));
-    line.classList.remove('tchuk');
-    void line.offsetWidth;
-    line.classList.add('tchuk');
-  });
-  embla.on('pointerDown', () => line.classList.remove('tchuk'));
-
-  // click a neighbour to bring it to the centre (ignored when the pointer moved: that was a drag)
-  let downX = 0;
-  line.addEventListener('pointerdown', (e) => (downX = e.clientX));
-  slides.forEach((slide, i) =>
-    slide.addEventListener('click', (e) => {
-      if (Math.abs(e.clientX - downX) < 6) {
-        flung = false;
-        embla.scrollTo(i);
-      }
-    }),
-  );
-  line.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowRight') {
-      e.preventDefault();
-      embla.scrollNext();
-    } else if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      embla.scrollPrev();
+      timeline.setAttribute('aria-label', `Learned in lesson ${w.learned}, reviewed in lessons ${reviews.join(', ')}`);
     }
-  });
 
-  fisheye();
+    let cur = 0;
+    let busy = false;
+    setRow(row, slots, valsOf(words[0]), false);
+    writeLine(enEl, words[0].en, false);
+
+    function next() {
+      if (busy) return;
+      busy = true;
+      cur = (cur + 1) % words.length;
+      const w = words[cur];
+      setRow(row, slots, valsOf(w));
+      writeLine(enEl, w.en);
+      updateTimeline(w);
+      live.textContent = `${w.zh}, ${w.en}`;
+      window.setTimeout(() => (busy = false), (MAXC - 1) * WAVE + FLIP + 40);
+    }
+
+    root.addEventListener('click', next);
+    root.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        next();
+      }
+    });
+  }
 </script>

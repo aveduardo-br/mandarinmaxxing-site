@@ -4,7 +4,7 @@ export const SKILL_RELEASES = `${SKILL_REPO}/releases`;
 export const SKILL_ISSUES = `${SKILL_REPO}/issues`;
 // Always the newest release: the skill repo publishes one automatically for each new version.
 export const SKILL_ZIP = `${SKILL_REPO}/releases/latest/download/mandarinmaxxing-claude.zip`;
-export const SKILL_VERSION = 'v0.4.0';
+export const SKILL_VERSION = 'v0.5.5';
 
 export const sections = [
   { id: 'what-it-is', num: '01', title: 'What it is' },
@@ -13,13 +13,14 @@ export const sections = [
   { id: 'lesson', num: '04', title: 'A lesson, step by step' },
   { id: 'course', num: '05', title: 'Your course' },
   { id: 'install', num: '06', title: 'Install' },
-  { id: 'how-its-made', num: '07', title: 'How it’s being built' },
 ] as const;
 
 export const faq = [
-  { id: 'faq-why', title: 'Why I made it' },
+  { id: 'faq-why', title: 'How it started' },
+  { id: 'faq-built', title: 'How it’s being built' },
   { id: 'faq-saved', title: 'Where your course lives' },
   { id: 'faq-levels', title: 'Which levels?' },
+  { id: 'faq-length', title: 'How long a lesson is' },
   { id: 'faq-not', title: 'What it doesn’t do' },
   { id: 'faq-free', title: 'Free? Official?' },
 ] as const;
