@@ -141,16 +141,16 @@ const stripData = levelData[0].topics.map((t) => t.strip);
     Here the same words are grouped by the moment you’d use them.
   </p>
 
+  <!-- outside .topics-wrap, whose overflow clip would cut the examples tag. The level switch: HSK in black tiles, the level in an orange one; a click shows the next level -->
+  <div class="lvl">
+    <span class="tile-tag lvl-tag" data-lvl-note hidden aria-hidden="true">Examples · the skill maps it when you start</span>
+    <button class="lvl-btn" type="button" data-lvl data-cuelume-select aria-label="HSK 1. Show the next level">
+      <span class="lt" aria-hidden="true">H</span><span class="lt" aria-hidden="true">S</span><span class="lt" aria-hidden="true">K</span><span class="lt lt-num" data-lvl-num aria-hidden="true">1</span>
+      <span class="lvl-hint" aria-hidden="true">Next level →</span>
+    </button>
+    <p class="sr-only" aria-live="polite" data-lvl-live></p>
+  </div>
   <div class="topics-wrap" data-levels={JSON.stringify(levelData)}>
-    <!-- the level switch: HSK in black tiles, the level in an orange one; a click shows the next level -->
-    <div class="lvl">
-      <span class="tile-tag lvl-tag" data-lvl-note hidden aria-hidden="true">Examples · the skill maps it when you start</span>
-      <button class="lvl-btn" type="button" data-lvl data-cuelume-select aria-label="HSK 1. Show the next level">
-        <span class="lt" aria-hidden="true">H</span><span class="lt" aria-hidden="true">S</span><span class="lt" aria-hidden="true">K</span><span class="lt lt-num" data-lvl-num aria-hidden="true">1</span>
-        <span class="lvl-hint" aria-hidden="true">Next level →</span>
-      </button>
-      <p class="sr-only" aria-live="polite" data-lvl-live></p>
-    </div>
     <div class="list" data-topics>
       {
         topics.map((t, ti) => (
@@ -437,6 +437,7 @@ const stripData = levelData[0].topics.map((t) => t.strip);
      the selector (out of the flow), so showing it never moves the list. */
   .lvl {
     position: relative;
+    margin-bottom: -16px; /* sits right on top of the list, as when it was inside it (the section's gap is 16px) */
   }
   .lvl-tag {
     position: absolute;
