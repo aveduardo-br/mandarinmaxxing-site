@@ -1,20 +1,21 @@
 ---
 // Footer.
-// Left: what the page offers again, as links. Right: 中文 ("Chinese") drawn in tiles, one tile per
-// pixel of the two characters (src/data/zhongwen.ts), with MAXXING under it in seven black tiles as wide
-// as the drawing. Like the hero: a few tiles change on their own while it is on screen, hovering turns
+// Left: what the page offers again, as links. Right: 中文 ("Chinese") made of small tiles that follow
+// the shape of a brush-drawn 中文 (design/zhongwen.svg, cut into a grid by scripts/build-zhongwen.py),
+// like the hero's MANDARIN, with MAXXING under it in seven black tiles as wide as the drawing. Like the hero: a few tiles change on their own while it is on screen, hovering turns
 // tiles orange (with the flip sound), and a hovered letter of MAXXING turns into a hanzi for a moment
 // (all seven together read 学中文很有意思, "learning Chinese is fun"). On narrow screens it is scaled down
 // to the width, above the links.
 import { SKILL_REPO, SKILL_RELEASES, SKILL_ISSUES, SKILL_ZIP, SKILL_VERSION } from '../data/site';
-import { ZHONG, WEN, GAP } from '../data/zhongwen';
+import { ZW_GRID } from '../data/zhongwen-grid';
 
-const COLS = ZHONG[0].length * 2 + GAP;
-const ROWS = ZHONG.length;
+const COLS = ZW_GRID[0].length;
+const ROWS = ZW_GRID.length;
 const T = 28; // the standard tile; the whole drawing is scaled to fit by the script
 const W = COLS * T;
 const MX = W / 7; // MAXXING: seven square tiles spanning the drawing's width
-const H = ROWS * T + 16 + MX;
+const MX_GAP = T * 2;
+const H = ROWS * T + MX_GAP + MX;
 ---
 
 <footer class="footer">
@@ -55,9 +56,9 @@ const H = ROWS * T + 16 + MX;
     </div>
   </div>
   <div class="zw-box" data-zw-box style={`--w:${W}px;--h:${H}px`}>
-    <div class="zw" data-zw data-cols={COLS} data-rows={ROWS} data-gap={GAP} role="img" aria-label="中文 (Chinese) drawn in tiles, with MAXXING under it" style={`width:${W}px;height:${H}px;--mx:${MX}px`}>
+    <div class="zw" data-zw data-cols={COLS} data-rows={ROWS} role="img" aria-label="中文 (Chinese) drawn in tiles, with MAXXING under it" style={`width:${W}px;height:${H}px;--mx:${MX}px`}>
       <div class="zw-board" data-zw-board style={`height:${ROWS * T}px`}></div>
-      <div class="zw-mx" data-zw-mx style={`top:${ROWS * T + 16}px`}></div>
+      <div class="zw-mx" data-zw-mx style={`top:${ROWS * T + MX_GAP}px`}></div>
     </div>
   </div>
 </footer>
@@ -65,29 +66,28 @@ const H = ROWS * T + 16 + MX;
 <script>
   import { makeSlot, applyTile, flipTile, withFlipSound, playFlipSound, reduceMotion, ORANGE, MUTED_HERO, TILE, DUR, EASE_CLOSE, EASE_OPEN, WAVE } from '../scripts/tiles';
   import type { Slot } from '../scripts/tiles';
-  import { ZHONG, WEN, ZW_CHARS, MX_HAN } from '../data/zhongwen';
+  import { ZW_CHARS, MX_HAN } from '../data/zhongwen';
+  import { ZW_GRID } from '../data/zhongwen-grid';
 
   const footer = document.querySelector<HTMLElement>('footer.footer')!;
   const zw = footer.querySelector<HTMLElement>('[data-zw]')!;
   const box = footer.querySelector<HTMLElement>('[data-zw-box]')!;
   const board = zw.querySelector<HTMLElement>('[data-zw-board]')!;
   const mxRow = zw.querySelector<HTMLElement>('[data-zw-mx]')!;
-  const GAP = Number(zw.dataset.gap);
   const chars = [...ZW_CHARS];
   const pick = () => chars[(Math.random() * chars.length) | 0];
   // colours: the hero's muted cycle, with about one tile in seven orange
   let ci = 0;
   const colour = () => (Math.random() < 0.14 ? ORANGE : MUTED_HERO[ci++ % MUTED_HERO.length]);
 
-  // ---- 中文: a tile per pixel ----
+  // ---- 中文: a tile in every cell the brush shape covers ----
   type Cell = { slot: Slot; c: number; r: number; until: number; back: number };
   const cells: Cell[] = [];
   const at = new Map<string, Cell>();
-  [ZHONG, WEN].forEach((glyph, gi) =>
+  [ZW_GRID].forEach((glyph) =>
     glyph.forEach((row, r) =>
-      [...row].forEach((px, x) => {
+      [...row].forEach((px, c) => {
         if (px !== '#') return;
-        const c = gi * (row.length + GAP) + x;
         const slot = makeSlot(board, 'abs');
         slot.el.style.left = `${c * TILE}px`;
         slot.el.style.top = `${r * TILE}px`;
@@ -154,13 +154,15 @@ const H = ROWS * T + 16 + MX;
     lastKey = key;
     if (!at.has(key)) return;
     const now = performance.now();
+    const R = 2.5; // in tiles: the drawing's tiles are small, so the cursor touches a little patch
     withFlipSound(() => {
-      for (let dr = -1; dr <= 1; dr++)
-        for (let dc = -1; dc <= 1; dc++) {
+      for (let dr = -3; dr <= 3; dr++)
+        for (let dc = -3; dc <= 3; dc++) {
+          const d = Math.hypot(dc, dr);
+          if (d > R) continue;
           const cell = at.get(`${c + dc},${r + dr}`);
           if (!cell || now < cell.until) continue;
           cell.until = now + 400;
-          const d = Math.hypot(dc, dr);
           flipTile(cell.slot, { ch: pick(), bg: ORANGE }, Math.round(d * WAVE * 1.5));
           clearTimeout(cell.back);
           cell.back = window.setTimeout(() => flipTile(cell.slot, { ch: pick(), bg: colour() }), 1500 + Math.random() * 2500);
@@ -177,7 +179,7 @@ const H = ROWS * T + 16 + MX;
     const cell = cells[(Math.random() * cells.length) | 0];
     if (performance.now() < cell.until) return;
     flipTile(cell.slot, { ch: pick(), bg: cell.slot.val?.bg ?? colour() });
-  }, 700);
+  }, 220);
 
   // ---- fit: scaled down to the space it has (the transform keeps the hover maths right) ----
   const fit = () => {
@@ -327,8 +329,10 @@ const H = ROWS * T + 16 + MX;
     user-select: none;
     -webkit-user-select: none;
   }
+  /* drawn at 28px and shown much smaller: a little more air between tiles, as in the hero */
   .zw-board {
     position: relative;
+    --tile-gap: 2px;
   }
   .zw-mx {
     position: absolute;
