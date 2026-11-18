@@ -1,116 +1,174 @@
 ---
-// Bento card "+ Spaced review" — visual part.
-// The word under review is a short row of orange tiles (src/scripts/tiles.ts), with its English below.
-// Clicking the card (or Enter / Space) moves to the next word: the tiles flip in place, in a wave, and
-// the row grows or shrinks, the same change as in Chunks. The English is rewritten (src/scripts/write.ts).
-// The timeline below is fixed (lessons 0–20); its bars change to show when the word was learned and
-// when it comes back. Reviews always come +1, +3, +7 and +14 lessons after the lesson where it was learned.
-// The tiles use the pixel font: every hanzi here must be in public/fonts/zpix-site.woff.
+// Bento card "+ Spaced review" — visual part. Approved prototype: artifact "Spaced review — três
+// versões", version B2 (https://claude.ai/artifact/M9tu4VTVRgnQ4xhfhT5o69).
+// One lesson at a time: its new word on top (orange tiles), and under "Coming back" the old words that
+// return in it, each with its meaning and the lesson it came from. Words come back 1, 3, 7 and 14
+// lessons after the one where they were learned. Empty rows show dashed placeholder tiles (as in Your
+// course); lesson 1 has nothing to review yet. Two arrow tiles (or ← →) change the lesson; on its own
+// the card moves forward while it is on screen and the pointer is not over it. Hovering an old word
+// dims the others and says how many lessons ago it was learned.
+// Every tile change uses the shared flip (src/scripts/tiles.ts). The tiles use the pixel font: every
+// hanzi here must be in public/fonts/zpix-site.woff.
 
+// one word per lesson, lessons 1–16
 const words = [
-  { zh: '多少钱', en: 'how much', learned: 4 },
-  { zh: '喝茶', en: 'drink tea', learned: 2 },
-  { zh: '认识', en: 'know someone', learned: 3 },
-  { zh: '朋友', en: 'friend', learned: 1 },
-  { zh: '便宜', en: 'cheap', learned: 5 },
-  { zh: '医院', en: 'hospital', learned: 6 },
-  { zh: '米饭', en: 'rice', learned: 2 },
-  { zh: '好吃', en: 'tasty', learned: 4 },
-];
+  ['你好', 'hello'], ['朋友', 'friend'], ['喝茶', 'drink tea'], ['多少钱', 'how much'],
+  ['米饭', 'rice'], ['好吃', 'tasty'], ['便宜', 'cheap'], ['医院', 'hospital'],
+  ['认识', 'know someone'], ['明天', 'tomorrow'], ['工作', 'work'], ['看书', 'read'],
+  ['睡觉', 'sleep'], ['回家', 'go home'], ['下班', 'get off work'], ['起床', 'get up'],
+].map(([zh, en]) => ({ zh, en }));
 const GAPS = [1, 3, 7, 14];
-const LESSONS = 21; // 0–20
-const CENTER = 10;
-
-const reviewsOf = (learned: number) => GAPS.map((g) => learned + g);
-const fade = (i: number) => Math.max(0.06, 1 - ((i - CENTER) / CENTER) ** 2);
-const kindOf = (i: number, learned: number) =>
-  i === learned ? 'learned' : reviewsOf(learned).includes(i) ? 'review' : 'idle';
-
-const first = words[0];
+const START = 8;
 ---
 
-<div
-  class="sr"
-  data-sr
-  data-words={JSON.stringify(words)}
-  data-gaps={JSON.stringify(GAPS)}
-  role="button"
-  tabindex="0"
-  aria-label="Show the next word"
->
-  <div class="sr-slot">
-    <div class="sr-row" data-row aria-hidden="true"></div>
-    <span class="sr-en" data-en>{first.en}</span>
-    <span class="sr-only" aria-live="polite" data-live>{first.zh}, {first.en}</span>
+<div class="sr" data-sr data-words={JSON.stringify(words)} data-gaps={JSON.stringify(GAPS)} data-start={START} tabindex="0" aria-label="Spaced review: lessons and the words that come back in them. Use the arrow keys to change the lesson.">
+  <div class="stage" data-stage>
+    <span class="tile-tag head" data-head>Lesson {START}</span>
+    <button class="atile prev" type="button" data-step="-1" aria-label="Previous lesson">
+      <svg viewBox="0 0 7 7" shape-rendering="crispEdges"><path d="M1 3h6v1h-6zM0 3h1v1h-1zM1 2h1v1h-1zM1 4h1v1h-1zM2 1h1v1h-1zM2 5h1v1h-1z" /></svg>
+    </button>
+    <button class="atile next" type="button" data-step="1" aria-label="Next lesson">
+      <svg viewBox="0 0 7 7" shape-rendering="crispEdges"><path d="M1 3h6v1h-6zM0 3h1v1h-1zM1 2h1v1h-1zM1 4h1v1h-1zM2 1h1v1h-1zM2 5h1v1h-1z" /></svg>
+    </button>
+    <span class="tile-label back-label">Coming back</span>
+    <span class="rule" aria-hidden="true"></span>
   </div>
-
-  <div class="timeline" data-timeline aria-label={`Learned in lesson ${first.learned}, reviewed in lessons ${reviewsOf(first.learned).join(', ')}`}>
-    {
-      Array.from({ length: LESSONS }, (_, i) => {
-        const kind = kindOf(i, first.learned);
-        const op = kind === 'idle' ? fade(i) : Math.max(fade(i), 0.9);
-        return (
-          <div class={`tcol ${kind}`} data-lesson={i} style={`opacity:${op.toFixed(2)};--i:${i}`}>
-            <i />
-            <span>{kind === 'review' ? i : '·'}</span>
-          </div>
-        );
-      })
-    }
-  </div>
-
-  <div class="sr-legend label">
-    <span><i class="learned"></i>learned</span>
-    <span><i class="review"></i>review</span>
-  </div>
+  <p class="sr-only" aria-live="polite" data-live></p>
 </div>
 
 <style>
   .sr {
     flex-grow: 1;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 24px;
-    padding: 44px 0 12px;
-    overflow: hidden;
-    cursor: pointer;
+    padding: 20px 0;
+    outline: none;
     user-select: none;
     -webkit-user-select: none;
-    -webkit-tap-highlight-color: transparent;
-    outline: none;
   }
   .sr:focus-visible {
     outline: 1px dashed var(--outline);
     outline-offset: -6px;
   }
-  .sr-slot {
+  /* 236px card: everything is placed in px from the stage's top-left corner (20px side margins) */
+  .stage {
+    position: relative;
+    width: 236px;
+    height: 256px;
+    flex: none;
+  }
+  .head {
+    position: absolute;
+    left: 20px;
+    top: 4px;
+  }
+  /* arrow tiles: grey like an unlit tile, orange on hover (same pixel arrow style as the FAQ tile) */
+  .atile {
+    position: absolute;
+    top: 0;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    background: #1e1e1e;
+    background-clip: content-box;
+    padding: var(--tile-gap, 1px);
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+  }
+  .atile.prev {
+    left: 160px;
+  }
+  .atile.next {
+    left: 188px;
+  }
+  .atile svg {
+    width: 14px;
+    height: 14px;
+    fill: #8a8a8a;
+    transition: fill 0.15s ease;
+  }
+  .atile.next svg {
+    transform: scaleX(-1);
+  }
+  .atile:hover {
+    background-color: var(--accent);
+  }
+  .atile:hover svg {
+    fill: #161616;
+  }
+  .atile:focus-visible {
+    outline: 1px dashed var(--outline);
+    outline-offset: 2px;
+  }
+  .back-label {
+    position: absolute;
+    left: 20px;
+    top: 98px;
+  }
+  .rule {
+    position: absolute;
+    left: 112px;
+    right: 20px;
+    top: 105px;
+    border-top: 1px dashed #333;
+  }
+  /* placeholder for a word still to come: a faint dashed square 2px inside the tile */
+  .stage :global(.ghost) {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    opacity: 0;
+    transition: opacity 0.18s ease;
+  }
+  .stage :global(.ghost)::before {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    border: 1px dashed #3a3a3a;
+  }
+  .stage :global(.tile) {
+    transition: opacity 0.18s ease;
+  }
+  /* the text beside a row: meaning, then where it comes from */
+  .stage :global(.rtxt) {
+    position: absolute;
+    height: 28px;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
+    justify-content: center;
+    gap: 1px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.18s ease;
   }
-
-  /* the word: tiles absolutely placed around the centre by setRow */
-  .sr-row {
-    position: relative;
-    width: 100%;
-    height: 28px;
-  }
-
-  /* fixed-height line for the rewrite effect (layers overlap while one word replaces the other) */
-  .sr-en {
-    display: grid; /* .wline: old and new word share the cell */
-    justify-items: center;
-    width: 100%;
+  .stage :global(.rtxt b) {
+    font-weight: 400;
     font-size: 13px;
-    line-height: 18px;
-    height: 18px;
+    line-height: 15px;
     color: var(--text);
-    opacity: 0.7;
-    white-space: pre;
+  }
+  .stage :global(.rtxt i) {
+    font-style: normal;
+    font-family: var(--f-mono);
+    font-size: 10.5px;
+    line-height: 12px;
+    color: var(--muted);
+  }
+  .stage :global(.rtxt em) {
+    font-style: normal;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .stage :global(.hit) {
+    position: absolute;
+    left: 0;
+    width: 236px;
+    height: 36px;
   }
   .sr-only {
     position: absolute;
@@ -120,141 +178,153 @@ const first = words[0];
     clip: rect(0 0 0 0);
     white-space: nowrap;
   }
-
-  /* Timeline: fixed lessons 0–20; bars change kind with an overshoot, one by one */
-  .timeline {
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    gap: 4px;
-    width: 100%;
-  }
-  .tcol {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    width: 7px;
-    flex-shrink: 0;
-    transition: opacity 0.2s ease;
-  }
-  .tcol i {
-    display: block;
-    width: 7px;
-    height: 14px;
-    background: #2e2e2e;
-    transition:
-      height 0.38s cubic-bezier(0.34, 1.56, 0.64, 1),
-      background-color 0.2s ease;
-    transition-delay: calc(var(--i) * 12ms);
-  }
-  .tcol span {
-    font-family: var(--f-mono);
-    font-size: var(--fs-label);
-    line-height: 18px;
-    color: var(--outline);
-    white-space: pre;
-  }
-  .tcol.learned i {
-    background: var(--muted);
-  }
-  .tcol.review i {
-    height: 20px;
-    background: var(--accent);
-  }
-  .tcol.review span {
-    color: var(--accent);
-  }
-
-  .sr-legend {
-    display: flex;
-    gap: 16px;
-    line-height: 14px;
-    color: var(--muted-2);
-  }
-  .sr-legend span {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .sr-legend i {
-    display: block;
-    width: 6px;
-    height: 6px;
-  }
-  .sr-legend .learned {
-    background: var(--muted);
-  }
-  .sr-legend .review {
-    background: var(--accent);
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .tcol,
-    .tcol i {
-      transition: none;
-    }
-  }
 </style>
 
 <script>
-  import { makeSlot, setRow, ORANGE, WAVE, FLIP } from '../../scripts/tiles';
-  import type { Slot, TileVal } from '../../scripts/tiles';
-  import { writeLine } from '../../scripts/write';
+  import { makeSlot, applyTile, flipTile, reduceMotion, TILE, ORANGE, MUTED, WAVE, FLIP } from '../../scripts/tiles';
+  import type { Slot } from '../../scripts/tiles';
 
-  type Word = { zh: string; en: string; learned: number };
+  type Word = { zh: string; en: string };
+  type Item = { w: Word; learned: number; gap?: number };
+  type Row = { ghosts: HTMLElement[]; slots: Slot[]; txt: HTMLElement; item: Item | null; shown: boolean; token: number };
 
   const root = document.querySelector<HTMLElement>('[data-sr]');
   if (root) {
-    const row = root.querySelector<HTMLElement>('[data-row]')!;
-    const enEl = root.querySelector<HTMLElement>('[data-en]')!;
+    const stage = root.querySelector<HTMLElement>('[data-stage]')!;
+    const head = root.querySelector<HTMLElement>('[data-head]')!;
     const live = root.querySelector<HTMLElement>('[data-live]')!;
-    const timeline = root.querySelector<HTMLElement>('[data-timeline]')!;
-    const cols = [...timeline.querySelectorAll<HTMLElement>('.tcol')];
     const words: Word[] = JSON.parse(root.dataset.words!);
     const GAPS: number[] = JSON.parse(root.dataset.gaps!);
+    const N = words.length;
+    const X = 20;
+    const NEW_Y = 50;
+    const OLD_Y = 120;
+    const PITCH = 36;
+    const at = (el: HTMLElement, x: number, y: number) => {
+      el.style.left = `${x}px`;
+      el.style.top = `${y}px`;
+    };
+    const el = (cls: string) => {
+      const d = document.createElement('div');
+      d.className = cls;
+      stage.appendChild(d);
+      return d;
+    };
 
-    const MAXC = Math.max(...words.map((w) => [...w.zh].length));
-    const slots: Slot[] = Array.from({ length: MAXC }, () => makeSlot(row, 'abs'));
-    const valsOf = (w: Word): TileVal[] => [...w.zh].map((ch) => ({ ch, bg: ORANGE }));
-
-    function updateTimeline(w: Word) {
-      const reviews = GAPS.map((g) => w.learned + g);
-      cols.forEach((c) => {
-        const i = Number(c.dataset.lesson);
-        const kind = i === w.learned ? 'learned' : reviews.includes(i) ? 'review' : 'idle';
-        const fade = Math.max(0.06, 1 - ((i - 10) / 10) ** 2);
-        c.classList.remove('learned', 'review', 'idle');
-        c.classList.add(kind);
-        c.style.opacity = (kind === 'idle' ? fade : Math.max(fade, 0.9)).toFixed(2);
-        c.querySelector('span')!.textContent = kind === 'review' ? String(i) : '·';
+    // row 0: the lesson's new word; rows 1–4: the old words coming back (empty rows show placeholders)
+    const rows: Row[] = [NEW_Y, ...[0, 1, 2, 3].map((r) => OLD_Y + r * PITCH)].map((y, k) => {
+      const ghosts = k ? [0, 1].map((c) => { const g = el('ghost'); at(g, X + c * TILE, y); return g; }) : [];
+      const slots = [0, 1, 2].map((c) => {
+        const s = makeSlot(stage, 'abs');
+        at(s.el, X + c * TILE, y);
+        return s;
       });
-      timeline.setAttribute('aria-label', `Learned in lesson ${w.learned}, reviewed in lessons ${reviews.join(', ')}`);
-    }
+      const txt = el('rtxt');
+      txt.innerHTML = '<b></b><i></i>';
+      at(txt, X + 3 * TILE + 12, y);
+      const row: Row = { ghosts, slots, txt, item: null, shown: false, token: 0 };
+      if (k) {
+        const hit = el('hit');
+        hit.style.top = `${y - 4}px`;
+        hit.addEventListener('pointerenter', () => focus(row));
+        hit.addEventListener('pointerleave', () => focus(null));
+      }
+      return row;
+    });
+
+    const lessonOf = (L: number) => ({
+      fresh: words[L - 1] ? { w: words[L - 1], learned: L } : null,
+      back: GAPS.flatMap((g) => (words[L - g - 1] ? [{ w: words[L - g - 1], learned: L - g, gap: g }] : [])),
+    });
 
     let cur = 0;
-    let busy = false;
-    setRow(row, slots, valsOf(words[0]), false);
-    writeLine(enEl, words[0].en, false);
+    let focused: Row | null = null;
 
-    function next() {
-      if (busy) return;
-      busy = true;
-      cur = (cur + 1) % words.length;
-      const w = words[cur];
-      setRow(row, slots, valsOf(w));
-      writeLine(enEl, w.en);
-      updateTimeline(w);
-      live.textContent = `${w.zh}, ${w.en}`;
-      window.setTimeout(() => (busy = false), (MAXC - 1) * WAVE + FLIP + 40);
+    function paint(r: Row) {
+      const dim = !!focused && r !== focused;
+      r.slots.forEach((s) => (s.el.style.opacity = dim ? '.25' : ''));
+      r.txt.style.opacity = r.shown ? (dim ? '.25' : '1') : '0';
+      if (r.shown && r.item?.gap) {
+        const g = r.item.gap;
+        r.txt.lastElementChild!.textContent = r === focused ? `${g} lesson${g > 1 ? 's' : ''} ago` : `from lesson ${r.item.learned}`;
+      }
+    }
+    function focus(row: Row | null) {
+      focused = row?.item ? row : null;
+      rows.forEach(paint);
     }
 
-    root.addEventListener('click', next);
+    // Each write gets a token: text scheduled by an older write is dropped, so fast clicks can never
+    // leave another lesson's text on a row whose tiles have changed.
+    function writeRow(row: Row, it: Item | null, isNew: boolean, delay: number, animate: boolean, msg: [string, string] | null) {
+      const token = ++row.token;
+      row.item = it;
+      const chars = it ? [...it.w.zh] : [];
+      const bg = isNew ? ORANGE : MUTED[((it?.learned ?? 1) - 1) % MUTED.length];
+      row.slots.forEach((s, c) => {
+        const v = c < chars.length ? { ch: chars[c], bg } : null;
+        if (animate) flipTile(s, v, delay + c * WAVE);
+        else applyTile(s, v);
+      });
+      row.shown = false;
+      row.txt.style.opacity = '0';
+      // placeholders leave as soon as a word starts coming in, and come back once the tiles have left
+      if (it) row.ghosts.forEach((g) => (g.style.opacity = '0'));
+      const set = () => {
+        if (row.token !== token) return;
+        row.ghosts.forEach((g) => (g.style.opacity = it ? '0' : '1'));
+        if (!it && !msg) return;
+        row.txt.style.left = `${X + (it ? chars.length : 2) * TILE + 12}px`;
+        const [b, i] = [row.txt.firstElementChild!, row.txt.lastElementChild!];
+        if (!it) {
+          b.textContent = msg![0];
+          i.textContent = msg![1];
+        } else {
+          b.textContent = it.w.en;
+          if (isNew) i.innerHTML = '<em>new</em>';
+          else i.textContent = `from lesson ${it.learned}`;
+        }
+        row.shown = true;
+        paint(row);
+      };
+      if (animate && !reduceMotion()) window.setTimeout(set, delay + 2 * WAVE + FLIP * 0.6);
+      else set();
+    }
+
+    function show(L: number, animate = true) {
+      if (L === cur) return;
+      cur = L;
+      focused = null;
+      head.textContent = `Lesson ${L}`;
+      const { fresh, back } = lessonOf(L);
+      writeRow(rows[0], fresh, true, 0, animate, null);
+      rows.slice(1).forEach((row, r) =>
+        writeRow(row, back[r] ?? null, false, (r + 2) * 2 * WAVE, animate, !back.length && r === 0 ? ['Nothing yet', 'back from lesson 2'] : null),
+      );
+      rows.forEach(paint);
+      live.textContent =
+        `Lesson ${L}: new word ${fresh?.w.zh} (${fresh?.w.en}). ` +
+        (back.length ? `Coming back: ${back.map((b) => `${b.w.zh} (${b.w.en}, from lesson ${b.learned})`).join(', ')}.` : 'Nothing to review yet.');
+    }
+    const step = (d: number) => show(((cur - 1 + d + N) % N) + 1);
+
+    root.querySelectorAll<HTMLElement>('[data-step]').forEach((b) => b.addEventListener('click', () => step(Number(b.dataset.step))));
     root.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        next();
-      }
+      if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); }
     });
+
+    // on its own: one lesson forward every few seconds, only while the card is on screen and the
+    // pointer is not over it
+    let over = false;
+    let visible = false;
+    root.addEventListener('pointerenter', () => (over = true));
+    root.addEventListener('pointerleave', () => (over = false));
+    new IntersectionObserver(([e]) => (visible = e.isIntersecting)).observe(root);
+    window.setInterval(() => {
+      if (visible && !over && !document.hidden) step(1);
+    }, 2400);
+
+    show(Number(root.dataset.start), false);
   }
 </script>
