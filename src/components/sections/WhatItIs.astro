@@ -57,6 +57,12 @@ import Section from '../Section.astro';
       --ext: clamp(0px, (100vw - 100%) / 2 - 16px, 120px);
     }
   }
+  /* phones: edge to edge, so tiles appear right at one edge of the screen and leave at the other */
+  @media (max-width: 720px) {
+    .crop {
+      --ext: calc((100vw - 100%) / 2);
+    }
+  }
   .board {
     position: relative;
     width: max(100%, 680px);
@@ -129,9 +135,12 @@ import Section from '../Section.astro';
       const b = B.getBoundingClientRect(), c = B.parentElement!.getBoundingClientRect();
       const first = Math.max(0, Math.ceil((c.left - b.left - OX) / C));
       const lastCol = Math.min(BC - 1, Math.floor((c.right - b.left - OX) / C) - 1);
-      JIT = lastCol - first < 18 ? 2 : 3;
-      L0 = first + 1;
-      R0 = lastCol - 1;
+      // a narrow screen (a phone, edge to edge) shows little of the belt: tiles open right at the edge
+      // column and close at the last one, with just one column of wander
+      const narrow = lastCol - first < 16;
+      JIT = narrow ? 1 : lastCol - first < 18 ? 2 : 3;
+      L0 = narrow ? first : first + 1;
+      R0 = narrow ? lastCol : lastCol - 1;
       inAt = Array.from({ length: ROWS }, () => L0 + rnd(JIT));
       outAt = Array.from({ length: ROWS }, () => R0 - rnd(JIT));
     };

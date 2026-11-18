@@ -365,8 +365,15 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     .board {
       width: auto;
     }
+    /* the scoreboard is scaled by the script to the width of the block (see fitBoard) */
+    .board {
+      overflow: hidden;
+    }
     .num {
-      zoom: 0.5;
+      transform-origin: 0 0;
+      transition:
+        transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+        margin-bottom 0.45s cubic-bezier(0.22, 1, 0.36, 1);
     }
     .controls {
       flex-direction: column;
@@ -379,7 +386,7 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
 </style>
 
 <script>
-  import { makeSlot, applyTile, flipTile, reduceMotion, ORANGE, DIM } from '../../scripts/tiles';
+  import { makeSlot, applyTile, flipTile, reduceMotion, ORANGE, DIM, TILE } from '../../scripts/tiles';
   import type { Slot, TileVal } from '../../scripts/tiles';
 
   type Info = { name: string; bg: string; chars: string; end: number };
@@ -549,7 +556,29 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
       pinfo.hidden = mapped;
       if (mapped) pinfo.classList.remove('open');
       num.setAttribute('aria-label', `${mapped ? '' : 'about '}${next.n} lessons`);
+      fitBoard(next.n);
     }
+
+    // Phones: the scoreboard fills the width of the block under it. A two-digit number shows only its
+    // two places, so its tiles come out much bigger; a three-digit one shows all three. Scaled with a
+    // transform (the space it no longer takes is given back below it), so it can glide between the two.
+    const phone = matchMedia('(max-width: 720px)');
+    let shownN = 0;
+    function fitBoard(n = shownN) {
+      shownN = n;
+      if (!phone.matches) {
+        num.style.transform = '';
+        num.style.marginBottom = '';
+        return;
+      }
+      const places = String(n).length < 3 ? 2 : 3;
+      const cols = places * 8 - 1; // 7 columns a digit, one empty column between digits
+      const s = root.clientWidth / (cols * TILE);
+      const shift = (3 - places) * 8 * TILE;
+      num.style.transform = `translateX(${-shift * s}px) scale(${s})`;
+      num.style.marginBottom = `${ROWS * TILE * (s - 1)}px`;
+    }
+    addEventListener('resize', () => fitBoard());
 
     // ---- selectors: hanzi on grey while off, the digit on orange when chosen (like the side nav) ----
     const tileOf = new Map<HTMLElement, Slot>();

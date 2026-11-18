@@ -19,6 +19,9 @@ const topics = SAMPLE.map((num, i) => ({
   num: String(i + 1).padStart(2, '0'),
 }));
 const ROWS = 3;
+// On a phone the textbook lesson shows four words on one line: watch, milk, husband, red, the four
+// least related to each other (newspaper and room are left out).
+const PHONE_HIDE = ['报纸', '房间'];
 // one cell per textbook word; lessons are laid out in columns of ROWS, with a gap between them
 type Cell = { x: number; y: number; book: number; lesson: number; li: number };
 const cells: Cell[] = [];
@@ -102,7 +105,7 @@ const book2At = (bookStart[1] / COLS) * 100;
     <div class="book-words">
       {
         bookLesson.words.map((w) => (
-          <div class="bw">
+          <div class:list={['bw', { 'm-hide': PHONE_HIDE.includes(w.hanzi) }]}>
             <span class="hanzi">{w.hanzi}</span>
             <span class="en">{w.en}</span>
           </div>
@@ -604,6 +607,55 @@ const book2At = (bookStart[1] / COLS) * 100;
     color: var(--muted-2);
   }
 
+
+  /* ---------- phones ---------- */
+  @media (max-width: 720px) {
+    /* the textbook lesson on one line */
+    .book-words {
+      column-gap: 20px;
+      flex-wrap: nowrap;
+    }
+    .bw.m-hide {
+      display: none;
+    }
+    /* two preview words, so a long situation name never runs into them */
+    .pw:nth-child(3) {
+      display: none;
+    }
+    .name {
+      padding-right: 12px;
+    }
+    /* open: a smaller step up (18px, not 20px), and the name always on one line */
+    .topic.open .row {
+      margin-top: -1px;
+    }
+    .topic.open :is(.arrow, .num, .name) {
+      font-size: 18px;
+      line-height: 26px;
+    }
+    .topic.open .name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    /* the words in even rows: three per row (3 + 3, or 3 + 2) */
+    .panel-inner {
+      padding-left: 36px;
+    }
+    .words {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      column-gap: 12px;
+      row-gap: 16px;
+    }
+    .word .hanzi {
+      font-size: 28px;
+      line-height: 34px;
+    }
+    .word .en {
+      text-align: center;
+    }
+  }
   /* ---------- sticky bar ---------- */
   /* the list and its bar: overflow clip keeps the bar's cover (below) inside the section */
   .topics-wrap {
@@ -806,7 +858,8 @@ const book2At = (bookStart[1] / COLS) * 100;
         scale: b.height / a.height,
         transformOrigin: 'left center',
         duration: 0.38,
-        ease: 'back.out(1.70158)',
+        // phones get a smaller step up (18px) and a gentler overshoot
+        ease: matchMedia('(max-width: 720px)').matches ? 'back.out(1.1)' : 'back.out(1.70158)',
         clearProps: 'transform',
       });
     });
