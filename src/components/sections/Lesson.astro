@@ -158,6 +158,15 @@ const tilesIn = (zh: string[]) => [...zh.join('')].filter((c) => !/[\s,.?!？，
     width: 236px;
     flex-shrink: 0;
   }
+  /* phones: one card per row, in the same order (01, spaced review, 02, 03, 04) */
+  @media (max-width: 720px) {
+    .bento-row {
+      flex-direction: column;
+    }
+    .card.spaced {
+      width: auto;
+    }
+  }
 
   .foot {
     display: flex;

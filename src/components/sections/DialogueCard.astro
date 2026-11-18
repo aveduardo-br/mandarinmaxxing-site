@@ -362,6 +362,25 @@ const fmt = (s: number) => `0:${String(Math.round(s)).padStart(2, '0')}`;
       transition: none;
     }
   }
+  /* phones: the player on top, the dialogue and the questions below it */
+  @media (max-width: 720px) {
+    .dlg {
+      padding: 16px;
+    }
+    .audio-body {
+      flex-direction: column;
+      gap: 24px;
+      padding: 20px 16px;
+    }
+    .player-wrap {
+      width: auto;
+      padding-right: 0;
+    }
+    .convo {
+      padding-left: 0;
+    }
+  }
+
 </style>
 
 <script>
