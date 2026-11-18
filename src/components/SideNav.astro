@@ -1,5 +1,6 @@
 ---
 import { sections, faq, SKILL_REPO } from '../data/site';
+import SoundToggle from './SoundToggle.astro';
 ---
 
 <nav class="sidenav" aria-label="Sections" data-cuelume-emphasis="subtle">
@@ -30,7 +31,7 @@ import { sections, faq, SKILL_REPO } from '../data/site';
   <ul class="end">
     <li><a href="#install">Install ↓</a></li>
     <li><a href={SKILL_REPO} target="_blank" rel="noopener">GitHub ↗</a></li>
-    <li><button class="sound" type="button" data-sound-toggle data-cuelume-toggle aria-pressed="true"><span data-sound-label>Sound on</span></button></li>
+    <li class="snd-li"><SoundToggle size={20} /></li>
   </ul>
 </nav>
 
@@ -106,23 +107,9 @@ import { sections, faq, SKILL_REPO } from '../data/site';
   a.active {
     color: var(--text);
   }
-  /* sound on/off: looks like the links around it */
-  .sound {
-    padding: 0;
-    border: 0;
-    background: none;
-    font: inherit;
-    font-size: var(--fs-small);
-    line-height: var(--lh-small);
-    color: var(--text-dim);
-    cursor: pointer;
-    transition: color 0.15s ease;
-  }
-  .sound:hover {
-    color: var(--text);
-  }
-  .sound[aria-pressed='false'] {
-    color: var(--muted-2);
+  /* the sound tile sits with the links, without the 44px tap height adding space around it */
+  .snd-li {
+    margin-block: -12px;
   }
 
   /* Numbered sections: the number is a small tile (docs/ladrilhos.md). Grey with the number in

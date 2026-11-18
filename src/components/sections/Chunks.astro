@@ -171,7 +171,7 @@ const leads = chunks.map((c) => lead(c.ex));
 </style>
 
 <script>
-  import { makeSlot, applyTile, flipTile, reduceMotion, TILE, ORANGE, MUTED, DIM, WAVE, FLIP } from '../../scripts/tiles';
+  import { makeSlot, applyTile, flipTile, reduceMotion, withFlipSound, TILE, ORANGE, MUTED, DIM, WAVE, FLIP } from '../../scripts/tiles';
   import type { Slot, TileVal } from '../../scripts/tiles';
   import { makeInlineWriter } from '../../scripts/write';
 
@@ -317,11 +317,11 @@ const leads = chunks.map((c) => lead(c.ex));
     }
 
     const next = () => go((cur + 1) % chunks.length);
-    stage.addEventListener('click', next);
+    stage.addEventListener('click', () => withFlipSound(next));
     stage.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        next();
+        withFlipSound(next);
       }
     });
 

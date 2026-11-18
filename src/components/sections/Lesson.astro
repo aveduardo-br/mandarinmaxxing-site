@@ -397,7 +397,7 @@ const tilesIn = (zh: string[]) => [...zh.join('')].filter((c) => !/[\s,.?!？，
 </style>
 
 <script>
-  import { makeSlot, setRow, ORANGE, DIM } from '../../scripts/tiles';
+  import { makeSlot, setRow, withFlipSound, ORANGE, DIM } from '../../scripts/tiles';
   import type { TileVal } from '../../scripts/tiles';
 
   // Vocabulary card: last hovered (or focused) row is active. The chunk's tiles flip to the new chunk;
@@ -467,7 +467,7 @@ const tilesIn = (zh: string[]) => [...zh.join('')].filter((c) => !/[\s,.?!？，
       glitch(enEl, data[i].en, LATIN);
     };
     rows.forEach((row, i) => {
-      row.addEventListener('pointerenter', () => activate(i));
+      row.addEventListener('pointerenter', () => withFlipSound(() => activate(i)));
       row.addEventListener('focus', () => activate(i));
     });
   }

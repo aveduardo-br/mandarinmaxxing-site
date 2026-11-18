@@ -50,16 +50,36 @@ export const WAVE = 28;
 /** Time one tile takes to close and open. */
 export const FLIP = DUR * 2;
 
+// Flip sound: flips started inside withFlipSound() (a hover or a click, never an animation that runs on
+// its own) call the registered sound as each tile actually starts to turn, so a wave of tiles rattles in
+// order. src/scripts/sound.ts registers it; tiles.ts itself makes no sound.
+let flipSound: (() => void) | null = null;
+let loud = 0;
+export const setFlipSound = (fn: () => void) => (flipSound = fn);
+export function withFlipSound<T>(fn: () => T): T {
+  loud++;
+  try {
+    return fn();
+  } finally {
+    loud--;
+  }
+}
+/** For flips the site animates by hand (not with flipTile): true while inside withFlipSound(). */
+export const flipIsLoud = () => loud > 0;
+export const playFlipSound = () => flipSound?.();
+
 /** Flip one tile to a new value after `delay` ms. Does nothing if the value is the same. */
 export function flipTile(slot: Slot, v: TileVal, delay = 0) {
   if (sameTile(slot.val, v)) return;
   if (reduceMotion()) return applyTile(slot, v);
+  const withSound = loud > 0;
   // remember the target now, so a second call during the wave compares against it; `gen` lets a newer
   // call cancel this one if it has not finished yet
   slot.val = v;
   const gen = (slot.gen = (slot.gen ?? 0) + 1);
   window.setTimeout(() => {
     if (slot.gen !== gen) return;
+    if (withSound) flipSound?.();
     const comeIn = () => {
       applyTile(slot, v);
       if (v) slot.el.animate(IN, { duration: DUR, easing: EASE_OPEN });

@@ -196,7 +196,7 @@ const START = 8;
 </style>
 
 <script>
-  import { makeSlot, applyTile, flipTile, reduceMotion, TILE, ORANGE, MUTED, WAVE, FLIP } from '../../scripts/tiles';
+  import { makeSlot, applyTile, flipTile, reduceMotion, withFlipSound, TILE, ORANGE, MUTED, WAVE, FLIP } from '../../scripts/tiles';
   import type { Slot } from '../../scripts/tiles';
 
   type Word = { zh: string; en: string };
@@ -327,10 +327,10 @@ const START = 8;
     }
     const step = (d: number) => show(((cur - 1 + d + N) % N) + 1);
 
-    root.querySelectorAll<HTMLElement>('[data-step]').forEach((b) => b.addEventListener('click', () => step(Number(b.dataset.step))));
+    root.querySelectorAll<HTMLElement>('[data-step]').forEach((b) => b.addEventListener('click', () => withFlipSound(() => step(Number(b.dataset.step)))));
     root.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
-      else if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); withFlipSound(() => step(1)); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); withFlipSound(() => step(-1)); }
     });
 
     // on its own: one lesson forward every few seconds, only while the card is on screen and the

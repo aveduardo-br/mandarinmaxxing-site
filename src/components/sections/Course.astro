@@ -386,7 +386,7 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
 </style>
 
 <script>
-  import { makeSlot, applyTile, flipTile, reduceMotion, ORANGE, DIM, TILE } from '../../scripts/tiles';
+  import { makeSlot, applyTile, flipTile, reduceMotion, withFlipSound, ORANGE, DIM, TILE } from '../../scripts/tiles';
   import type { Slot, TileVal } from '../../scripts/tiles';
 
   type Info = { name: string; bg: string; chars: string; end: number };
@@ -601,7 +601,7 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
       if (!btn || Number(btn.dataset.level) === level) return;
       level = Number(btn.dataset.level);
       press(levelGroup, btn);
-      show(true);
+      withFlipSound(() => show(true));
     });
 
     const paceGroup = document.querySelector<HTMLElement>('[data-pace-group]')!;
@@ -610,7 +610,7 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
       if (!btn || btn.dataset.pace === pace) return;
       pace = btn.dataset.pace!;
       press(paceGroup, btn);
-      show(true);
+      withFlipSound(() => show(true));
     });
 
     show(false);

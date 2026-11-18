@@ -8,6 +8,7 @@
 // slides away when you scroll down and comes back when you scroll up. The current section comes from
 // the .is-active class SideNav puts on sections (the same rule for both).
 import { sections, SKILL_REPO, SKILL_ZIP } from '../data/site';
+import SoundToggle from './SoundToggle.astro';
 ---
 
 <div class="topbar" data-topbar>
@@ -45,7 +46,7 @@ import { sections, SKILL_REPO, SKILL_ZIP } from '../data/site';
     <div class="actions">
       <a class="dl" href={SKILL_ZIP} data-cuelume-tap>Download for Claude</a>
       <a class="gh" href={SKILL_REPO} target="_blank" rel="noopener">GitHub ↗</a>
-      <button class="gh sound" type="button" data-sound-toggle data-cuelume-toggle aria-pressed="true"><span data-sound-label>Sound on</span></button>
+      <span class="snd-wrap"><SoundToggle size={28} /></span>
     </div>
   </nav>
 </div>
@@ -262,16 +263,8 @@ import { sections, SKILL_REPO, SKILL_ZIP } from '../data/site';
     line-height: 44px;
     color: var(--text-dim);
   }
-  .sound {
-    padding: 0;
-    border: 0;
-    background: none;
-    font-family: inherit;
-    font-weight: 300;
-    cursor: pointer;
-  }
-  .sound[aria-pressed='false'] {
-    color: var(--muted-2);
+  .snd-wrap {
+    margin-left: auto;
   }
   @media (prefers-reduced-motion: reduce) {
     .bar,

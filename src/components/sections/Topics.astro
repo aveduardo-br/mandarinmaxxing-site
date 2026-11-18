@@ -793,7 +793,7 @@ const stripData = topics.map((t) => {
 
 <script>
   import { gsap } from 'gsap';
-  import { DUR, EASE_CLOSE, EASE_OPEN } from '../../scripts/tiles';
+  import { DUR, EASE_CLOSE, EASE_OPEN, playFlipSound } from '../../scripts/tiles';
   import { writeLine } from '../../scripts/write';
   import { cue } from '../../scripts/sound';
 
@@ -973,6 +973,7 @@ const stripData = topics.map((t) => {
         window.setTimeout(() => {
           if (gens[k] !== g || el.classList.contains('on') === on) return;
           if (matchMedia('(prefers-reduced-motion: reduce)').matches) return void el.classList.toggle('on', on);
+          playFlipSound(); // the preview only flips on hover, so it always comes from the person
           const a = el.animate([{ transform: 'scaleY(1)' }, { transform: 'scaleY(0)' }], { duration: DUR, easing: EASE_CLOSE, fill: 'forwards' });
           a.onfinish = () => {
             a.cancel();

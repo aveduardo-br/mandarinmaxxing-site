@@ -285,7 +285,7 @@ import { SKILL_ZIP, SKILL_VERSION, AUTHOR_X } from '../data/site';
 </style>
 
 <script>
-  import { makeSlot, applyTile, flipTile, ORANGE, MUTED_HERO as MUTED, WAVE, TILE, DUR, EASE_CLOSE, EASE_OPEN, type Slot } from '../scripts/tiles';
+  import { makeSlot, applyTile, flipTile, withFlipSound, playFlipSound, ORANGE, MUTED_HERO as MUTED, WAVE, TILE, DUR, EASE_CLOSE, EASE_OPEN, type Slot } from '../scripts/tiles';
 
   import CELLS from '../data/hero-cells.json';
 
@@ -499,12 +499,13 @@ import { SKILL_ZIP, SKILL_VERSION, AUTHOR_X } from '../data/site';
       Object.assign(s, { fontSize: `${fs}px`, lineHeight: `${fs}px`, left: `${(MXS * 3) / 28}px`, top: `${MXS / 28}px` });
     } else Object.assign(s, { fontSize: `${MXS * 0.62}px`, lineHeight: `${MXS}px`, left: '0', top: '0' });
   }
-  function mxFlip(m: M, han: boolean, delay = 0) {
+  function mxFlip(m: M, han: boolean, delay = 0, sound = false) {
     const gen = ++m.gen;
     m.target = han;
     window.setTimeout(() => {
       if (m.gen !== gen) return;
       if (reduce) return mxSet(m, han);
+      if (sound) playFlipSound();
       const a = m.el.animate(OUT, { duration: DUR, easing: EASE_CLOSE, fill: 'forwards' });
       a.onfinish = () => {
         a.cancel();
@@ -521,7 +522,7 @@ import { SKILL_ZIP, SKILL_VERSION, AUTHOR_X } from '../data/site';
         const n = mx[j];
         // locked while it shows the hanzi and until it has turned back into the letter
         if (!n || n.target || performance.now() < n.lock) continue;
-        mxFlip(n, true, d * WAVE * 1.5);
+        mxFlip(n, true, d * WAVE * 1.5, true);
         n.back = window.setTimeout(() => {
           mxFlip(n, false);
           n.lock = performance.now() + 2 * DUR + 60;
@@ -763,7 +764,7 @@ import { SKILL_ZIP, SKILL_VERSION, AUTHOR_X } from '../data/site';
           t.until = now + 380;
           t.bg = ORANGE;
           const delay = Math.round(d * WAVE * 1.5);
-          flip(t, ORANGE, delay);
+          withFlipSound(() => flip(t, ORANGE, delay));
           clearTimeout(t.cool);
           t.cool = window.setTimeout(() => {
             t.bg = newColor(ORANGE);
