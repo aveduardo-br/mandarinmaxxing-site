@@ -1,0 +1,371 @@
+---
+// Collapsible questions, in two levels. Used by the FAQ and by the Sources block.
+// Level 1, a question: a tile before it holds the arrow, grey with a down arrow while closed; on opening
+// it flips (the same flip as every tile) to orange with a dark up arrow. Its answer is a short text and,
+// under it, the questions that belong with it.
+// Level 2, a question inside an answer: a smaller tile with a plus, grey while closed; on opening it
+// flips to orange with a minus. A source uses the same row, with a small line under its title (`meta`)
+// and its links at the end of the answer.
+// Answers are plain strings; a few carry a link, so they are rendered as HTML. Without JavaScript every
+// answer is shown. A link to a question (the side nav, a shared address, a link in the page) opens it,
+// and its parent if it has one.
+export type Sub = { id: string; q: string; meta?: string; a: string[]; links?: { label: string; href: string }[] };
+export type Item = { id: string; q: string; a: string[]; subs?: Sub[]; after?: string[] };
+interface Props {
+  id: string;
+  kicker: string;
+  title: string;
+  items: Item[];
+  openFirst?: boolean;
+  section?: boolean; // counts as a section for the nav and the reveal on scroll
+}
+const { id, kicker, title, items, openFirst = false, section = false } = Astro.props;
+---
+
+<section id={id} class="faq" data-section={section ? '' : undefined}>
+  <p class="kicker">{kicker}</p>
+  <h2 class="title display">{title}</h2>
+  {
+    items.map((it, i) => {
+      const open = openFirst && i === 0;
+      return (
+        <div id={it.id} class:list={['item', { open }]} data-faq>
+          <h3 class="q display">
+            <button class="head" type="button" aria-expanded={open ? 'true' : 'false'} aria-controls={`${it.id}-a`}>
+              <span class:list={['ftile', { on: open }]} aria-hidden="true">
+                <svg viewBox="0 0 7 6" shape-rendering="crispEdges">
+                  <path d="M3 0h1v3h-1zM1 3h1v1h-1zM5 3h1v1h-1zM2 4h3v1h-3zM3 3h1v3h-1z" />
+                </svg>
+              </span>
+              <span>{it.q}</span>
+            </button>
+          </h3>
+          <div class="body" id={`${it.id}-a`}>
+            <div class="inner">
+              {it.a.map((p) => <p class="prose" set:html={p} />)}
+              {it.subs && (
+                <div class="subs">
+                  {it.subs.map((s) => (
+                    <div id={s.id} class="sub" data-sub>
+                      <h4 class="sq">
+                        <button class="shead" type="button" aria-expanded="false" aria-controls={`${s.id}-a`}>
+                          <span class="ptile" aria-hidden="true">
+                            <svg viewBox="0 0 7 7" shape-rendering="crispEdges">
+                              <path d="M1 3h5v1h-5z" />
+                              <path class="v" d="M3 1h1v5h-1z" />
+                            </svg>
+                          </span>
+                          <span class="st">
+                            <span class="sqt">{s.q}</span>
+                            {s.meta && <span class="meta">{s.meta}</span>}
+                          </span>
+                        </button>
+                      </h4>
+                      <div class="sbody" id={`${s.id}-a`}>
+                        <div class="sinner">
+                          {s.a.map((p) => <p class="prose" set:html={p} />)}
+                          {s.links && (
+                            <p class="cites">
+                              {s.links.map((l) => (
+                                <a class="cite" href={l.href} target="_blank" rel="noopener">{l.label} ↗</a>
+                              ))}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {it.after && it.after.map((p) => <p class="prose after" set:html={p} />)}
+            </div>
+          </div>
+        </div>
+      );
+    })
+  }
+</section>
+
+<style>
+  .faq {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-top: 48px;
+  }
+  .kicker {
+    font-size: var(--fs-caption);
+    line-height: var(--lh-caption);
+    color: var(--muted);
+  }
+  .title {
+    font-size: var(--fs-h2);
+    line-height: var(--lh-h2);
+    color: var(--text);
+  }
+  .item {
+    scroll-margin-top: var(--jump-offset, 48px);
+  }
+  .item :global(a) {
+    color: var(--text);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .q {
+    font-size: var(--fs-h4);
+    line-height: var(--lh-h4);
+    color: var(--text);
+  }
+  .head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 16px 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .head:focus-visible {
+    outline: 1px dashed var(--accent-light);
+    outline-offset: -2px;
+  }
+  /* the arrow tile: like a tile that is "off" (grey, light arrow) while closed, orange with a dark
+     arrow pointing up while open */
+  .ftile {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    background: #1e1e1e;
+  }
+  .ftile svg {
+    width: 14px;
+    height: 12px;
+    fill: #8a8a8a;
+  }
+  .ftile.on {
+    background: var(--accent);
+  }
+  .ftile.on svg {
+    fill: #161616;
+    transform: scaleY(-1);
+  }
+  @media (hover: hover) {
+    .head:hover .ftile:not(.on) svg {
+      fill: var(--text);
+    }
+  }
+  /* the answer: opens by growing its grid row, so it works for any length */
+  .body {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .inner {
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-left: 42px; /* under the question, past the tile */
+  }
+  .inner > :last-child {
+    padding-bottom: 20px;
+  }
+  /* closed only when the script is there to open it again */
+  :global(.js) .item:not(.open) .body {
+    grid-template-rows: 0fr;
+  }
+  :global(.js) .item:not(.open) .inner {
+    visibility: hidden;
+    transition: visibility 0s 0.4s;
+  }
+  @media (max-width: 720px) {
+    .inner {
+      padding-left: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .body {
+      transition: none;
+    }
+  }
+
+  /* ---------- level 2: questions inside an answer ---------- */
+  .subs {
+    display: flex;
+    flex-direction: column;
+    margin-top: 4px;
+  }
+  .sub {
+    scroll-margin-top: var(--jump-offset, 48px);
+  }
+  .sq {
+    margin: 0;
+    font: inherit;
+    font-weight: 400;
+  }
+  .shead {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+    padding: 8px 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .shead:focus-visible {
+    outline: 1px dashed var(--accent-light);
+    outline-offset: -2px;
+  }
+  /* the plus tile: grey with a light plus while closed, orange with a dark minus while open */
+  .ptile {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    margin-top: 3px; /* centred on the first line of the question */
+    background: #1e1e1e;
+  }
+  .ptile svg {
+    width: 10px;
+    height: 10px;
+    fill: #8a8a8a;
+  }
+  .ptile.on {
+    background: var(--accent);
+  }
+  .ptile.on svg {
+    fill: #161616;
+  }
+  .ptile.on .v {
+    display: none;
+  }
+  .st {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .sqt {
+    font-size: var(--fs-body, 16px);
+    line-height: 26px;
+    color: var(--text-dim);
+    transition: color 0.15s ease;
+  }
+  .sub.open .sqt {
+    color: var(--text);
+  }
+  .meta {
+    font-size: var(--fs-caption);
+    line-height: var(--lh-caption);
+    color: var(--muted);
+  }
+  @media (hover: hover) {
+    .shead:hover .sqt {
+      color: var(--text);
+    }
+    .shead:hover .ptile:not(.on) svg {
+      fill: var(--text);
+    }
+  }
+  .sbody {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .sinner {
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-left: 32px; /* under the question, past the plus tile */
+  }
+  .sinner > :last-child {
+    padding-bottom: 12px;
+  }
+  :global(.js) .sub:not(.open) .sbody {
+    grid-template-rows: 0fr;
+  }
+  :global(.js) .sub:not(.open) .sinner {
+    visibility: hidden;
+    transition: visibility 0s 0.4s;
+  }
+  .after {
+    margin-top: 8px;
+  }
+  .cites {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .cite {
+    font-size: var(--fs-caption);
+    line-height: var(--lh-caption);
+  }
+  .item .cite {
+    color: var(--muted);
+  }
+  .item .cite:hover {
+    color: var(--accent-light);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sbody {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  import { DUR, EASE_CLOSE, EASE_OPEN, reduceMotion } from '../scripts/tiles';
+  import { cue } from '../scripts/sound';
+
+  // one rule for both levels: a row opens or closes, and its tile closes, changes and opens again
+  const rows = [...document.querySelectorAll<HTMLElement>('[data-faq], [data-sub]')];
+  const tileOf = (row: HTMLElement) => row.querySelector<HTMLElement>(row.matches('[data-sub]') ? '.ptile' : '.ftile')!;
+  const set = (row: HTMLElement, open: boolean) => {
+    if (row.classList.contains('open') === open) return;
+    row.classList.toggle('open', open);
+    row.querySelector('button')!.setAttribute('aria-expanded', String(open));
+    const tile = tileOf(row);
+    if (reduceMotion()) return void tile.classList.toggle('on', open);
+    const a = tile.animate([{ transform: 'scaleY(1)' }, { transform: 'scaleY(0)' }], { duration: DUR, easing: EASE_CLOSE, fill: 'forwards' });
+    a.onfinish = () => {
+      a.cancel();
+      tile.classList.toggle('on', row.classList.contains('open'));
+      tile.animate([{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }], { duration: DUR, easing: EASE_OPEN });
+    };
+  };
+  for (const row of rows)
+    row.querySelector('button')!.addEventListener('click', () => {
+      const open = !row.classList.contains('open');
+      cue(open ? 'open' : 'close');
+      set(row, open);
+    });
+  // a link to a question opens it, and the question it is inside
+  const reveal = (hash: string | null) => {
+    const row = hash ? rows.find((r) => `#${r.id}` === hash) : undefined;
+    if (!row) return;
+    const parent = row.parentElement?.closest<HTMLElement>('[data-faq]');
+    if (parent) set(parent, true);
+    set(row, true);
+  };
+  addEventListener('hashchange', () => reveal(location.hash));
+  reveal(location.hash);
+  document.addEventListener('click', (e) => {
+    const link = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[href^="#"]');
+    if (link) reveal(link.getAttribute('href'));
+  });
+</script>

@@ -1,215 +1,112 @@
 ---
-// "Where it comes from": the block after the questions, in two groups.
-// The words: where the word lists, the textbook comparison and the lessons come from.
-// The method: one entry per choice the skill makes: what a study found, how the skill uses it, and where
-// the evidence is thin or mixed. Each claim was checked against the source it links to (notes and more
-// sources in docs/research.md). The studies support the ideas, not this skill, and the closing line says so.
+// Sources, after the questions: two questions built like the FAQ's (QA.astro). Each source is a row
+// with a plus tile: its title and a short line; open, it says what the source is or what the study
+// found, how the skill uses it, where the evidence is thin, and links to it.
+// Each claim was checked against the source it links to (notes and more sources in docs/research.md).
+// The studies support the ideas, not this skill, and the last paragraph says so.
+import QA, { type Item } from '../QA.astro';
 import { SKILL_REPO, research } from '../../data/site';
 import { BOOK_SOURCE } from '../../data/book';
 import { bookLesson } from '../../data/situations';
 
-type Item = { choice: string; found: string; here?: string; links: { label: string; href: string }[] };
 const MAPS = `${SKILL_REPO}/tree/main/skills/mandarinmaxxing/maps`;
-const words: Item[] = [
-  {
-    choice: 'The word lists',
-    found:
-      'Every word comes from the official HSK syllabus (《HSK 考试大纲》) released in November 2025 by the Center for Language Education and Cooperation, in force from July 2026: levels 1 to 6, with the pinyin and part of speech it prints.',
-    here: 'The files in the skill were converted from an open copy of that list, which is checked against the official table.',
-    links: [
-      { label: 'Official syllabus, chinesetest.cn', href: 'https://www.chinesetest.cn/syllabus' },
-      { label: 'Open copy, ofou/hsk on GitHub', href: 'https://github.com/ofou/hsk' },
-    ],
-  },
-  {
-    choice: 'The textbooks in the comparison',
-    found:
-      'Section 02 compares each situation with HSK Standard Course 1 to 6 (Beijing Language and Culture University Press): 146 lessons. Which lesson teaches which word comes from a community flashcard deck that tags every word with its book and lesson.',
-    here: 'The books follow the earlier HSK, so they teach only part of today’s lists. And the deck is made by learners, so a word can be missing from it.',
-    links: [
-      { label: 'Flashcard deck, RoelTim on GitHub', href: BOOK_SOURCE },
-      { label: 'The example lesson, book 2, lesson 3', href: bookLesson.source },
-    ],
-  },
-  {
-    choice: 'The lessons',
-    found:
-      'The situations are not from a book. For HSK 1 to 4, the words of each level were grouped by hand into situations for this project, and a script checks that every official word is there exactly once.',
-    here: 'The maps are open. If a word sits in the wrong situation, that is the file to fix.',
-    links: [{ label: 'The maps, on GitHub', href: MAPS }],
-  },
-];
 const items: Item[] = [
   {
-    choice: 'Situations, not categories',
-    found:
-      'Words that belong to one scene, like frog, pond, green and hop, were easier to learn together than unrelated words. Words of one category, like apple, orange and pear, were harder: similar meanings get mixed up.',
-    here: 'So a situation here mixes verbs, nouns and connectors, and words that look or mean alike are taught in separate groups. Later studies don’t all agree, so read this one as a lean, not a law.',
-    links: [{ label: 'Tinkham (1997), Second Language Research 13(2), 138–163', href: 'https://boch.sciencegate.app/works/W2038339147' }],
+    id: 'sources-words',
+    q: 'Where do the words come from?',
+    a: ['From the official HSK word list. The comparison with the textbooks and the lessons themselves have their own sources.'],
+    subs: [
+      {
+        id: 'source-words-1',
+        q: 'The word lists',
+        meta: 'HSK syllabus, November 2025',
+        a: [
+          'Every word comes from the official HSK syllabus (《HSK 考试大纲》) released in November 2025 by the Center for Language Education and Cooperation, in force from July 2026: levels 1 to 6, with the pinyin and part of speech it prints.',
+          'The files in the skill were converted from an open copy of that list, which is checked against the official table.',
+        ],
+        links: [
+          { label: 'Official syllabus, chinesetest.cn', href: 'https://www.chinesetest.cn/syllabus' },
+          { label: 'Open copy, ofou/hsk on GitHub', href: 'https://github.com/ofou/hsk' },
+        ],
+      },
+      {
+        id: 'source-words-2',
+        q: 'The textbooks in the comparison',
+        meta: 'HSK Standard Course 1 to 6',
+        a: [
+          'Section 02 compares each situation with HSK Standard Course 1 to 6 (Beijing Language and Culture University Press): 146 lessons. Which lesson teaches which word comes from a community flashcard deck that tags every word with its book and lesson.',
+          'The books follow the earlier HSK, so they teach only part of today’s lists. And the deck is made by learners, so a word can be missing from it.',
+        ],
+        links: [
+          { label: 'Flashcard deck, RoelTim on GitHub', href: BOOK_SOURCE },
+          { label: 'The example lesson, book 2, lesson 3', href: bookLesson.source },
+        ],
+      },
+      {
+        id: 'source-words-3',
+        q: 'The lessons',
+        meta: 'The mandarinmaxxing maps',
+        a: [
+          'The situations are not from a book. For HSK 1 to 4, the words of each level were grouped by hand into situations for this project, and a script checks that every official word is there exactly once.',
+          'The maps are open. If a word sits in the wrong situation, that is the file to fix.',
+        ],
+        links: [{ label: 'The maps, on GitHub', href: MAPS }],
+      },
+    ],
   },
   {
-    choice: 'Chunks, not single words',
-    found:
-      'In a small experiment, 32 students had 22 hours of class. Those taught to notice ready-made phrases were judged the more proficient speakers, by judges who didn’t know which group was which.',
-    here: 'So every lesson teaches phrases you can reuse with one word swapped, and the first round of practice is only that. It is one small study; how best to teach chunks is still an open question.',
-    links: [{ label: 'Boers, Eyckmans, Kappel, Stengers & Demecheleer (2006), Language Teaching Research 10(3), 245–261', href: 'https://doi.org/10.1191/1362168806lr195oa' }],
-  },
-  {
-    choice: 'Old words come back, further and further apart',
-    found:
-      'A review of 317 experiments found that practice spread over time is remembered better than the same practice done at once, and that the longer you want to remember, the wider the gap should be.',
-    here: 'So words return 3, 7, 14, 30 and 60 lessons after you learn them, inside new sentences. The skill doesn’t track each word for you, which is why flashcards still help.',
-    links: [{ label: 'Cepeda, Pashler, Vul, Wixted & Rohrer (2006), Psychological Bulletin 132(3), 354–380', href: 'https://pubmed.ncbi.nlm.nih.gov/16719566/' }],
-  },
-  {
-    choice: 'You write the Mandarin yourself',
-    found:
-      'Students learned 40 Swahili words. Once they knew a word, being tested on it again improved what they recalled a week later. Studying it again did not.',
-    here: 'So a lesson is mostly you pulling words out of memory: you translate from your language into Mandarin, and the review asks before it shows.',
-    links: [{ label: 'Karpicke & Roediger (2008), Science 319(5865), 966–968', href: 'https://pubmed.ncbi.nlm.nih.gov/18276894/' }],
+    id: 'sources-method',
+    q: 'What does the research say?',
+    a: [
+      'The skill came out of studying, not out of a paper. But each choice it makes has research behind it. Here is what the studies found, and where the evidence is thinner than it sounds.',
+    ],
+    subs: [
+      {
+        id: 'source-method-1',
+        q: 'Situations, not categories',
+        meta: 'Tinkham, 1997',
+        a: [
+          'Words that belong to one scene, like frog, pond, green and hop, were easier to learn together than unrelated words. Words of one category, like apple, orange and pear, were harder: similar meanings get mixed up.',
+          'So a situation here mixes verbs, nouns and connectors, and words that look or mean alike are taught in separate groups. Later studies don’t all agree, so read this one as a lean, not a law.',
+        ],
+        links: [{ label: 'Tinkham (1997), Second Language Research 13(2), 138–163', href: 'https://boch.sciencegate.app/works/W2038339147' }],
+      },
+      {
+        id: 'source-method-2',
+        q: 'Chunks, not single words',
+        meta: 'Boers and colleagues, 2006',
+        a: [
+          'In a small experiment, 32 students had 22 hours of class. Those taught to notice ready-made phrases were judged the more proficient speakers, by judges who didn’t know which group was which.',
+          'So every lesson teaches phrases you can reuse with one word swapped, and the first round of practice is only that. It is one small study; how best to teach chunks is still an open question.',
+        ],
+        links: [{ label: 'Boers, Eyckmans, Kappel, Stengers & Demecheleer (2006), Language Teaching Research 10(3), 245–261', href: 'https://doi.org/10.1191/1362168806lr195oa' }],
+      },
+      {
+        id: 'source-method-3',
+        q: 'Old words come back, further and further apart',
+        meta: 'Cepeda and colleagues, 2006',
+        a: [
+          'A review of 317 experiments found that practice spread over time is remembered better than the same practice done at once, and that the longer you want to remember, the wider the gap should be.',
+          'So words return 3, 7, 14, 30 and 60 lessons after you learn them, inside new sentences. The skill doesn’t track each word for you, which is why flashcards still help.',
+        ],
+        links: [{ label: 'Cepeda, Pashler, Vul, Wixted & Rohrer (2006), Psychological Bulletin 132(3), 354–380', href: 'https://pubmed.ncbi.nlm.nih.gov/16719566/' }],
+      },
+      {
+        id: 'source-method-4',
+        q: 'You write the Mandarin yourself',
+        meta: 'Karpicke & Roediger, 2008',
+        a: [
+          'Students learned 40 Swahili words. Once they knew a word, being tested on it again improved what they recalled a week later. Studying it again did not.',
+          'So a lesson is mostly you pulling words out of memory: you translate from your language into Mandarin, and the review asks before it shows.',
+        ],
+        links: [{ label: 'Karpicke & Roediger (2008), Science 319(5865), 966–968', href: 'https://pubmed.ncbi.nlm.nih.gov/18276894/' }],
+      },
+    ],
+    after: [
+      `These studies back the ideas, not this skill: nobody has tested mandarinmaxxing in a study. What it has are its own checks, which are <a href="${SKILL_REPO}#how-its-made" target="_blank" rel="noopener">on GitHub ↗</a>, and the people who study with it.`,
+    ],
   },
 ];
 ---
 
-<section id={research.id} class="research">
-  <p class="kicker">Sources</p>
-  <h2 class="title display">{research.title}</h2>
-  <p class="prose">
-    Where the words and the lessons come from, and what research says about the way they are taught.
-  </p>
-  {
-    [
-      { id: 'sources-words', label: 'The words', list: words, intro: '' },
-      {
-        id: 'sources-method',
-        label: 'The method',
-        list: items,
-        intro:
-          'The skill came out of studying, not out of a paper. But each choice it makes has research behind it. Here is what the studies found, and where the evidence is thinner than it sounds.',
-      },
-    ].map((g) => (
-      <div class="group" id={g.id}>
-        <p class="label glabel">{g.label}</p>
-        {g.intro && <p class="prose">{g.intro}</p>}
-        <ol class="list">
-          {g.list.map((it, i) => (
-            <li class="item">
-              <span class="num display" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
-              <div class="text">
-                <h3 class="choice display">{it.choice}</h3>
-                <p class="prose">{it.found}</p>
-                {it.here && <p class="prose">{it.here}</p>}
-                <p class="cites">
-                  {it.links.map((l) => (
-                    <a class="cite" href={l.href} target="_blank" rel="noopener">{l.label} ↗</a>
-                  ))}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ol>
-      </div>
-    ))
-  }
-  <p class="prose note">
-    These studies back the ideas, not this skill: nobody has tested mandarinmaxxing in a study. What it has are its
-    own checks, which are <a href={`${SKILL_REPO}#how-its-made`} target="_blank" rel="noopener">on GitHub ↗</a>,
-    and the people who study with it. It is an independent project, not affiliated with the organization that runs
-    the HSK or with the publisher of the textbooks.
-  </p>
-</section>
-
-<style>
-  .research {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding-top: 48px;
-    scroll-margin-top: var(--jump-offset, 48px);
-  }
-  .kicker {
-    font-size: var(--fs-caption);
-    line-height: var(--lh-caption);
-    color: var(--muted);
-  }
-  .title {
-    font-size: var(--fs-h2);
-    line-height: var(--lh-h2);
-    color: var(--text);
-  }
-  .group {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding-top: 24px;
-    scroll-margin-top: var(--jump-offset, 48px);
-  }
-  .glabel {
-    color: var(--accent-light);
-  }
-  .cites {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-    margin-top: 4px;
-  }
-  .list {
-    display: flex;
-    flex-direction: column;
-    margin: 4px 0 0;
-    padding: 0;
-    list-style: none;
-  }
-  .item {
-    display: flex;
-    align-items: baseline;
-    gap: 14px;
-    padding: 20px 0;
-    border-top: 1px solid var(--card-border);
-  }
-  /* the number sits in the column of the FAQ's arrow tile (28px), so both lists line up */
-  .num {
-    flex: none;
-    width: 28px;
-    font-size: var(--fs-h4);
-    line-height: var(--lh-h4);
-    color: var(--muted-2);
-  }
-  .text {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    min-width: 0;
-  }
-  .choice {
-    font-size: var(--fs-h4);
-    line-height: var(--lh-h4);
-    color: var(--text);
-  }
-  .cite {
-    font-size: var(--fs-caption);
-    line-height: var(--lh-caption);
-    color: var(--muted);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-  .cite:hover {
-    color: var(--accent-light);
-  }
-  .note {
-    padding-top: 20px;
-    border-top: 1px solid var(--card-border);
-  }
-  .note a {
-    color: var(--text);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-  @media (max-width: 720px) {
-    .item {
-      flex-direction: column;
-      gap: 4px;
-    }
-  }
-</style>
+<QA id={research.id} kicker="Sources" title={research.title} items={items} />

@@ -1,12 +1,10 @@
 ---
-// FAQ. The first answer is the only place where Eduardo speaks in the first person.
-// Answers are plain strings; a few carry a link, so they are rendered as HTML.
-// Each question is collapsible. A tile before the question holds the arrow: grey with a down arrow
-// while closed; on opening it flips (the same flip as every tile) to orange with a dark up arrow.
-// The first question starts open. Without JavaScript every answer is shown.
+// FAQ. Four questions; two of them hold the questions that belong with them (QA.astro has the two
+// levels). The first answer is the only place where Eduardo speaks in the first person.
+import QA, { type Item } from '../QA.astro';
 import { SKILL_ISSUES, SKILL_REPO } from '../../data/site';
 
-const items = [
+const items: Item[] = [
   {
     id: 'faq-why',
     q: 'How did this start?',
@@ -16,21 +14,15 @@ const items = [
       'A friend who was also studying tried it, liked it, and switched to learning with the skill. That’s when I opened it up to anyone.',
       `The goal is a clear, direct way to learn Mandarin, closer to how I learned English, free for anyone who uses Claude. Anyone who studies with it can shape it for the next person. Suggestions, new situations and fixes are all welcome <a href="${SKILL_ISSUES}" target="_blank" rel="noopener">on GitHub ↗</a>.`,
     ],
-  },
-  {
-    id: 'faq-built',
-    q: 'How is it being built?',
-    a: [
-      'One version at a time. The words of each level were grouped by hand into situations and checked by script so none is missing. Each new version is tested on simulated lessons before it goes out, to catch lessons that use words you haven’t met or forget the older ones.',
-      `It’s far from finished: what really shapes it is people studying with it and saying what felt off. Everything, tests included, is <a href="${SKILL_REPO}#how-its-made" target="_blank" rel="noopener">on GitHub ↗</a>.`,
-    ],
-  },
-  {
-    id: 'faq-saved',
-    q: 'Where does my course live?',
-    a: [
-      'In your Claude project. The skill keeps one small file there with your settings, your lesson list and what you’ve finished. Open a new chat in the same project, on any device, and say “next lesson”. There’s nothing to attach or paste.',
-      'The skill also runs in Claude Code and Codex, where the course is saved in your working folder. I test it mostly in the Claude app.',
+    subs: [
+      {
+        id: 'faq-built',
+        q: 'How is it being built?',
+        a: [
+          'One version at a time. The words of each level were grouped by hand into situations and checked by script so none is missing. Each new version is tested on simulated lessons before it goes out, to catch lessons that use words you haven’t met or forget the older ones.',
+          `It’s far from finished: what really shapes it is people studying with it and saying what felt off. Everything, tests included, is <a href="${SKILL_REPO}#how-its-made" target="_blank" rel="noopener">on GitHub ↗</a>.`,
+        ],
+      },
     ],
   },
   {
@@ -41,28 +33,38 @@ const items = [
       'When you finish a level, the course moves on to the next one, and words from the level you finished keep coming back. For HSK 5 and 6 the official word lists are included, and the skill builds the map when you start the level.',
       'The word list is the HSK syllabus released in November 2025.',
     ],
-  },
-  {
-    id: 'faq-start',
-    q: 'Can I start in the middle?',
-    a: [
-      'Yes. Tell the skill the level or the lesson you want to pick up from, and the course starts there. Words from the levels below count as known, so the lessons use them from day one.',
-      'You can also move a situation earlier or later, or change how many words you take per lesson, at any point.',
-    ],
-  },
-  {
-    id: 'faq-language',
-    q: 'What language are the lessons in?',
-    a: [
-      'Yours. Explanations, meanings, questions and corrections come in the language you write in, and you translate from it into Mandarin. This site is in English, but your lessons don’t have to be.',
-      'You answer in Mandarin from the first lesson. You can type pinyin at the start, then switch to the Chinese keyboard when you’re ready.',
-    ],
-  },
-  {
-    id: 'faq-length',
-    q: 'How long is a lesson?',
-    a: [
-      'About an hour: a review, three rounds of practice and some listening. That’s what it takes to make real progress with a few new words. The first lessons are shorter, and you can always ask for a shorter session.',
+    subs: [
+      {
+        id: 'faq-start',
+        q: 'Can I start in the middle?',
+        a: [
+          'Yes. Tell the skill the level or the lesson you want to pick up from, and the course starts there. Words from the levels below count as known, so the lessons use them from day one.',
+          'You can also move a situation earlier or later, or change how many words you take per lesson, at any point.',
+        ],
+      },
+      {
+        id: 'faq-language',
+        q: 'What language are the lessons in?',
+        a: [
+          'Yours. Explanations, meanings, questions and corrections come in the language you write in, and you translate from it into Mandarin. This site is in English, but your lessons don’t have to be.',
+          'You answer in Mandarin from the first lesson. You can type pinyin at the start, then switch to the Chinese keyboard when you’re ready.',
+        ],
+      },
+      {
+        id: 'faq-length',
+        q: 'How long is a lesson?',
+        a: [
+          'About an hour: a review, three rounds of practice and some listening. That’s what it takes to make real progress with a few new words. The first lessons are shorter, and you can always ask for a shorter session.',
+        ],
+      },
+      {
+        id: 'faq-saved',
+        q: 'Where does my course live?',
+        a: [
+          'In your Claude project. The skill keeps one small file there with your settings, your lesson list and what you’ve finished. Open a new chat in the same project, on any device, and say “next lesson”. There’s nothing to attach or paste.',
+          'The skill also runs in Claude Code and Codex, where the course is saved in your working folder. I test it mostly in the Claude app.',
+        ],
+      },
     ],
   },
   {
@@ -86,180 +88,4 @@ const items = [
 ];
 ---
 
-<section id="faq" class="faq" data-section>
-  <p class="kicker">FAQ</p>
-  <h2 class="title display">Questions</h2>
-  {
-    items.map((it, i) => (
-      <div id={it.id} class:list={['item', { open: i === 0 }]} data-faq>
-        <h3 class="q display">
-          <button class="head" type="button" aria-expanded={i === 0 ? 'true' : 'false'} aria-controls={`${it.id}-a`}>
-            <span class:list={['ftile', { on: i === 0 }]} aria-hidden="true">
-              <svg viewBox="0 0 7 6" shape-rendering="crispEdges">
-                <path d="M3 0h1v3h-1zM1 3h1v1h-1zM5 3h1v1h-1zM2 4h3v1h-3zM3 3h1v3h-1z" />
-              </svg>
-            </span>
-            <span>{it.q}</span>
-          </button>
-        </h3>
-        <div class="body" id={`${it.id}-a`}>
-          <div class="inner">
-            {it.a.map((p) => (
-              <p class="prose" set:html={p} />
-            ))}
-          </div>
-        </div>
-      </div>
-    ))
-  }
-</section>
-
-<style>
-  .faq {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding-top: 48px;
-  }
-  .kicker {
-    font-size: var(--fs-caption);
-    line-height: var(--lh-caption);
-    color: var(--muted);
-  }
-  .title {
-    font-size: var(--fs-h2);
-    line-height: var(--lh-h2);
-    color: var(--text);
-  }
-  .item {
-    scroll-margin-top: var(--jump-offset, 48px);
-  }
-  .item :global(a) {
-    color: var(--text);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-  .q {
-    font-size: var(--fs-h4);
-    line-height: var(--lh-h4);
-    color: var(--text);
-  }
-  .head {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    width: 100%;
-    padding: 16px 0;
-    border: 0;
-    background: none;
-    font: inherit;
-    color: inherit;
-    text-align: left;
-    cursor: pointer;
-  }
-  .head:focus-visible {
-    outline: 1px dashed var(--accent-light);
-    outline-offset: -2px;
-  }
-  /* the arrow tile: like a tile that is "off" (grey, light arrow) while closed, orange with a dark
-     arrow pointing up while open */
-  .ftile {
-    flex: none;
-    display: grid;
-    place-items: center;
-    width: 28px;
-    height: 28px;
-    background: #1e1e1e;
-  }
-  .ftile svg {
-    width: 14px;
-    height: 12px;
-    fill: #8a8a8a;
-  }
-  .ftile.on {
-    background: var(--accent);
-  }
-  .ftile.on svg {
-    fill: #161616;
-    transform: scaleY(-1);
-  }
-  @media (hover: hover) {
-    .head:hover .ftile:not(.on) svg {
-      fill: var(--text);
-    }
-  }
-  /* the answer: opens by growing its grid row, so it works for any length */
-  .body {
-    display: grid;
-    grid-template-rows: 1fr;
-    transition: grid-template-rows 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  .inner {
-    min-height: 0;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding-left: 42px; /* under the question, past the tile */
-  }
-  .inner > :last-child {
-    padding-bottom: 20px;
-  }
-  /* closed only when the script is there to open it again */
-  :global(.js) .item:not(.open) .body {
-    grid-template-rows: 0fr;
-  }
-  :global(.js) .item:not(.open) .inner {
-    visibility: hidden;
-    transition: visibility 0s 0.4s;
-  }
-  @media (max-width: 720px) {
-    .inner {
-      padding-left: 0;
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .body {
-      transition: none;
-    }
-  }
-</style>
-
-<script>
-  import { DUR, EASE_CLOSE, EASE_OPEN, reduceMotion } from '../../scripts/tiles';
-  import { cue } from '../../scripts/sound';
-
-  const items = [...document.querySelectorAll<HTMLElement>('[data-faq]')];
-  const set = (item: HTMLElement, open: boolean) => {
-    if (item.classList.contains('open') === open) return;
-    item.classList.toggle('open', open);
-    item.querySelector('button')!.setAttribute('aria-expanded', String(open));
-    const tile = item.querySelector<HTMLElement>('.ftile')!;
-    if (reduceMotion()) return void tile.classList.toggle('on', open);
-    // the tile closes, changes colour and arrow, and opens again
-    const a = tile.animate([{ transform: 'scaleY(1)' }, { transform: 'scaleY(0)' }], { duration: DUR, easing: EASE_CLOSE, fill: 'forwards' });
-    a.onfinish = () => {
-      a.cancel();
-      tile.classList.toggle('on', item.classList.contains('open'));
-      tile.animate([{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }], { duration: DUR, easing: EASE_OPEN });
-    };
-  };
-  for (const item of items)
-    item.querySelector('button')!.addEventListener('click', () => {
-      const open = !item.classList.contains('open');
-      cue(open ? 'open' : 'close');
-      set(item, open);
-    });
-  // a link to a question (the side nav, or a shared address) opens it
-  const fromHash = () => {
-    const item = items.find((i) => `#${i.id}` === location.hash);
-    if (item) set(item, true);
-  };
-  addEventListener('hashchange', fromHash);
-  fromHash();
-  document.addEventListener('click', (e) => {
-    const link = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[href^="#faq-"]');
-    const item = link && items.find((i) => `#${i.id}` === link.getAttribute('href'));
-    if (item) set(item, true);
-  });
-</script>
+<QA id="faq" kicker="FAQ" title="Questions" items={items} openFirst section />
