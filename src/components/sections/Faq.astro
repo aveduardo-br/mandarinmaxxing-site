@@ -115,7 +115,7 @@ const items = [
     color: var(--text);
   }
   .item {
-    scroll-margin-top: 48px;
+    scroll-margin-top: var(--jump-offset, 48px);
   }
   .item :global(a) {
     color: var(--text);
@@ -166,8 +166,10 @@ const items = [
     fill: #161616;
     transform: scaleY(-1);
   }
-  .head:hover .ftile:not(.on) svg {
-    fill: var(--text);
+  @media (hover: hover) {
+    .head:hover .ftile:not(.on) svg {
+      fill: var(--text);
+    }
   }
   /* the answer: opens by growing its grid row, so it works for any length */
   .body {

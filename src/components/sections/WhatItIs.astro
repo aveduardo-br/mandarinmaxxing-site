@@ -257,9 +257,13 @@ import Section from '../Section.astro';
     fill();
     const start = () => { if (!timer && !reduce) timer = window.setInterval(tick, TICK); };
     const stop = () => { if (timer) clearInterval(timer); timer = null; };
-    // always running, wherever the page is scrolled; it only rests while the tab is in the background
-    start();
-    document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
+    // it runs while it is on screen (with some margin, so it is already moving when you get there) and
+    // rests off screen or while the tab is in the background: no work for a phone's battery
+    let onScreen = true;
+    const sync = () => (onScreen && !document.hidden ? start() : stop());
+    new IntersectionObserver(([e]) => { onScreen = e.isIntersecting; sync(); }, { rootMargin: '300px 0px' }).observe(B);
+    document.addEventListener('visibilitychange', sync);
+    sync();
     // a wider or narrower belt: start over with the new number of columns
     let lastW = B.clientWidth;
     new ResizeObserver(() => {

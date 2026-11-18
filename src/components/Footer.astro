@@ -44,7 +44,7 @@ import { panelHeight, MARGIN } from '../scripts/lanterns';
       </p>
     </div>
   </div>
-  <div class="lanterns" style={`width:${PANEL_W}px;height:${panelHeight}px`} aria-hidden="true">
+  <div class="lanterns" data-lantern-box data-w={PANEL_W} data-h={panelHeight} style={`width:${PANEL_W}px;height:${panelHeight}px`} aria-hidden="true">
     <canvas data-lanterns style={`left:${-MARGIN}px;width:${PANEL_W + MARGIN * 2}px;height:${panelHeight}px`}></canvas>
   </div>
 </footer>
@@ -54,6 +54,20 @@ import { panelHeight, MARGIN } from '../scripts/lanterns';
 
   const footer = document.querySelector<HTMLElement>('footer.footer')!;
   mountLanterns(footer.querySelector<HTMLCanvasElement>('[data-lanterns]')!, footer);
+
+  // Narrow screens: the three lanterns shrink together to fit the width (scaled from the top, and the
+  // space they no longer take is given back below them). A transform keeps the canvas's own pointer
+  // maths right, since it reads the box's on-screen size.
+  const box = footer.querySelector<HTMLElement>('[data-lantern-box]')!;
+  const fitLanterns = () => {
+    const w = Number(box.dataset.w);
+    const h = Number(box.dataset.h);
+    const s = Math.min(1, (footer.clientWidth - 32) / w);
+    box.style.transform = s < 1 ? `scale(${s})` : '';
+    box.style.marginBottom = s < 1 ? `${-(1 - s) * h}px` : '';
+  };
+  addEventListener('resize', fitLanterns);
+  fitLanterns();
 
   // The side nav is fixed at mid-height on the left: it closes from the bottom up while the footer
   // is under it (styles in SideNav.astro). Its box keeps its place, so the check uses that.
@@ -180,6 +194,7 @@ import { panelHeight, MARGIN } from '../scripts/lanterns';
   .lanterns {
     position: relative;
     flex: none;
+    transform-origin: 50% 0;
   }
   .lanterns canvas {
     position: absolute;
@@ -202,6 +217,35 @@ import { panelHeight, MARGIN } from '../scripts/lanterns';
     }
     .cols {
       flex-wrap: wrap;
+    }
+  }
+  /* phones: the links in two columns, the note across both */
+  @media (max-width: 720px) {
+    .footer {
+      padding-inline: 20px;
+      padding-bottom: calc(48px + env(safe-area-inset-bottom));
+    }
+    .info {
+      gap: 36px;
+    }
+    .name {
+      font-size: 24px;
+      line-height: 32px;
+    }
+    .cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px 20px;
+    }
+    .colm,
+    .colm.wide {
+      width: auto;
+    }
+    .colm.wide {
+      grid-column: 1 / -1;
+    }
+    .colm a {
+      padding-block: 4px; /* a little more to tap between neighbouring links */
     }
   }
 </style>

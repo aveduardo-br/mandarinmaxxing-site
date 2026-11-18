@@ -54,7 +54,7 @@ const tileTitle = tiled ? { digit: digit ?? String(Number(num)), num: zh ?? NUM_
     display: flex;
     flex-direction: column;
     gap: 16px;
-    scroll-margin-top: 48px;
+    scroll-margin-top: var(--jump-offset, 48px);
   }
 
   .title-row {

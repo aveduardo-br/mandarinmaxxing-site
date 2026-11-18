@@ -172,8 +172,8 @@ const book2At = (bookStart[1] / COLS) * 100;
         }
       </svg>
       <p class="books" aria-hidden="true">
-        <span style={`width:${book2At}%`}>HSK Standard Course 1 · lessons 1–15</span>
-        <span class="b2">HSK Standard Course 2 · lessons 1–15</span>
+        <span style={`width:${book2At}%`}><span class="long">HSK Standard Course 1 · lessons 1–15</span><span class="short">Course 1 · 15 lessons</span></span>
+        <span class="b2"><span class="long">HSK Standard Course 2 · lessons 1–15</span><span class="short">Course 2 · 15 lessons</span></span>
       </p>
     </div>
   </div>
@@ -425,15 +425,22 @@ const book2At = (bookStart[1] / COLS) * 100;
   }
 
   /* hover (and keyboard focus): arrow head slides in, the whole row turns light orange */
-  .row:hover .arrow,
   .row:focus-visible .arrow,
   .topic.open .arrow {
     max-width: 3em;
     margin-right: 12px;
   }
-  .row:hover :is(.num, .name, .pw),
   .row:focus-visible :is(.num, .name, .pw) {
     color: var(--accent-light);
+  }
+  @media (hover: hover) {
+    .row:hover .arrow {
+      max-width: 3em;
+      margin-right: 12px;
+    }
+    .row:hover :is(.num, .name, .pw) {
+      color: var(--accent-light);
+    }
   }
   .row:focus-visible {
     outline: none;
@@ -689,6 +696,34 @@ const book2At = (bookStart[1] / COLS) * 100;
   }
   .strip rect.hov {
     fill: var(--accent-light);
+  }
+
+  .books .short {
+    display: none;
+  }
+  /* phones: the second line of the label may take two lines, the strip is a little taller and the
+     book names are short enough to read */
+  @media (max-width: 720px) {
+    .bar-label {
+      font-size: var(--fs-caption);
+      line-height: 18px;
+    }
+    .bar-label > span {
+      height: 18px;
+    }
+    .bar-label > .l2 {
+      height: 36px;
+      white-space: normal;
+    }
+    .strip {
+      height: 14px;
+    }
+    .books .long {
+      display: none;
+    }
+    .books .short {
+      display: inline;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

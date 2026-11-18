@@ -1,0 +1,377 @@
+---
+// Top bar for phones and tablets (the side nav only shows above 1180px).
+// Left: the current section, as its number tile (orange, the digit, same flip as everywhere) and its
+// title; over the hero it shows the name of the site. Right: a menu tile (grey with three pixel
+// lines; open, it flips to orange with an x). The menu covers the screen with the sections, the
+// questions, Download and GitHub.
+// The bar stays out of the way while you read: hidden over the hero, it appears once you're past it,
+// slides away when you scroll down and comes back when you scroll up. The current section comes from
+// the .is-active class SideNav puts on sections (the same rule for both).
+import { sections, SKILL_REPO, SKILL_ZIP } from '../data/site';
+---
+
+<div class="topbar" data-topbar>
+  <div class="bar">
+    <a class="here" href="#top" data-here aria-label="Back to the top">
+      <span class="htile" data-htile aria-hidden="true"></span>
+      <span class="htitle" data-htitle>mandarinmaxxing</span>
+    </a>
+    <button class="mtile" type="button" data-menu-btn aria-expanded="false" aria-controls="topbar-menu" aria-label="Menu">
+      <svg class="i-menu" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 1h7v1h-7zM0 3h7v1h-7zM0 5h7v1h-7z" /></svg>
+      <svg class="i-close" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 0h1v1h-1zM1 1h1v1h-1zM2 2h1v1h-1zM3 3h1v1h-1zM4 4h1v1h-1zM5 5h1v1h-1zM6 6h1v1h-1zM6 0h1v1h-1zM5 1h1v1h-1zM4 2h1v1h-1zM2 4h1v1h-1zM1 5h1v1h-1zM0 6h1v1h-1z" /></svg>
+    </button>
+  </div>
+
+  <nav class="menu" id="topbar-menu" data-menu aria-label="Sections" hidden>
+    <p class="group">How it works</p>
+    <ul>
+      {
+        sections.map((s) => (
+          <li>
+            <a href={`#${s.id}`} data-go data-num={Number(s.num)}>
+              <span class="mnum" aria-hidden="true">{Number(s.num)}</span>
+              <span>{s.title}</span>
+            </a>
+          </li>
+        ))
+      }
+      <li>
+        <a href="#faq" data-go>
+          <span class="mnum" aria-hidden="true">?</span>
+          <span>Questions</span>
+        </a>
+      </li>
+    </ul>
+    <div class="actions">
+      <a class="dl" href={SKILL_ZIP}>Download for Claude</a>
+      <a class="gh" href={SKILL_REPO} target="_blank" rel="noopener">GitHub ↗</a>
+    </div>
+  </nav>
+</div>
+
+<style>
+  .topbar {
+    display: none;
+  }
+  @media (max-width: 1180px) {
+    .topbar {
+      display: block;
+    }
+  }
+  .bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    height: calc(56px + env(safe-area-inset-top));
+    padding: env(safe-area-inset-top) max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
+    background: rgba(14, 14, 14, 0.92);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid #1c1c1c;
+    translate: 0 -100%;
+    transition: translate 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .topbar.shown .bar,
+  .topbar.open .bar {
+    translate: none;
+  }
+  .topbar.open .bar {
+    background: var(--bg);
+    border-bottom-color: transparent;
+  }
+
+  .here {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    min-height: 44px;
+  }
+  .htile {
+    position: relative;
+    flex: none;
+    width: 28px;
+    height: 28px;
+  }
+  .htile:empty {
+    display: none;
+  }
+  .htile :global(.tile) {
+    --tile-gap: 0px;
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+  /* the digit in Geist, like the section titles (the pixel 1 reads as an I) */
+  .htile :global(.tile > span) {
+    left: 0;
+    right: 0;
+    top: 0;
+    padding: 0;
+    font-family: var(--f-body);
+    font-size: 17px;
+    line-height: 28px;
+    font-weight: 600;
+  }
+  .htitle {
+    font-family: var(--f-display);
+    font-weight: var(--fw-display);
+    letter-spacing: var(--tr-display);
+    font-size: 16px;
+    line-height: 24px;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: opacity 0.18s ease;
+  }
+
+  /* menu tile: an off tile with three lines; open, orange with an x. 44px to tap, 28px drawn. */
+  .mtile {
+    position: relative;
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin-right: -8px;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+  }
+  .mtile::before {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    background: #1e1e1e;
+    transition: background-color 0.15s ease;
+  }
+  .mtile svg {
+    position: relative;
+    width: 14px;
+    height: 14px;
+    fill: #8a8a8a;
+  }
+  .mtile .i-close {
+    display: none;
+  }
+  .topbar.open .mtile::before {
+    background: var(--accent);
+  }
+  .topbar.open .mtile svg {
+    fill: #161616;
+  }
+  .topbar.open .mtile .i-menu {
+    display: none;
+  }
+  .topbar.open .mtile .i-close {
+    display: block;
+  }
+  .mtile:focus-visible {
+    outline: 1px dashed var(--outline);
+    outline-offset: -4px;
+  }
+
+  /* the menu covers the screen under the bar */
+  .menu {
+    position: fixed;
+    inset: 0;
+    z-index: 29;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: calc(56px + env(safe-area-inset-top) + 24px) max(16px, env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--bg);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .menu[hidden] {
+    display: none;
+  }
+  .topbar.open .menu {
+    opacity: 1;
+  }
+  .group {
+    font-family: var(--f-mono);
+    font-size: var(--fs-label);
+    line-height: var(--lh-label);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  ul a {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 52px;
+    font-family: var(--f-display);
+    font-weight: var(--fw-display);
+    letter-spacing: var(--tr-display);
+    font-size: 20px;
+    line-height: 28px;
+    color: var(--text);
+    border-bottom: 1px solid #1c1c1c;
+  }
+  .mnum {
+    flex: none;
+    width: 28px;
+    height: 28px;
+    background: #1e1e1e;
+    color: #8a8a8a;
+    font-family: var(--f-body);
+    font-size: 15px;
+    line-height: 28px;
+    font-weight: 600;
+    text-align: center;
+  }
+  ul a.current .mnum {
+    background: var(--accent);
+    color: #161616;
+  }
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-top: 20px;
+  }
+  .dl {
+    font: 500 var(--fs-small) / var(--lh-small) var(--f-body);
+    padding: 12px 20px;
+    background: var(--accent);
+    color: var(--bg);
+  }
+  .gh {
+    font-size: var(--fs-small);
+    line-height: 44px;
+    color: var(--text-dim);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bar,
+    .menu {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  import { makeSlot, applyTile, flipTile, ORANGE } from '../scripts/tiles';
+  import type { Slot } from '../scripts/tiles';
+
+  const root = document.querySelector<HTMLElement>('[data-topbar]');
+  if (root) {
+    const btn = root.querySelector<HTMLButtonElement>('[data-menu-btn]')!;
+    const menu = root.querySelector<HTMLElement>('[data-menu]')!;
+    const tileBox = root.querySelector<HTMLElement>('[data-htile]')!;
+    const titleEl = root.querySelector<HTMLElement>('[data-htitle]')!;
+    const here = root.querySelector<HTMLAnchorElement>('[data-here]')!;
+    const links = [...menu.querySelectorAll<HTMLAnchorElement>('[data-go]')];
+    const hero = document.querySelector<HTMLElement>('.hero');
+    const narrow = matchMedia('(max-width: 1180px)');
+
+    // ---- the current section: number tile + title ----
+    const titleOf = (sec: HTMLElement) =>
+      sec.id === 'faq' ? 'Questions' : (sec.querySelector('.title')?.textContent ?? '').trim();
+    const numOf = (sec: HTMLElement) => (sec.id === 'faq' ? '?' : (sec.querySelector<HTMLElement>('[data-num]')?.dataset.digit ?? ''));
+    let slot: Slot | null = null;
+    let shownId = '';
+    function showSection(sec: HTMLElement | null) {
+      const id = sec?.id ?? '';
+      if (id === shownId) return;
+      shownId = id;
+      links.forEach((a) => a.classList.toggle('current', a.getAttribute('href') === `#${id}`));
+      const title = sec ? titleOf(sec) : 'mandarinmaxxing';
+      titleEl.style.opacity = '0';
+      window.setTimeout(() => {
+        titleEl.textContent = title;
+        titleEl.style.opacity = '';
+      }, 150);
+      here.href = sec ? `#${id}` : '#top';
+      if (!sec) {
+        if (slot) flipTile(slot, null);
+        return;
+      }
+      const v = { ch: numOf(sec), bg: ORANGE };
+      if (!slot) {
+        slot = makeSlot(tileBox);
+        applyTile(slot, v);
+      } else flipTile(slot, v);
+    }
+    const sections = [...document.querySelectorAll<HTMLElement>('[data-section]')];
+    const syncSection = () => showSection(sections.find((s) => s.classList.contains('is-active')) ?? null);
+    const mo = new MutationObserver(syncSection);
+    sections.forEach((s) => mo.observe(s, { attributes: true, attributeFilter: ['class'] }));
+    syncSection();
+
+    // ---- show / hide while scrolling ----
+    let lastY = scrollY;
+    let shown = false;
+    const setShown = (v: boolean) => {
+      if (v === shown) return;
+      shown = v;
+      root.classList.toggle('shown', v);
+    };
+    const onScroll = () => {
+      const y = scrollY;
+      const pastHero = !hero || y > hero.offsetHeight - 80;
+      const dy = y - lastY;
+      if (!pastHero) setShown(false);
+      else if (dy > 6) setShown(false);
+      else if (dy < -6) setShown(true);
+      if (Math.abs(dy) > 6) lastY = y;
+    };
+    addEventListener('scroll', onScroll, { passive: true });
+
+    // ---- the menu ----
+    let open = false;
+    function setOpen(v: boolean, focusBack = true) {
+      if (v === open) return;
+      open = v;
+      btn.setAttribute('aria-expanded', String(v));
+      btn.setAttribute('aria-label', v ? 'Close menu' : 'Menu');
+      document.documentElement.style.overflow = v ? 'hidden' : '';
+      if (v) {
+        menu.hidden = false;
+        void menu.offsetWidth; // let the fade start from 0
+        root.classList.add('open');
+        links[0]?.focus({ preventScroll: true });
+      } else {
+        root.classList.remove('open');
+        window.setTimeout(() => {
+          if (!open) menu.hidden = true;
+        }, 200);
+        if (focusBack) btn.focus({ preventScroll: true });
+      }
+    }
+    btn.addEventListener('click', () => setOpen(!open));
+    menu.querySelectorAll('a').forEach((a) =>
+      a.addEventListener('click', () => {
+        setOpen(false, false);
+        // after jumping to a section, keep the bar out of the way while reading
+        window.setTimeout(() => setShown(false), 50);
+      }),
+    );
+    addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && open) setOpen(false);
+    });
+    // the menu belongs to small screens: close it if the window grows past the side nav breakpoint
+    narrow.addEventListener('change', () => {
+      if (!narrow.matches) setOpen(false, false);
+    });
+  }
+</script>

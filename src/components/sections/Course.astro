@@ -340,6 +340,12 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
     top: 0;
     pointer-events: none;
   }
+  /* a taller area to tap than the 28px drawn (neighbours touch, so it only grows up and down) */
+  .st::after {
+    content: '';
+    position: absolute;
+    inset: -8px 0;
+  }
   /* hanzi and digits: the global tile glyph is already centred */
   .st:focus-visible {
     outline: 2px solid var(--text);

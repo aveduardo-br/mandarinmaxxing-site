@@ -55,6 +55,12 @@ const exercises: Exercise[] = [
     -webkit-mask-image: linear-gradient(180deg, transparent 0%, transparent 8%, #000 46%);
     mask-image: linear-gradient(180deg, transparent 0%, transparent 8%, #000 46%);
   }
+  /* phones: the card no longer sits beside the vocabulary card, which gave it its height */
+  @media (max-width: 720px) {
+    .tr {
+      min-height: 340px;
+    }
+  }
   /* anchored to the bottom like a chat; every message has the same 12px gap */
   .tr-track {
     position: absolute;

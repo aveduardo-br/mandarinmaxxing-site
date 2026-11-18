@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import SideNav from '../components/SideNav.astro';
+import TopBar from '../components/TopBar.astro';
 import Footer from '../components/Footer.astro';
 
 interface Props {
@@ -53,6 +54,7 @@ const {
   </head>
   <body>
     <SideNav />
+    <TopBar />
     <main class="col">
       <slot />
     </main>

@@ -63,6 +63,14 @@ p {
   margin: 0;
 }
 
+/* below the side nav breakpoint the top bar can cover the top of the screen: leave room for it
+   when jumping to a section */
+@media (max-width: 1180px) {
+  :root {
+    --jump-offset: 72px;
+  }
+}
+
 /* Display text (titles, names, numbers). Was the pixel font; now the placeholder display face. */
 .display {
   font-family: var(--f-display);

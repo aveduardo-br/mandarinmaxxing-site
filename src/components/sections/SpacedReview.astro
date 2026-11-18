@@ -94,11 +94,25 @@ const START = 8;
   .atile.next svg {
     transform: scaleX(-1);
   }
-  .atile:hover {
+  @media (hover: hover) {
+    .atile:hover {
+      background-color: var(--accent);
+    }
+    .atile:hover svg {
+      fill: #161616;
+    }
+  }
+  .atile:active {
     background-color: var(--accent);
   }
-  .atile:hover svg {
+  .atile:active svg {
     fill: #161616;
+  }
+  /* a taller area to tap than the 28px drawn */
+  .atile::after {
+    content: '';
+    position: absolute;
+    inset: -8px 0;
   }
   .atile:focus-visible {
     outline: 1px dashed var(--outline);
@@ -226,8 +240,12 @@ const START = 8;
       if (k) {
         const hit = el('hit');
         hit.style.top = `${y - 4}px`;
-        hit.addEventListener('pointerenter', () => focus(row));
-        hit.addEventListener('pointerleave', () => focus(null));
+        // with a mouse, hovering shows it; on a touch screen, a tap shows it and a second tap hides it
+        hit.addEventListener('pointerenter', (e) => e.pointerType === 'mouse' && focus(row));
+        hit.addEventListener('pointerleave', (e) => e.pointerType === 'mouse' && focus(null));
+        hit.addEventListener('click', (e) => {
+          if ((e as PointerEvent).pointerType !== 'mouse') focus(focused === row ? null : row);
+        });
       }
       return row;
     });
@@ -318,11 +336,11 @@ const START = 8;
     // pointer is not over it
     let over = false;
     let visible = false;
-    root.addEventListener('pointerenter', () => (over = true));
+    root.addEventListener('pointerenter', (e) => e.pointerType === 'mouse' && (over = true));
     root.addEventListener('pointerleave', () => (over = false));
     new IntersectionObserver(([e]) => (visible = e.isIntersecting)).observe(root);
     window.setInterval(() => {
-      if (visible && !over && !document.hidden) step(1);
+      if (visible && !over && !focused && !document.hidden) step(1);
     }, 2400);
 
     show(Number(root.dataset.start), false);
