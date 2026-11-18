@@ -2,7 +2,7 @@
 // Footer.
 // Left: what the page offers again, as links. Right: 中文 ("Chinese") made of small tiles that follow
 // the shape of a brush-drawn 中文 (design/zhongwen.svg, cut into a grid by scripts/build-zhongwen.py),
-// like the hero's MANDARIN, with MAXXING under it in seven black tiles as wide as the drawing. Like the hero: a few tiles change on their own while it is on screen, hovering turns
+// like the hero's MANDARIN, with MAXXING centred under it in seven black tiles. Like the hero: a few tiles change on their own while it is on screen, hovering turns
 // tiles orange (with the flip sound), and a hovered letter of MAXXING turns into a hanzi for a moment
 // (all seven together read 学中文很有意思, "learning Chinese is fun"). On narrow screens it is scaled down
 // to the width, above the links.
@@ -13,7 +13,9 @@ const COLS = ZW_GRID[0].length;
 const ROWS = ZW_GRID.length;
 const T = 28; // the standard tile; the whole drawing is scaled to fit by the script
 const W = COLS * T;
-const MX = W / 7; // MAXXING: seven square tiles spanning the drawing's width
+// MAXXING: seven square black tiles, each four drawing tiles wide, so the word spans about half the
+// drawing and sits centred under it (like the hero, where MAXXING is a smaller line under MANDARIN)
+const MX = T * 4;
 const MX_GAP = T * 2;
 const H = ROWS * T + MX_GAP + MX;
 ---
@@ -339,11 +341,13 @@ const H = ROWS * T + MX_GAP + MX;
     left: 0;
     right: 0;
     display: flex;
+    justify-content: center;
   }
   /* MAXXING: square black tiles, as wide together as the drawing above */
   .zw-mx :global(.mxt) {
     position: relative;
-    flex: 1 1 0;
+    flex: none;
+    width: var(--mx);
     height: var(--mx);
     padding: 2px;
     background: #000;
