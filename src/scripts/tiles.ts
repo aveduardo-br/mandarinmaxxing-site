@@ -2,7 +2,8 @@
 // Every tile change on the site uses the same transition: the tile closes and opens again like a
 // small flap, smoothly, and a group of tiles changes in a wave from the top-left corner.
 export type TileVal = { ch: string; bg: string; fg?: string } | null;
-export type Slot = { el: HTMLElement; span: HTMLElement; val: TileVal; gen?: number };
+// val: the value the tile is heading to; shown: what it shows now; closing: a close is under way
+export type Slot = { el: HTMLElement; span: HTMLElement; val: TileVal; gen?: number; shown?: TileVal; closing?: boolean };
 
 export const TILE = 28;
 export const ORANGE = '#F07A42';
@@ -25,6 +26,7 @@ export function makeSlot(parent: HTMLElement, extraClass = ''): Slot {
 
 export function applyTile(slot: Slot, v: TileVal) {
   slot.val = v;
+  slot.shown = v;
   if (!v) {
     slot.el.style.visibility = 'hidden';
     return;
@@ -68,27 +70,35 @@ export function withFlipSound<T>(fn: () => T): T {
 export const flipIsLoud = () => loud > 0;
 export const playFlipSound = () => flipSound?.();
 
-/** Flip one tile to a new value after `delay` ms. Does nothing if the value is the same. */
+/**
+ * Flip one tile to a new value after `delay` ms. Does nothing if the value is the same.
+ * Called again before the flip is over (a quick series of clicks), the tile never stutters: while it is
+ * closing, the newer value simply replaces the one it will open on, so it closes once and opens on the
+ * latest value; a call whose turn comes when the tile already shows the latest value does nothing.
+ */
 export function flipTile(slot: Slot, v: TileVal, delay = 0) {
   if (sameTile(slot.val, v)) return;
   if (reduceMotion()) return applyTile(slot, v);
   const withSound = loud > 0;
-  // remember the target now, so a second call during the wave compares against it; `gen` lets a newer
-  // call cancel this one if it has not finished yet
   slot.val = v;
   const gen = (slot.gen = (slot.gen ?? 0) + 1);
   window.setTimeout(() => {
-    if (slot.gen !== gen) return;
+    if (slot.gen !== gen) return; // a newer call will do it
+    if (slot.closing) return; // the close under way opens on slot.val, the newest value
+    if (sameTile(slot.shown ?? null, slot.val)) return;
     if (withSound) flipSound?.();
     const comeIn = () => {
-      applyTile(slot, v);
-      if (v) slot.el.animate(IN, { duration: DUR, easing: EASE_OPEN });
+      const target = slot.val;
+      applyTile(slot, target);
+      if (target) slot.el.animate(IN, { duration: DUR, easing: EASE_OPEN });
     };
     if (slot.el.style.visibility === 'visible') {
+      slot.closing = true;
       const a = slot.el.animate(OUT, { duration: DUR, easing: EASE_CLOSE, fill: 'forwards' });
       a.onfinish = () => {
         a.cancel();
-        if (slot.gen === gen) comeIn();
+        slot.closing = false;
+        comeIn();
       };
     } else comeIn();
   }, delay);

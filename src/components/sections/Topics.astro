@@ -1209,6 +1209,21 @@ const stripData = levelData[0].topics.map((t) => t.strip);
     window.setTimeout(step, on ? DUR : 0);
   }
 
+  let numClosing = false;
+  function turnNum() {
+    if (reduce) return void (lvlNum.textContent = String(level));
+    if (numClosing || lvlNum.textContent === String(level)) return;
+    numClosing = true;
+    playFlipSound();
+    const a = lvlNum.animate(OUT, { duration: DUR, easing: EASE_CLOSE, fill: 'forwards' });
+    a.onfinish = () => {
+      a.cancel();
+      numClosing = false;
+      lvlNum.textContent = String(level);
+      lvlNum.animate(IN, { duration: DUR, easing: EASE_OPEN });
+    };
+  }
+
   function setLevel(next: number) {
     const gen = ++lvlGen;
     level = next;
@@ -1225,18 +1240,8 @@ const stripData = levelData[0].topics.map((t) => t.strip);
     data = L.topics.map((t) => t.strip);
     sets = data.map((d) => new Set(d.lessons));
     render();
-    // the number tile turns to the new level
-    if (reduce) lvlNum.textContent = String(level);
-    else {
-      playFlipSound();
-      const a = lvlNum.animate(OUT, { duration: DUR, easing: EASE_CLOSE, fill: 'forwards' });
-      a.onfinish = () => {
-        a.cancel();
-        if (gen !== lvlGen) return;
-        lvlNum.textContent = String(level);
-        lvlNum.animate(IN, { duration: DUR, easing: EASE_OPEN });
-      };
-    }
+    // the number tile turns to the new level (clicked again while it is closing, it opens on the newest)
+    turnNum();
     lvlBtn.setAttribute('aria-label', `HSK ${level}. Show the next level`);
     setNote(!L.mapped);
     lvlLive.textContent = `HSK ${level}: ${L.topics.map((t) => t.name).join(', ')}.${L.mapped ? '' : ' Examples: the skill builds the map for this level when you start it.'}`;
