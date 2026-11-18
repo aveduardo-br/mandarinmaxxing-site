@@ -6,7 +6,10 @@
 // tile of each column lets go and rises, pushed by the cursor, and the column under it moves up one
 // place like a conveyor, with a new tile opening at the bottom. All seven MAXXING letters turned at
 // once read 学汉语很有意思, "Learning Chinese is fun".
+// On phones MANDARIN is too small to read, so the hero shows the footer's 中文 in tiles instead
+// (ZhongwenTiles.astro), and MANDARIN is taken out of the flow, hidden and paused.
 import { SKILL_ZIP, SKILL_VERSION, AUTHOR_X } from '../data/site';
+import ZhongwenTiles from './ZhongwenTiles.astro';
 ---
 <header class="hero">
   <div class="stage" id="hero-stage">
@@ -23,6 +26,7 @@ import { SKILL_ZIP, SKILL_VERSION, AUTHOR_X } from '../data/site';
       </div>
     </div>
   </div>
+  <div class="hero-zw"><ZhongwenTiles /></div>
   <div class="cta">
     <div class="text">
       <p class="kicker">a skill for Claude</p>
@@ -65,6 +69,25 @@ import { SKILL_ZIP, SKILL_VERSION, AUTHOR_X } from '../data/site';
     width: var(--stage-w, 100%);
     flex: none;
     padding-top: 120px;
+  }
+  .hero-zw {
+    display: none;
+    width: 100%;
+  }
+  /* phones: 中文 in tiles instead of MANDARIN. MANDARIN keeps being laid out (its sizes come from its
+     own width) but leaves the flow and is not shown; its animation pauses (see the frame loop). */
+  @media (max-width: 720px) {
+    .hero-zw {
+      display: block;
+      padding-top: 32px;
+    }
+    .stage {
+      position: absolute;
+      left: 0;
+      top: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
   }
   /* the canvas reaches up to the top of the hero (height set by the script) */
   .stage canvas {
@@ -742,6 +765,7 @@ import { SKILL_ZIP, SKILL_VERSION, AUTHOR_X } from '../data/site';
     // ---------- cursor over MANDARIN: the tile and its neighbours turn orange, then go back to colour ----------
     let lastCell = -1;
     hero.addEventListener('pointermove', (ev) => {
+      if (matchMedia('(max-width: 720px)').matches) return; // MANDARIN is hidden on phones
       const br = board.getBoundingClientRect();
       const x = (ev.clientX - br.left) / ts, y = (ev.clientY - br.top) / ts;
       const now = performance.now(), dt = Math.max(8, now - pointer.t) / 1000;
@@ -786,11 +810,12 @@ import { SKILL_ZIP, SKILL_VERSION, AUTHOR_X } from '../data/site';
     // start mid-flow, so the page opens with tiles already rising
     for (let t = 0; t < 30; t += 1 / 20) step(1 / 20, true);
 
+    const phone = matchMedia('(max-width: 720px)'); // MANDARIN is hidden there (CSS above)
     let last = performance.now();
     function frame(now: number) {
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
-      if (visible && !document.hidden) {
+      if (visible && !document.hidden && !phone.matches) {
         step(dt, false);
         draw();
       }

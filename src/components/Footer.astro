@@ -1,23 +1,9 @@
 ---
 // Footer.
-// Left: what the page offers again, as links. Right: 中文 ("Chinese") made of small tiles that follow
-// the shape of a brush-drawn 中文 (design/zhongwen.svg, cut into a grid by scripts/build-zhongwen.py),
-// like the hero's MANDARIN, with MAXXING centred under it in seven black tiles. Like the hero: a few tiles change on their own while it is on screen, hovering turns
-// tiles orange (with the flip sound), and a hovered letter of MAXXING turns into a hanzi for a moment
-// (all seven together read 学中文很有意思, "learning Chinese is fun"). On narrow screens it is scaled down
-// to the width, above the links.
+// Left: what the page offers again, as links. Right: 中文 in tiles with MAXXING under it
+// (ZhongwenTiles.astro), above the links on narrower screens; on phones it is in the hero instead.
 import { SKILL_REPO, SKILL_RELEASES, SKILL_ISSUES, SKILL_ZIP, SKILL_VERSION, SKILL_LICENSE } from '../data/site';
-import { ZW_GRID } from '../data/zhongwen-grid';
-
-const COLS = ZW_GRID[0].length;
-const ROWS = ZW_GRID.length;
-const T = 28; // the standard tile; the whole drawing is scaled to fit by the script
-const W = COLS * T;
-// MAXXING: seven square black tiles spanning a little under half the drawing (W / 16 each), centred
-// under it, like the hero, where MAXXING is a smaller line under MANDARIN
-const MX = W / 16;
-const MX_GAP = T * 2;
-const H = ROWS * T + MX_GAP + MX;
+import ZhongwenTiles from './ZhongwenTiles.astro';
 ---
 
 <footer class="footer">
@@ -62,147 +48,11 @@ const H = ROWS * T + MX_GAP + MX;
       </p>
     </div>
   </div>
-  <div class="zw-box" data-zw-box style={`--w:${W}px;--h:${H}px`}>
-    <div class="zw" data-zw data-cols={COLS} data-rows={ROWS} role="img" aria-label="中文 (Chinese) drawn in tiles, with MAXXING under it" style={`width:${W}px;height:${H}px;--mx:${MX}px`}>
-      <div class="zw-board" data-zw-board style={`height:${ROWS * T}px`}></div>
-      <div class="zw-mx" data-zw-mx style={`top:${ROWS * T + MX_GAP}px`}></div>
-    </div>
-  </div>
+  <div class="footer-zw"><ZhongwenTiles /></div>
 </footer>
 
 <script>
-  import { makeSlot, applyTile, flipTile, withFlipSound, playFlipSound, reduceMotion, ORANGE, MUTED_HERO, TILE, DUR, EASE_CLOSE, EASE_OPEN, WAVE } from '../scripts/tiles';
-  import type { Slot } from '../scripts/tiles';
-  import { ZW_CHARS, MX_HAN } from '../data/zhongwen';
-  import { ZW_GRID } from '../data/zhongwen-grid';
-
   const footer = document.querySelector<HTMLElement>('footer.footer')!;
-  const zw = footer.querySelector<HTMLElement>('[data-zw]')!;
-  const box = footer.querySelector<HTMLElement>('[data-zw-box]')!;
-  const board = zw.querySelector<HTMLElement>('[data-zw-board]')!;
-  const mxRow = zw.querySelector<HTMLElement>('[data-zw-mx]')!;
-  const chars = [...ZW_CHARS];
-  const pick = () => chars[(Math.random() * chars.length) | 0];
-  // colours: the hero's muted cycle, with about one tile in seven orange
-  let ci = 0;
-  const colour = () => (Math.random() < 0.14 ? ORANGE : MUTED_HERO[ci++ % MUTED_HERO.length]);
-
-  // ---- 中文: a tile in every cell the brush shape covers ----
-  type Cell = { slot: Slot; c: number; r: number; until: number; back: number };
-  const cells: Cell[] = [];
-  const at = new Map<string, Cell>();
-  [ZW_GRID].forEach((glyph) =>
-    glyph.forEach((row, r) =>
-      [...row].forEach((px, c) => {
-        if (px !== '#') return;
-        const slot = makeSlot(board, 'abs');
-        slot.el.style.left = `${c * TILE}px`;
-        slot.el.style.top = `${r * TILE}px`;
-        applyTile(slot, { ch: pick(), bg: colour() });
-        const cell = { slot, c, r, until: 0, back: 0 };
-        cells.push(cell);
-        at.set(`${c},${r}`, cell);
-      }),
-    ),
-  );
-
-  // ---- MAXXING: seven black tiles; a hovered letter turns into its hanzi for a moment ----
-  const letters = [...'MAXXING'];
-  const han = [...MX_HAN];
-  const OUT = [{ transform: 'scaleY(1)' }, { transform: 'scaleY(0)' }];
-  const IN = [{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }];
-  type Mx = { el: HTMLElement; span: HTMLElement; i: number; han: boolean; closing: boolean; target: boolean; back: number };
-  const mx: Mx[] = letters.map((ch, i) => {
-    const el = document.createElement('div');
-    el.className = 'mxt';
-    const span = document.createElement('span');
-    span.textContent = ch;
-    el.appendChild(span);
-    mxRow.appendChild(el);
-    return { el, span, i, han: false, closing: false, target: false, back: 0 };
-  });
-  const drawMx = (m: Mx) => {
-    m.han = m.target;
-    m.el.classList.toggle('han', m.han);
-    m.span.textContent = m.han ? han[m.i] : letters[m.i];
-  };
-  // the same rule as the other tiles: while it is closing, a newer target replaces the old one
-  function turnMx(m: Mx, toHan: boolean, sound: boolean) {
-    m.target = toHan;
-    if (reduceMotion()) return drawMx(m);
-    if (m.closing || m.han === toHan) return;
-    m.closing = true;
-    if (sound) playFlipSound();
-    const a = m.el.animate(OUT, { duration: DUR, easing: EASE_CLOSE, fill: 'forwards' });
-    a.onfinish = () => {
-      a.cancel();
-      m.closing = false;
-      drawMx(m);
-      m.el.animate(IN, { duration: DUR, easing: EASE_OPEN });
-    };
-  }
-  mx.forEach((m) =>
-    m.el.addEventListener('pointerenter', () => {
-      clearTimeout(m.back);
-      turnMx(m, true, true);
-      m.back = window.setTimeout(() => turnMx(m, false, false), 1800);
-    }),
-  );
-
-  // ---- hover over 中文: the tile under the pointer and its neighbours turn orange, then go back ----
-  let lastKey = '';
-  zw.addEventListener('pointermove', (ev) => {
-    const b = board.getBoundingClientRect();
-    const s = b.width / board.offsetWidth || 1; // the drawing may be scaled down
-    const c = Math.floor((ev.clientX - b.left) / (TILE * s));
-    const r = Math.floor((ev.clientY - b.top) / (TILE * s));
-    const key = `${c},${r}`;
-    if (key === lastKey) return;
-    lastKey = key;
-    if (!at.has(key)) return;
-    const now = performance.now();
-    const R = 2.5; // in tiles: the drawing's tiles are small, so the cursor touches a little patch
-    withFlipSound(() => {
-      for (let dr = -3; dr <= 3; dr++)
-        for (let dc = -3; dc <= 3; dc++) {
-          const d = Math.hypot(dc, dr);
-          if (d > R) continue;
-          const cell = at.get(`${c + dc},${r + dr}`);
-          if (!cell || now < cell.until) continue;
-          cell.until = now + 400;
-          flipTile(cell.slot, { ch: pick(), bg: ORANGE }, Math.round(d * WAVE * 1.5));
-          clearTimeout(cell.back);
-          cell.back = window.setTimeout(() => flipTile(cell.slot, { ch: pick(), bg: colour() }), 1500 + Math.random() * 2500);
-        }
-    });
-  });
-  zw.addEventListener('pointerleave', () => (lastKey = ''));
-
-  // ---- on its own, while on screen: now and then a tile shows another hanzi ----
-  let visible = false;
-  new IntersectionObserver(([e]) => (visible = e.isIntersecting)).observe(zw);
-  window.setInterval(() => {
-    if (!visible || document.hidden || reduceMotion()) return;
-    const cell = cells[(Math.random() * cells.length) | 0];
-    if (performance.now() < cell.until) return;
-    flipTile(cell.slot, { ch: pick(), bg: cell.slot.val?.bg ?? colour() });
-  }, 220);
-
-  // ---- fit: scaled down to the space it has (the transform keeps the hover maths right) ----
-  const fit = () => {
-    const w = zw.offsetWidth;
-    const h = zw.offsetHeight;
-    const narrow = innerWidth < 1280; // the drawing sits above the links, centred
-    const cs = getComputedStyle(footer);
-    const inner = footer.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-    const s = Math.min(1, (narrow ? inner : box.clientWidth) / w);
-    zw.style.transform = s < 1 ? `scale(${s})` : '';
-    box.style.height = `${h * s}px`;
-    box.style.width = narrow ? `${w * s}px` : '';
-  };
-  addEventListener('resize', fit);
-  fit();
-
   // The side nav is fixed at mid-height on the left: it closes from the bottom up while the footer
   // is under it (styles in SideNav.astro). Its box keeps its place, so the check uses that.
   const nav = document.querySelector<HTMLElement>('.sidenav');
@@ -323,60 +173,14 @@ const H = ROWS * T + MX_GAP + MX;
     color: var(--text);
   }
 
-  /* 中文 in tiles, at the top right like the info's first line; scaled by the script when narrower */
-  .zw-box {
-    flex: 0 1 var(--w);
+  /* 中文 in tiles at the top right, like the info's first line (src/components/ZhongwenTiles.astro);
+     on phones it is in the hero instead */
+  .footer-zw {
+    flex: 0 1 var(--zw-w, 1288px);
     min-width: 0;
     margin-top: 88px;
     margin-left: 48px;
   }
-  .zw {
-    position: relative;
-    transform-origin: 0 0;
-    user-select: none;
-    -webkit-user-select: none;
-  }
-  /* drawn at 28px and shown much smaller: a little more air between tiles, as in the hero */
-  .zw-board {
-    position: relative;
-    --tile-gap: 2px;
-  }
-  .zw-mx {
-    position: absolute;
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: center;
-  }
-  /* MAXXING: square black tiles, as wide together as the drawing above */
-  .zw-mx :global(.mxt) {
-    position: relative;
-    flex: none;
-    width: var(--mx);
-    height: var(--mx);
-    padding: 2px;
-    background: #000;
-    background-clip: content-box;
-    display: grid;
-    place-items: center;
-  }
-  .zw-mx :global(.mxt > span) {
-    font-family: var(--f-body);
-    font-weight: 600;
-    font-size: calc(var(--mx) * 0.5);
-    line-height: 1;
-    color: var(--text);
-  }
-  .zw-mx :global(.mxt.han) {
-    background-color: var(--accent);
-  }
-  .zw-mx :global(.mxt.han > span) {
-    font-family: 'Zpix', var(--f-display);
-    font-weight: 500;
-    font-size: calc(var(--mx) * 0.6);
-    color: #161616;
-  }
-
   /* not enough width for both: 中文 on top, text under it */
   @media (max-width: 1279px) {
     .footer {
@@ -393,14 +197,20 @@ const H = ROWS * T + MX_GAP + MX;
     .cols {
       flex-wrap: wrap;
     }
-    .zw-box {
+    .footer-zw {
       flex: none;
+      width: 100%;
+      max-width: 610px;
       margin-top: 56px;
       margin-left: 0;
     }
   }
   /* phones: the links in two columns, the note across both */
   @media (max-width: 720px) {
+    /* on phones the drawing opens the page, in the hero */
+    .footer-zw {
+      display: none;
+    }
     .footer {
       padding-inline: 20px;
       padding-bottom: calc(48px + env(safe-area-inset-bottom));
