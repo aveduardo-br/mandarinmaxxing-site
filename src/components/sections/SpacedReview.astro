@@ -57,6 +57,7 @@ const START = 8;
     width: 236px;
     height: 256px;
     flex: none;
+    transform-origin: 50% 0;
   }
   .head {
     position: absolute;
@@ -342,6 +343,17 @@ const START = 8;
     window.setInterval(() => {
       if (visible && !over && !focused && !document.hidden) step(1);
     }, 2400);
+
+    // Phones: the card is the full width of the screen, so the lesson is scaled up to fill it (tiles,
+    // text and arrows together), and the height it gains is added below it.
+    const phone = matchMedia('(max-width: 720px)');
+    const fitStage = () => {
+      const s = phone.matches ? Math.min(1.5, (root.clientWidth - 24) / 236) : 1;
+      stage.style.transform = s === 1 ? '' : `scale(${s})`;
+      stage.style.marginBottom = s === 1 ? '' : `${256 * (s - 1)}px`;
+    };
+    addEventListener('resize', fitStage);
+    fitStage();
 
     show(Number(root.dataset.start), false);
   }

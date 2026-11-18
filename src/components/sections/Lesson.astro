@@ -329,6 +329,24 @@ const tilesIn = (zh: string[]) => [...zh.join('')].filter((c) => !/[\s,.?!？，
   .vrow.active > .hanzi {
     color: var(--accent);
   }
+  /* phones: the table spans the card and the hanzi are bigger */
+  @media (max-width: 720px) {
+    .vtable {
+      width: 100%;
+    }
+    .vrow {
+      height: 52px;
+    }
+    .vrow > span {
+      flex: 1 1 0;
+      width: auto;
+      font-size: 14px;
+    }
+    .vrow > .hanzi {
+      font-size: 30px;
+      line-height: 36px;
+    }
+  }
   .vrow.vhead {
     align-items: flex-start;
     height: 25px;

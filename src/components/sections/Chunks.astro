@@ -91,6 +91,7 @@ const leads = chunks.map((c) => lead(c.ex));
     position: relative;
     width: 100%;
     height: 100%;
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
     cursor: pointer;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
@@ -260,6 +261,14 @@ const leads = chunks.map((c) => lead(c.ex));
       fit.style.height = `${(ROWS - 1) * pitch() + (stack ? TILE + 22 : TILE)}px`;
     };
     const setHole = (k: number) => (hole.style.left = `${[...chunks[k].pre].length * TILE}px`);
+    // Narrow column (English under each step): the staircase is centred, and glides left or right
+    // when the next chunk is longer or shorter. Its width is its widest step, tiles or English.
+    let measureEn: (k: number, r: number) => number = () => 0;
+    const centre = (k: number) => {
+      if (!stack) return void (stage.style.transform = '');
+      const w = Math.max(...rowsOf(k).map((row, r) => r * STEP + Math.max(row.length * TILE, measureEn(k, r))));
+      stage.style.transform = `translateX(${Math.max(0, (fit.clientWidth - w) / 2)}px)`;
+    };
 
     let cur = 0;
     let busy = false;
@@ -279,6 +288,7 @@ const leads = chunks.map((c) => lead(c.ex));
       const c = chunks[k];
       live.textContent = `${c.label} ${c.words.map((w) => `${c.pre}${w[0]}${c.post} (${w[1]})`).join(', ')}`;
       swapLead(k);
+      centre(k);
       if (reduceMotion()) return render(k);
       busy = true;
       let last = 0;
@@ -336,6 +346,11 @@ const leads = chunks.map((c) => lead(c.ex));
       stack = fit.clientWidth < need;
       stage.classList.toggle('stack', stack);
       place();
+      centre(cur);
+    };
+    measureEn = (k, r) => {
+      measure.innerHTML = enOf(k, r);
+      return measure.offsetWidth;
     };
     addEventListener('resize', fitStage);
     render(0);

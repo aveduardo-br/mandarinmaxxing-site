@@ -343,7 +343,10 @@ const exercises: Exercise[] = [
       await play(current);
     }
 
-    // start: the card is empty, exercise 1 plays when in view and waits on its Next
+    // start: exercise 1 plays when in view and waits on its Next. On a phone the card stands alone and
+    // is taller than one exercise, so the last exercise is already there above it, done, as if the
+    // chat had been going on for a while (it fades out towards the top like any earlier exercise).
+    if (matchMedia('(max-width: 720px)').matches) addBlock(wrap(cur - 1), true);
     current = addBlock(cur, false);
     const io = new IntersectionObserver(
       ([entry]) => {
