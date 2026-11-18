@@ -4,6 +4,8 @@ export const SKILL_RELEASES = `${SKILL_REPO}/releases`;
 export const SKILL_ISSUES = `${SKILL_REPO}/issues`;
 // Always the newest release: the skill repo publishes one automatically for each new version.
 export const SKILL_ZIP = `${SKILL_REPO}/releases/latest/download/mandarinmaxxing-claude.zip`;
+// Eduardo's profile on X, linked from his name in the hero
+export const AUTHOR_X = 'https://x.com/aveduardo_br';
 export const SKILL_VERSION = 'v0.5.5';
 
 export const sections = [

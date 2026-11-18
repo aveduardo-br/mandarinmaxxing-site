@@ -6,7 +6,7 @@
 // tile of each column lets go and rises, pushed by the cursor, and the column under it moves up one
 // place like a conveyor, with a new tile opening at the bottom. All seven MAXXING letters turned at
 // once read 学汉语很有意思, "Learning Chinese is fun".
-import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
+import { SKILL_ZIP, SKILL_VERSION, AUTHOR_X } from '../data/site';
 ---
 <header class="hero">
   <div class="stage" id="hero-stage">
@@ -42,7 +42,7 @@ import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
   </div>
 
   <p class="meta">
-    <span>HSK 3.0</span><span>·</span><span>by Eduardo</span><span>·</span><span>{SKILL_VERSION}</span><span>·</span><a href="#what-it-is">How it works ↓</a>
+    <span>HSK 3.0</span><span>·</span><span>by <a class="author" href={AUTHOR_X} target="_blank" rel="noopener">Eduardo</a></span><span>·</span><span>{SKILL_VERSION}</span><span>·</span><a href="#what-it-is">How it works ↓</a>
   </p>
 </header>
 
@@ -268,6 +268,19 @@ import { SKILL_ZIP, SKILL_VERSION } from '../data/site';
   }
   .meta a:hover {
     color: var(--text);
+  }
+  /* his name links to his profile on X: underlined, so it reads as a link */
+  .meta .author {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--muted-2);
+    transition:
+      color 0.15s ease,
+      text-decoration-color 0.15s ease;
+  }
+  .meta .author:hover {
+    text-decoration-color: var(--text);
   }
 </style>
 
