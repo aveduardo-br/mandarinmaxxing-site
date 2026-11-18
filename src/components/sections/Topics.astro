@@ -144,13 +144,11 @@ const stripData = levelData[0].topics.map((t) => t.strip);
   <div class="topics-wrap" data-levels={JSON.stringify(levelData)}>
     <!-- the level switch: HSK in black tiles, the level in an orange one; a click shows the next level -->
     <div class="lvl">
+      <span class="tile-tag lvl-tag" data-lvl-note hidden aria-hidden="true">Examples · the skill maps it when you start</span>
       <button class="lvl-btn" type="button" data-lvl data-cuelume-select aria-label="HSK 1. Show the next level">
         <span class="lt" aria-hidden="true">H</span><span class="lt" aria-hidden="true">S</span><span class="lt" aria-hidden="true">K</span><span class="lt lt-num" data-lvl-num aria-hidden="true">1</span>
         <span class="lvl-hint" aria-hidden="true">Next level →</span>
       </button>
-      <p class="lvl-note" data-lvl-note hidden>
-        <span class="lvl-i" aria-hidden="true">i</span> Examples. HSK 5 and 6 have no fixed map yet: the skill groups their words into situations when you start the level.
-      </p>
       <p class="sr-only" aria-live="polite" data-lvl-live></p>
     </div>
     <div class="list" data-topics>
@@ -435,30 +433,20 @@ const stripData = levelData[0].topics.map((t) => t.strip);
       color: var(--text-dim);
     }
   }
-  .lvl-note {
-    display: flex;
-    gap: 8px;
-    max-width: 560px;
-    font-size: var(--fs-caption);
-    line-height: var(--lh-caption);
-    color: var(--muted);
+  /* HSK 5 and 6: a black tag above the tiles says the ten are examples. It sits over the space above
+     the selector (out of the flow), so showing it never moves the list. */
+  .lvl {
+    position: relative;
   }
-  .lvl-note[hidden] {
+  .lvl-tag {
+    position: absolute;
+    left: 0;
+    bottom: calc(100% - 8px);
+    transform-origin: 50% 100%;
+    white-space: nowrap;
+  }
+  .lvl-tag[hidden] {
     display: none;
-  }
-  .lvl-i {
-    flex: none;
-    width: 16px;
-    height: 16px;
-    margin-top: 2px;
-    border: 1.2px solid var(--accent);
-    border-radius: 50%;
-    font-family: var(--f-body);
-    font-weight: 600;
-    font-size: 10px;
-    line-height: 13.6px;
-    text-align: center;
-    color: var(--accent);
   }
   .sr-only {
     position: absolute;
@@ -908,7 +896,7 @@ const stripData = levelData[0].topics.map((t) => t.strip);
 
 <script>
   import { gsap } from 'gsap';
-  import { DUR, EASE_CLOSE, EASE_OPEN, playFlipSound } from '../../scripts/tiles';
+  import { DUR, EASE_CLOSE, EASE_OPEN, WAVE, playFlipSound } from '../../scripts/tiles';
   import { writeLine } from '../../scripts/write';
   import { cue } from '../../scripts/sound';
 
@@ -1151,7 +1139,10 @@ const stripData = levelData[0].topics.map((t) => t.strip);
       ? `<div class="word more" style="--i:${t.words.length}" data-w="more"><span class="hanzi">…</span><span class="en">+${t.count - t.words.length} more</span></div>`
       : '');
 
-  // one row: the preview tiles turn away, the name is rewritten, the new preview turns in
+  // One row: its text and its preview tiles leave together. The name is rewritten word by word while
+  // the old tiles turn away one after the other, left to right (the site's tile flip); once they are all
+  // closed the new tiles take their place and turn in, left to right. Nothing slides: a tile only ever
+  // turns in its own spot.
   function swapRow(item: HTMLElement, t: LevelTopic, delay: number, gen: number) {
     const preview = item.querySelector<HTMLElement>('.preview')!;
     const name = item.querySelector<HTMLElement>('.name')!;
@@ -1161,27 +1152,46 @@ const stripData = levelData[0].topics.map((t) => t.strip);
       item.querySelector('.panel')!.setAttribute('aria-label', t.name);
       item.querySelector<HTMLElement>('.words')!.innerHTML = wordsHtml(t);
       const old = [...preview.querySelectorAll<HTMLElement>('.pt')];
-      const fill = () => {
-        if (gen !== lvlGen) return;
-        preview.innerHTML = previewHtml(t);
-        if (reduce) return;
-        preview.querySelectorAll<HTMLElement>('.pt').forEach((el, k) => {
-          el.style.visibility = 'hidden';
-          window.setTimeout(() => {
-            el.style.visibility = '';
-            el.animate(IN, { duration: DUR, easing: EASE_OPEN });
-          }, k * 28);
-        });
-      };
-      if (reduce || !old.length) return fill();
+      if (reduce || !old.length) return void (preview.innerHTML = previewHtml(t));
       old.forEach((el, k) =>
         window.setTimeout(() => {
+          if (gen !== lvlGen) return;
           playFlipSound();
           el.animate(OUT, { duration: DUR, easing: EASE_CLOSE, fill: 'forwards' });
-        }, k * 28),
+        }, k * WAVE),
       );
-      window.setTimeout(fill, (old.length - 1) * 28 + DUR);
+      window.setTimeout(() => {
+        if (gen !== lvlGen) return;
+        preview.innerHTML = previewHtml(t);
+        preview.querySelectorAll<HTMLElement>('.pt').forEach((el, k) => {
+          el.style.transform = 'scaleY(0)';
+          window.setTimeout(() => {
+            if (gen !== lvlGen) return;
+            el.style.transform = '';
+            el.animate(IN, { duration: DUR, easing: EASE_OPEN });
+          }, k * WAVE);
+        });
+      }, (old.length - 1) * WAVE + DUR);
     }, delay);
+  }
+
+  // the examples tag opens like a flap once the number has turned, and closes the same way
+  let noteOn = false;
+  function setNote(on: boolean) {
+    if (on === noteOn) return;
+    noteOn = on;
+    lvlNote.getAnimations().forEach((a) => a.cancel());
+    if (reduce) return void (lvlNote.hidden = !on);
+    if (on) {
+      lvlNote.hidden = false;
+      lvlNote.animate([{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }], { duration: DUR, delay: DUR, easing: EASE_OPEN, fill: 'backwards' });
+    } else {
+      const a = lvlNote.animate([{ transform: 'scaleY(1)' }, { transform: 'scaleY(0)' }], { duration: DUR, easing: EASE_CLOSE, fill: 'forwards' });
+      a.onfinish = () => {
+        a.cancel();
+        if (!noteOn) lvlNote.hidden = true;
+      };
+    }
   }
 
   function setLevel(next: number) {
@@ -1189,7 +1199,11 @@ const stripData = levelData[0].topics.map((t) => t.strip);
     level = next;
     const L = levels[level - 1];
     // close the open situation and forget hovers: the rows are about to change
-    items.forEach((it) => setOpen(it, false));
+    items.forEach((it) => {
+      setOpen(it, false);
+      clearTimeout(Number(it.dataset.closingTimer));
+      it.classList.remove('closing'); // the previews are replaced below: no return animation
+    });
     active = -1;
     hover = -1;
     wordFocus = null;
@@ -1209,7 +1223,7 @@ const stripData = levelData[0].topics.map((t) => t.strip);
       };
     }
     lvlBtn.setAttribute('aria-label', `HSK ${level}. Show the next level`);
-    lvlNote.hidden = L.mapped;
+    setNote(!L.mapped);
     lvlLive.textContent = `HSK ${level}: ${L.topics.map((t) => t.name).join(', ')}.${L.mapped ? '' : ' Examples: the skill builds the map for this level when you start it.'}`;
     items.forEach((it, i) => swapRow(it, L.topics[i], DUR + i * ROW_STEP, gen));
   }
