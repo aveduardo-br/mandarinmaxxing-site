@@ -1,9 +1,19 @@
 ---
-import { sections, faq, SKILL_REPO } from '../data/site';
+import { sections, faq, SKILL_REPO, AUTHOR_X } from '../data/site';
 import SoundToggle from './SoundToggle.astro';
 ---
 
 <nav class="sidenav" aria-label="Sections" data-cuelume-emphasis="subtle">
+  <!-- above the list: the skill on GitHub and Eduardo on X, as two tiles (icons: Phosphor, fill, MIT) -->
+  <div class="social">
+    <a class="stile" href={SKILL_REPO} target="_blank" rel="noopener" aria-label="The skill on GitHub" data-cuelume-tap data-cuelume-emphasis="subtle">
+      <svg viewBox="0 0 256 256" aria-hidden="true"><path d="M216,104v8a56.06,56.06,0,0,1-48.44,55.47A39.8,39.8,0,0,1,176,192v40a8,8,0,0,1-8,8H104a8,8,0,0,1-8-8V216H72a40,40,0,0,1-40-40A24,24,0,0,0,8,152a8,8,0,0,1,0-16,40,40,0,0,1,40,40,24,24,0,0,0,24,24H96v-8a39.8,39.8,0,0,1,8.44-24.53A56.06,56.06,0,0,1,56,112v-8a58.14,58.14,0,0,1,7.69-28.32A59.78,59.78,0,0,1,69.07,28,8,8,0,0,1,76,24a59.75,59.75,0,0,1,48,24h24a59.75,59.75,0,0,1,48-24,8,8,0,0,1,6.93,4,59.74,59.74,0,0,1,5.37,47.68A58,58,0,0,1,216,104Z" /></svg>
+    </a>
+    <a class="stile" href={AUTHOR_X} target="_blank" rel="noopener" aria-label="Eduardo on X" data-cuelume-tap data-cuelume-emphasis="subtle">
+      <svg viewBox="0 0 256 256" aria-hidden="true"><path d="M215,219.85a8,8,0,0,1-7,4.15H160a8,8,0,0,1-6.75-3.71l-40.49-63.63L53.92,221.38a8,8,0,0,1-11.84-10.76l61.77-68L41.25,44.3A8,8,0,0,1,48,32H96a8,8,0,0,1,6.75,3.71l40.49,63.63,58.84-64.72a8,8,0,0,1,11.84,10.76l-61.77,67.95,62.6,98.38A8,8,0,0,1,215,219.85Z" /></svg>
+    </a>
+  </div>
+
   <div class="block">
   <p class="group">How it works</p>
   <ul>
@@ -44,6 +54,32 @@ import SoundToggle from './SoundToggle.astro';
 </nav>
 
 <style>
+  /* two link tiles above the list, like the sound tile: grey, the icon turns white on hover */
+  .social {
+    display: flex;
+    gap: 8px;
+  }
+  .social .stile {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    background: #1e1e1e;
+  }
+  .social svg {
+    width: 18px;
+    height: 18px;
+    fill: #8a8a8a;
+    transition: fill 0.15s ease;
+  }
+  .social .stile:hover svg,
+  .social .stile:focus-visible svg {
+    fill: var(--text);
+  }
+  .social .stile:focus-visible {
+    outline: 1px dashed var(--outline);
+    outline-offset: 2px;
+  }
   /* Paper node 50-0 */
   .sidenav {
     position: fixed;
