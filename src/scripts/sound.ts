@@ -10,9 +10,10 @@ import type { PlayOptions, SoundName } from 'cuelume';
 type Cue = SoundName;
 const KEY = 'mm-sound';
 const THEME = 'default'; // cuelume themes: default, mech, bubble, press
-// Everything is kept very quiet: the cues at 35% of cuelume's volume, the tile flip at a peak of 0.04
-const CUE_VOLUME = 0.35;
-const FLIP_PEAK = 0.04;
+// One general volume for every sound on the site (0 to 1): cuelume's cues and the tile flip both go
+// through it. Kept very low on purpose.
+const VOLUME = 0.2;
+const FLIP_PEAK = 0.12; // the flip's own level before the general volume (0.12 × 0.2 ≈ 0.024)
 
 let on = true;
 const read = () => {
@@ -41,6 +42,7 @@ export function cue(name: Cue, options: PlayOptions = {}) {
 // cuelume's cues; it can only start after the first click or tap on the page (browsers keep audio off
 // until then), so hovering before any click is silent.
 let ac: AudioContext | null = null;
+let master: GainNode | null = null;
 let noise: AudioBuffer | null = null;
 let lastTick = 0;
 // The pitch climbs a little with each tile of a wave (3% per tile, up to 20 tiles), and starts again
@@ -54,6 +56,9 @@ function audio() {
     } catch {
       return null;
     }
+    master = ac.createGain();
+    master.gain.value = VOLUME;
+    master.connect(ac.destination);
     noise = ac.createBuffer(1, Math.ceil(ac.sampleRate * 0.04), ac.sampleRate);
     const d = noise.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
@@ -79,7 +84,7 @@ export function tick() {
   g.gain.setValueAtTime(0.0001, t);
   g.gain.exponentialRampToValueAtTime(FLIP_PEAK, t + 0.002);
   g.gain.exponentialRampToValueAtTime(0.0001, t + 0.03);
-  src.connect(bp).connect(g).connect(ctx.destination);
+  src.connect(bp).connect(g).connect(master!);
   src.start(t);
   src.stop(t + 0.04);
 }
@@ -100,7 +105,7 @@ function paintToggles() {
 export function initSound() {
   on = read();
   setTheme(THEME);
-  setVolume(CUE_VOLUME);
+  setVolume(VOLUME);
   setEnabled(on);
   bind();
   setFlipSound(tick);
