@@ -52,7 +52,7 @@ import SoundToggle from './SoundToggle.astro';
     <div class="actions">
       <a class="dl" href={SKILL_ZIP} data-cuelume-tap>Download for Claude</a>
       <a class="gh" href={SKILL_REPO} target="_blank" rel="noopener">GitHub ↗</a>
-      <a class="gh" href={AUTHOR_X} target="_blank" rel="noopener" aria-label="Eduardo on X">X ↗</a>
+      <a class="gh" href={AUTHOR_X} target="_blank" rel="noopener" aria-label="Eduardo on X">X<span class="arr"> ↗</span></a>
       <span class="snd-wrap"><SoundToggle size={28} /></span>
     </div>
   </nav>
@@ -272,6 +272,22 @@ import SoundToggle from './SoundToggle.astro';
   }
   .snd-wrap {
     margin-left: auto;
+  }
+  .dl,
+  .gh {
+    white-space: nowrap;
+  }
+  /* narrow phones: Download, GitHub, X and sound stay on one line */
+  @media (max-width: 400px) {
+    .actions {
+      gap: 12px;
+    }
+    .dl {
+      padding-inline: 16px;
+    }
+    .gh .arr {
+      display: none;
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     .bar,
