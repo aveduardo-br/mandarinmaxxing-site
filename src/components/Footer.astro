@@ -220,7 +220,7 @@ const H = ROWS * T + 16 + MX;
   }
 
   .info {
-    flex: 0 1 610px;
+    flex: 0 0 610px; /* the links keep their width; the drawing takes what is left */
     min-width: 0;
     display: flex;
     flex-direction: column;
@@ -319,6 +319,7 @@ const H = ROWS * T + 16 + MX;
     flex: 0 1 var(--w);
     min-width: 0;
     margin-top: 88px;
+    margin-left: 48px;
   }
   .zw {
     position: relative;
@@ -382,6 +383,7 @@ const H = ROWS * T + 16 + MX;
     .zw-box {
       flex: none;
       margin-top: 56px;
+      margin-left: 0;
     }
   }
   /* phones: the links in two columns, the note across both */
