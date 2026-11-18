@@ -13,9 +13,9 @@ const COLS = ZW_GRID[0].length;
 const ROWS = ZW_GRID.length;
 const T = 28; // the standard tile; the whole drawing is scaled to fit by the script
 const W = COLS * T;
-// MAXXING: seven square black tiles, each four drawing tiles wide, so the word spans about half the
-// drawing and sits centred under it (like the hero, where MAXXING is a smaller line under MANDARIN)
-const MX = T * 4;
+// MAXXING: seven square black tiles spanning a little under half the drawing (W / 16 each), centred
+// under it, like the hero, where MAXXING is a smaller line under MANDARIN
+const MX = W / 16;
 const MX_GAP = T * 2;
 const H = ROWS * T + MX_GAP + MX;
 ---
