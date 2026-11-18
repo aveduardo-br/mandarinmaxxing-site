@@ -118,7 +118,7 @@ Levantamento de 13/11/2026, feito pelo código e pelo texto renderizado, sem ver
 | 05 Your course | Feito | Número em ladrilhos com seletores. Falta decidir o que os níveis 2 a 6 fazem ao clicar. |
 | 06 Install | Funcional, sem revisão de design | Uma captura da tela do Claude em cada passo. |
 | FAQ | Texto bom, layout simples | Acordeão. |
-| Footer | Feito (desktop) | Bloco de links à esquerda e três lanternas de ladrilhos à direita (Paper "08 Footer"). As lanternas são um canvas: `src/scripts/lanterns.ts` (pêndulo, franja em corda, giro em falso 3D) com os ladrilhos de `src/data/lanterns.ts`, gerado por `scripts/build-lanterns.py`. Easter egg: 8 cliques na lanterna do meio a acendem e aumentam; no máximo as três frases viram votos e 26 lanterninhas sobem por trás da linha do rodapé (`src/scripts/sky-lanterns.ts`, canvas fixo por cima da página). Os hanzi 习, 向, 万 e 步 vêm de `public/fonts/zpix-lantern.woff`, porque não estão em `zpix-site.woff`. Falta: revisar em telas menores que 1280px, linha de créditos da lista de palavras, licença. |
+| Footer | Feito | Bloco de links à esquerda e 中文 em ladrilhos à direita (acima dos links em telas menores que 1280px), com MAXXING em sete ladrilhos pretos embaixo. Desenho em `src/data/zhongwen.ts` (bitmaps 11×11 de 中 e 文 da Zpix). As lanternas saíram em 18/11/2026. |
 
 Na página inteira:
 - **Celular.** Não há versão para tela pequena; só a side nav se adapta. É o problema mais grave.
