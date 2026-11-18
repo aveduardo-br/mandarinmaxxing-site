@@ -2,6 +2,8 @@
 export const SKILL_REPO = 'https://github.com/aveduardo-br/mandarinmaxxing';
 export const SKILL_RELEASES = `${SKILL_REPO}/releases`;
 export const SKILL_ISSUES = `${SKILL_REPO}/issues`;
+export const SKILL_LICENSE = `${SKILL_REPO}/blob/main/LICENSE`;
+export const SKILL_CONTRIBUTING = `${SKILL_REPO}/blob/main/CONTRIBUTING.md`;
 // Always the newest release: the skill repo publishes one automatically for each new version.
 export const SKILL_ZIP = `${SKILL_REPO}/releases/latest/download/mandarinmaxxing-claude.zip`;
 // Eduardo's profile on X, linked from his name in the hero
@@ -25,5 +27,5 @@ export const faq = [
   { id: 'faq-why', title: 'How it started' },
   { id: 'faq-levels', title: 'Levels and your course' },
   { id: 'faq-not', title: 'What it doesn’t do' },
-  { id: 'faq-free', title: 'Free? Official?' },
+  { id: 'faq-free', title: 'Free forever' },
 ] as const;

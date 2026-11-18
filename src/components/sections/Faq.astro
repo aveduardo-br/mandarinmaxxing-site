@@ -1,8 +1,8 @@
 ---
-// FAQ. Four questions; two of them hold the questions that belong with them (QA.astro has the two
+// FAQ. Four questions; three of them hold the questions that belong with them (QA.astro has the two
 // levels). The first answer is the only place where Eduardo speaks in the first person.
 import QA, { type Item } from '../QA.astro';
-import { SKILL_ISSUES, SKILL_REPO } from '../../data/site';
+import { SKILL_CONTRIBUTING, SKILL_ISSUES, SKILL_LICENSE, SKILL_REPO } from '../../data/site';
 
 const items: Item[] = [
   {
@@ -79,10 +79,34 @@ const items: Item[] = [
   },
   {
     id: 'faq-free',
-    q: 'Is it free? Is it official?',
+    q: 'Is it really free?',
     a: [
-      'The skill is free. You need a Claude account, and a voice provider, if you connect one, has its own plans.',
-      'mandarinmaxxing is an independent project. It uses the official HSK word list and isn’t affiliated with the organization that runs the test.',
+      'Yes. Free forever, and yours to keep. Study with it, change your own copy, read how it’s made. You need a Claude account, and a voice provider, if you connect one, has its own plans.',
+    ],
+    subs: [
+      {
+        id: 'faq-help',
+        q: 'Can I help?',
+        a: [
+          `Please do. Say what felt off: a word in the wrong situation, a lesson that dragged, a situation that’s missing. It all starts with <a href="${SKILL_ISSUES}" target="_blank" rel="noopener">an issue on GitHub ↗</a>, in any language.`,
+          `What you send becomes part of the project, and you’re credited for it. <a href="${SKILL_CONTRIBUTING}" target="_blank" rel="noopener">How contributing works ↗</a>`,
+        ],
+      },
+      {
+        id: 'faq-reuse',
+        q: 'Can I reuse the maps or the lessons?',
+        a: [
+          'That’s the one thing we ask you not to do. The maps and the lesson texts belong to the project, so they can’t be copied into another product or fed to an AI to mass-produce copies. It’s what keeps the work of everyone who helps from being turned into AI slop.',
+          `The method itself is yours to borrow: if you want to build your own course by situation, start from your own words. The details are in <a href="${SKILL_LICENSE}" target="_blank" rel="noopener">the license ↗</a>.`,
+        ],
+      },
+      {
+        id: 'faq-official',
+        q: 'Is it official?',
+        a: [
+          'No. mandarinmaxxing is an independent project by Gautech. It uses the official HSK word list and isn’t affiliated with the organization that runs the test.',
+        ],
+      },
     ],
   },
 ];
