@@ -17,8 +17,8 @@ export const sections = [
   { id: 'install', num: '06', title: 'Install' },
 ] as const;
 
-// the block after the questions: the studies behind the method
-export const research = { id: 'research', title: 'What the research says' } as const;
+// the block after the questions: where the words come from and the studies behind the method
+export const research = { id: 'research', title: 'Where it comes from' } as const;
 
 export const faq = [
   { id: 'faq-why', title: 'How it started' },
