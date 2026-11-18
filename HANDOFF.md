@@ -50,6 +50,12 @@ Os títulos da side nav vêm de `sections` em `site.ts`. Se um título mudar, mu
 - Ele gosta das seções Situations, Chunks e dos bentos: reaproveitar, não refazer. Ele rejeita coisas que ficam "travadas" ou coloridas demais.
 - **Fontes:** Geist Light no texto corrido, Geist 600 nos títulos (`.display`) e Ma Shan Zheng em todos os hanzi. Ele quer a mesma fonte de hanzi em todo o site.
 
+## Mudanças de 18/11/2026
+
+- **"How it's being built" virou pergunta do FAQ** (segunda, depois de "How did this start?"). A seção 07 saiu da página e da side nav. A lista do FAQ na side nav (`faq` em `site.ts`) agora tem as sete perguntas.
+- **Card Spaced review** (`SpacedReview.astro`): uma aula por vez. A palavra nova em cima, em laranja, e as antigas que voltam naquela aula embaixo de "Coming back" (+1, +3, +7, +14), cada uma com o significado e a aula de origem. Linhas vazias mostram ladrilhos tracejados; a aula 1 diz "Nothing yet". Setas em ladrilho (ou ← →) trocam a aula, e o card anda sozinho quando está na tela e sem o mouse em cima. Protótipo aprovado: versão B2 do artifact https://claude.ai/artifact/M9tu4VTVRgnQ4xhfhT5o69. O carrossel e o `embla-carousel` saíram.
+- `SKILL_VERSION` em v0.5.5.
+
 ## Hero em ladrilhos (14/11/2026)
 
 O hero agora é o MANDARIN em ladrilhos sobre o contorno do hero antigo (as 750 células em `src/data/hero-cells.json`), com MAXXING em ladrilhos pretos sobreposto embaixo. A configuração veio do artifact "Hero em ladrilhos — laboratório" (https://claude.ai/artifact/LdamsWc6y52qae8fuULxU9) e está em `CFG`, no script de `src/components/Hero.astro`. Easter egg: as sete letras viradas juntas formam 学汉语很有意思. Desde 16/11/2026 cada coluna é uma esteira: quando o ladrilho do topo se solta e sobe, os de baixo sobem uma casa e um novo abre embaixo (função `lift`). `public/hero-art.json` não é mais usado pelo site.
@@ -115,4 +121,3 @@ Prioridade sugerida: celular, imagem de compartilhamento e favicon, card 4, Your
 ## Mensagem para abrir o novo chat
 
 > Quero continuar o redesenho do site mandarinmaxxing no Paper, no formato de ladrilhos que aprovei na seção 05. O repositório é `aveduardo-br/mandarinmaxxing-site`, o site está em https://mandarinmaxxing-site.vercel.app e o arquivo do Paper é https://app.paper.design/file/01M73ZX4CG7GXQAC76RFJZ8R94/p-2-0. Leia o `HANDOFF.md` e o `docs/ladrilhos.md`, olhe no Paper os quadros "05 Your course" e "ref", e me mostre opções antes de mudar. Converse comigo em português; o texto do site é em inglês.
-- **Seção 07 "How it's being built"** (17/11/2026): parágrafo curto antes do FAQ sobre o processo, em tom de projeto em andamento (versão A2 escolhida pelo Eduardo). O link vai para a seção "How it's made" do README da skill. O FAQ continua sem número.
