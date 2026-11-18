@@ -8,7 +8,7 @@ export const SKILL_CONTRIBUTING = `${SKILL_REPO}/blob/main/CONTRIBUTING.md`;
 export const SKILL_ZIP = `${SKILL_REPO}/releases/latest/download/mandarinmaxxing-claude.zip`;
 // Eduardo's profile on X, linked from his name in the hero
 export const AUTHOR_X = 'https://x.com/aveduardo_br';
-export const SKILL_VERSION = 'v0.5.5';
+export const SKILL_VERSION = 'v0.5.6';
 
 export const sections = [
   { id: 'what-it-is', num: '01', title: 'What it is' },

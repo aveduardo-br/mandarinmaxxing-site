@@ -68,9 +68,9 @@ O site e a skill usam palavras diferentes para a mesma coisa. No site, use sempr
 | words / lesson | pace | Quantas palavras novas por sessão |
 | jump start | jump start | As primeiras situações de um nível, com as palavras que todas as outras usam |
 
-Nunca escrever "sitting", "part", "topic" ou "category" no site.
+Nunca escrever "sitting", "part", "topic" ou "category" no site. Única exceção (18/11/2026): a linha do FAQ "How long is a lesson?" que avisa que, dentro da skill, a situação se chama lesson e a sessão do dia, part.
 
-## O que a skill faz hoje (v0.4.0)
+## O que a skill faz hoje (v0.5.6)
 
 Só afirme no site o que está nesta lista ou no README da skill.
 
@@ -86,9 +86,9 @@ Só afirme no site o que está nesta lista ou no README da skill.
 - **HSK 5 e 6:** as listas oficiais estão incluídas. O mapa ainda não foi escrito, e a skill monta um quando a pessoa começa o nível.
 - **Lista usada:** o syllabus do HSK publicado em novembro de 2025.
 - **Cada nível abre com um jump start.** Ao terminar um nível, o curso segue para o próximo e as palavras antigas continuam voltando.
-- **Uma aula tem quatro passos:** revisão, palavras novas, tradução de uma frase por vez com correção, e um texto curto para ler ou ouvir.
+- **Uma aula dura cerca de uma hora:** revisão, palavras novas e chunks, três baterias de tradução (chunks, frases completas, sequências) e escuta (ditado e narração) ou leitura com reescrita.
 - **Ritmo:** 3, 5 ou 7 palavras novas por aula, ou qualquer outro número.
-- **Áudio:** opcional, um clipe curto por aula, com um provedor de voz como o ElevenLabs.
+- **Áudio:** opcional, até dois clipes curtos por aula (ditado e narração de uma pessoa), com um provedor de voz como o ElevenLabs.
 - **Idioma:** a skill explica e corrige na língua em que a pessoa escreve.
 - **Onde fica salvo:** no projeto do Claude. Abre um chat novo, em qualquer aparelho, e diz "next lesson".
 - **Preço:** grátis. Precisa de uma conta do Claude.
@@ -146,7 +146,7 @@ Segunda rodada de copy, aprovada pelo Eduardo em 16/11/2026. Direção nova: fal
 
 | Seção | Como está |
 | --- | --- |
-| Hero | Sem "free". Linha: "A tutor in your Claude chat for the official word list of the Chinese proficiency test. Built in the open and shaped by the people who study with it." Linha pequena sem "Free". É o único lugar que explica o que é o HSK. |
+| Hero | Sem "free". Linha: "A tutor in your Claude chat for the official word list of the Chinese proficiency test. Built in public and shaped by the people who study with it." Linha pequena sem "Free". É o único lugar que explica o que é o HSK. |
 | 01 What it is | Segue o HSK nível a nível; mesmas palavras, outra ordem, por situação. Segundo parágrafo: como a aula funciona, "It's a method: use it however works for you", e melhora com quem estuda. Saiu "It isn't a complete method". |
 | 02 Situations, not chapters | Abertura nomeia o livro: "If you study with the HSK Standard Course, the textbook series made for the test…". Resto igual. |
 | 03 Chunks | A primeira frase do parágrafo de baixo muda com o chunk (太贵了/太热了, 我想看一下/我想问一下, 你什么时候来/你什么时候下班), com uma animação curta. |
@@ -172,3 +172,8 @@ Segunda rodada de copy, aprovada pelo Eduardo em 16/11/2026. Direção nova: fal
 Mensagem para abrir o chat:
 
 > Quero revisar toda a copy do site mandarinmaxxing e ver se está forte o suficiente: os textos das seções e também os textos dentro dos bentos, dos gráficos e dos seletores. O repositório é `aveduardo-br/mandarinmaxxing-site` e o site está em https://mandarinmaxxing.vercel.app. Leia o `docs/messaging.md` inteiro. Para saber o que a skill faz, leia no repositório `aveduardo-br/mandarinmaxxing` o `README.md` e a seção "Como a skill funciona hoje" do `HANDOFF.md`. Abra o site no navegador, me diga seção por seção o que está fraco, comece pela seção 05 (Your course) e me mostre três ou quatro alternativas por trecho antes de mudar. Converse comigo em português; o texto do site é em inglês.
+
+## Palavras a evitar desde a licença (18/11/2026)
+
+- "open" para os mapas ou o projeto: a licença é de direitos reservados. Usar "public" ("The maps are public", "Built in public").
+- A repetição: dizer que cada aula traz de volta palavras de 3, 7, 14, 30 e 60 aulas atrás, não que cada palavra volta cinco vezes.

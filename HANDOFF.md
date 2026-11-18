@@ -50,6 +50,10 @@ Os títulos da side nav vêm de `sections` em `site.ts`. Se um título mudar, mu
 - Ele gosta das seções Situations, Chunks e dos bentos: reaproveitar, não refazer. Ele rejeita coisas que ficam "travadas" ou coloridas demais.
 - **Fontes:** Geist Light no texto corrido, Geist 600 nos títulos (`.display`) e Ma Shan Zheng em todos os hanzi. Ele quer a mesma fonte de hanzi em todo o site.
 
+## Revisão de lançamento (18/11/2026)
+
+O estado atual e o que falta para divulgar estão em [`LAUNCH.md`](LAUNCH.md). O site está na v0.5.6 da skill. A ordem da página agora termina em FAQ e Sources ("Where it comes from", `Research.astro`), e o menu do celular tem Sources e o link do X. `public/hero-art.json` foi removido (não era usado; o hero lê `src/data/hero-cells.json`).
+
 ## Mudanças de 18/11/2026
 
 - **"How it's being built" virou pergunta do FAQ** (segunda, depois de "How did this start?"). A seção 07 saiu da página e da side nav. A lista do FAQ na side nav (`faq` em `site.ts`) agora tem as sete perguntas.

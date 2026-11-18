@@ -3,11 +3,11 @@
 // Left: the current section, as its number tile (orange, the digit, same flip as everywhere) and its
 // title; over the hero it shows the name of the site. Right: a menu tile (grey with three pixel
 // lines; open, it flips to orange with an x). The menu covers the screen with the sections, the
-// questions, Download and GitHub.
+// questions, the sources, Download, GitHub and X.
 // The bar stays out of the way while you read: hidden over the hero, it appears once you're past it,
 // slides away when you scroll down and comes back when you scroll up. The current section comes from
 // the .is-active class SideNav puts on sections (the same rule for both).
-import { sections, SKILL_REPO, SKILL_ZIP } from '../data/site';
+import { sections, SKILL_REPO, SKILL_ZIP, AUTHOR_X } from '../data/site';
 import SoundToggle from './SoundToggle.astro';
 ---
 
@@ -42,10 +42,17 @@ import SoundToggle from './SoundToggle.astro';
           <span>Questions</span>
         </a>
       </li>
+      <li>
+        <a href="#research" data-go data-cuelume-navigate>
+          <span class="mnum" aria-hidden="true">+</span>
+          <span>Sources</span>
+        </a>
+      </li>
     </ul>
     <div class="actions">
       <a class="dl" href={SKILL_ZIP} data-cuelume-tap>Download for Claude</a>
       <a class="gh" href={SKILL_REPO} target="_blank" rel="noopener">GitHub ↗</a>
+      <a class="gh" href={AUTHOR_X} target="_blank" rel="noopener" aria-label="Eduardo on X">X ↗</a>
       <span class="snd-wrap"><SoundToggle size={28} /></span>
     </div>
   </nav>
@@ -249,7 +256,7 @@ import SoundToggle from './SoundToggle.astro';
   .actions {
     display: flex;
     align-items: center;
-    gap: 24px;
+    gap: 20px;
     margin-top: 20px;
   }
   .dl {

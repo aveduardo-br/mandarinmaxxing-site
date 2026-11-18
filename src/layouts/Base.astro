@@ -10,7 +10,7 @@ interface Props {
 }
 
 const {
-  title = 'mandarinmaxxing',
+  title = 'mandarinmaxxing · HSK words by everyday situation',
   description = 'A skill for Claude that teaches the official HSK vocabulary by everyday situation. The same HSK words, reorganized around everyday conversations.',
 } = Astro.props;
 ---
@@ -27,6 +27,17 @@ const {
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://mandarinmaxxing.vercel.app/" />
+    <meta property="og:site_name" content="mandarinmaxxing" />
+    <link rel="canonical" href="https://mandarinmaxxing.vercel.app/" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <!-- TODO (Eduardo): add public/og.png (1200×630) and public/favicon.svg, then uncomment:
+    <meta property="og:image" content="https://mandarinmaxxing.vercel.app/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    -->
 
     <!-- reveal-on-scroll only hides content when JS is running -->
     <script is:inline>
