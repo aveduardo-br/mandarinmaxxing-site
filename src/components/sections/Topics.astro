@@ -143,7 +143,7 @@ const stripData = levelData[0].topics.map((t) => t.strip);
 
   <!-- outside .topics-wrap, whose overflow clip would cut the examples tag. The level switch: HSK in black tiles, the level in an orange one; a click shows the next level -->
   <div class="lvl">
-    <span class="tile-tag lvl-tag" data-lvl-note hidden aria-hidden="true">Examples · the skill maps it when you start</span>
+    <span class="label lvl-tag" data-lvl-note data-text="Examples · the skill maps HSK 5 and 6 when you start them" hidden aria-hidden="true"></span>
     <button class="lvl-btn" type="button" data-lvl data-cuelume-select aria-label="HSK 1. Show the next level">
       <span class="lt" aria-hidden="true">H</span><span class="lt" aria-hidden="true">S</span><span class="lt" aria-hidden="true">K</span><span class="lt lt-num" data-lvl-num aria-hidden="true">1</span>
       <span class="lvl-hint" aria-hidden="true">Next level →</span>
@@ -433,8 +433,9 @@ const stripData = levelData[0].topics.map((t) => t.strip);
       color: var(--text-dim);
     }
   }
-  /* HSK 5 and 6: a black tag above the tiles says the ten are examples. It sits over the space above
-     the selector (out of the flow), so showing it never moves the list. */
+  /* HSK 5 and 6: a quiet line above the tiles, in the style of the textbook label, says the ten are
+     examples. It is typed in letter by letter and erased the same way. It sits over the space above the
+     selector (out of the flow), so showing it never moves the list. */
   .lvl {
     position: relative;
     margin-bottom: -16px; /* sits right on top of the list, as when it was inside it (the section's gap is 16px) */
@@ -442,9 +443,10 @@ const stripData = levelData[0].topics.map((t) => t.strip);
   .lvl-tag {
     position: absolute;
     left: 0;
-    bottom: calc(100% - 8px);
-    transform-origin: 50% 100%;
+    bottom: calc(100% - 6px);
+    line-height: 16px;
     white-space: nowrap;
+    color: var(--muted-2);
   }
   .lvl-tag[hidden] {
     display: none;
@@ -1176,23 +1178,30 @@ const stripData = levelData[0].topics.map((t) => t.strip);
     }, delay);
   }
 
-  // the examples tag opens like a flap once the number has turned, and closes the same way
+  // the examples line is typed in once the number has turned, and erased (faster) when it goes
+  const NOTE = lvlNote.dataset.text!;
   let noteOn = false;
+  let noteGen = 0;
   function setNote(on: boolean) {
     if (on === noteOn) return;
     noteOn = on;
-    lvlNote.getAnimations().forEach((a) => a.cancel());
-    if (reduce) return void (lvlNote.hidden = !on);
-    if (on) {
-      lvlNote.hidden = false;
-      lvlNote.animate([{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }], { duration: DUR, delay: DUR, easing: EASE_OPEN, fill: 'backwards' });
-    } else {
-      const a = lvlNote.animate([{ transform: 'scaleY(1)' }, { transform: 'scaleY(0)' }], { duration: DUR, easing: EASE_CLOSE, fill: 'forwards' });
-      a.onfinish = () => {
-        a.cancel();
-        if (!noteOn) lvlNote.hidden = true;
-      };
+    const g = ++noteGen;
+    if (reduce) {
+      lvlNote.textContent = on ? NOTE : '';
+      lvlNote.hidden = !on;
+      return;
     }
+    const chars = [...NOTE];
+    let n = on ? 0 : [...(lvlNote.textContent ?? '')].length;
+    if (on) lvlNote.hidden = false;
+    const step = () => {
+      if (g !== noteGen) return;
+      n += on ? 1 : -2;
+      lvlNote.textContent = chars.slice(0, Math.max(0, n)).join('');
+      if (on ? n < chars.length : n > 0) window.setTimeout(step, on ? 18 : 8);
+      else if (!on) lvlNote.hidden = true;
+    };
+    window.setTimeout(step, on ? DUR * 2 : 0);
   }
 
   function setLevel(next: number) {
