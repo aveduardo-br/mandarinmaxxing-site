@@ -3,13 +3,16 @@
 // plays them; outcomes that depend on state (a panel opening or closing, a copy that worked) call cue().
 // Rules from cuelume's own guidance: one cue per job, never on hover or page load, "subtle" for frequent
 // actions, and a way to turn sound off. The choice is kept in this browser (localStorage, if allowed).
-import { bind, play, setEnabled, setTheme } from 'cuelume';
+import { bind, play, setEnabled, setTheme, setVolume } from 'cuelume';
 import { setFlipSound } from './tiles';
 import type { PlayOptions, SoundName } from 'cuelume';
 
 type Cue = SoundName;
 const KEY = 'mm-sound';
 const THEME = 'default'; // cuelume themes: default, mech, bubble, press
+// Everything is kept very quiet: the cues at 35% of cuelume's volume, the tile flip at a peak of 0.04
+const CUE_VOLUME = 0.35;
+const FLIP_PEAK = 0.04;
 
 let on = true;
 const read = () => {
@@ -74,7 +77,7 @@ export function tick() {
   bp.Q.value = 1.4;
   const g = ctx.createGain();
   g.gain.setValueAtTime(0.0001, t);
-  g.gain.exponentialRampToValueAtTime(0.09, t + 0.002);
+  g.gain.exponentialRampToValueAtTime(FLIP_PEAK, t + 0.002);
   g.gain.exponentialRampToValueAtTime(0.0001, t + 0.03);
   src.connect(bp).connect(g).connect(ctx.destination);
   src.start(t);
@@ -97,6 +100,7 @@ function paintToggles() {
 export function initSound() {
   on = read();
   setTheme(THEME);
+  setVolume(CUE_VOLUME);
   setEnabled(on);
   bind();
   setFlipSound(tick);
