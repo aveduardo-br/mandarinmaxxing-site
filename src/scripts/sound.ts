@@ -34,12 +34,16 @@ export function cue(name: Cue, options: PlayOptions = {}) {
 
 // The tile flip: a very short burst of filtered noise, like one flap of a split-flap board. Each tile of
 // a wave plays one as it starts to turn (at most one every 22 ms, so a long wave rattles instead of
-// buzzing), with a slightly different pitch each time. Its own small Web Audio graph, separate from
+// buzzing), a little higher each time. Its own small Web Audio graph, separate from
 // cuelume's cues; it can only start after the first click or tap on the page (browsers keep audio off
 // until then), so hovering before any click is silent.
 let ac: AudioContext | null = null;
 let noise: AudioBuffer | null = null;
 let lastTick = 0;
+// The pitch climbs a little with each tile of a wave (3% per tile, up to 20 tiles), and starts again
+// from the bottom when a new wave begins (a pause of more than 250 ms between ticks).
+let step = 0;
+const RISE = 0.03;
 function audio() {
   if (!ac) {
     try {
@@ -59,13 +63,14 @@ export function tick() {
   if (now - lastTick < 22) return;
   const ctx = audio();
   if (!ctx || ctx.state !== 'running' || !noise) return;
+  step = now - lastTick > 250 ? 0 : Math.min(step + 1, 20);
   lastTick = now;
   const t = ctx.currentTime;
   const src = ctx.createBufferSource();
   src.buffer = noise;
   const bp = ctx.createBiquadFilter();
   bp.type = 'bandpass';
-  bp.frequency.value = 1700 + Math.random() * 900;
+  bp.frequency.value = 1900 * (1 + RISE * step) * (0.98 + Math.random() * 0.04);
   bp.Q.value = 1.4;
   const g = ctx.createGain();
   g.gain.setValueAtTime(0.0001, t);
