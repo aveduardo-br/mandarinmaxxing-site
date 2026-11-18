@@ -8,7 +8,7 @@ Ponto de partida para o próximo chat que mexer no site. Leia este arquivo intei
 
 ## Links
 
-- **Site no ar:** https://mandarinmaxxing-site.vercel.app
+- **Site no ar:** https://mandarinmaxxing.vercel.app (desde 18/11/2026; o endereço antigo mandarinmaxxing-site.vercel.app continua funcionando)
 - **Repositório do site:** `aveduardo-br/mandarinmaxxing-site` (Astro 5). Cada push na `main` publica sozinho na Vercel, em cerca de 1 minuto.
   - Projeto na Vercel: `prj_tWI1Nl7UFscpAWkMAg2U6Y8lPDzt`, time `team_iF6SzN2M0FmIrVc7h5KJK22G`.
 - **Repositório da skill:** https://github.com/aveduardo-br/mandarinmaxxing. É a fonte da verdade sobre o que o produto faz. Leia o `SKILL.md` e o README de lá antes de propor texto.
@@ -127,4 +127,4 @@ Prioridade sugerida: celular, imagem de compartilhamento e favicon, card 4, Your
 
 ## Mensagem para abrir o novo chat
 
-> Quero continuar o redesenho do site mandarinmaxxing no Paper, no formato de ladrilhos que aprovei na seção 05. O repositório é `aveduardo-br/mandarinmaxxing-site`, o site está em https://mandarinmaxxing-site.vercel.app e o arquivo do Paper é https://app.paper.design/file/01M73ZX4CG7GXQAC76RFJZ8R94/p-2-0. Leia o `HANDOFF.md` e o `docs/ladrilhos.md`, olhe no Paper os quadros "05 Your course" e "ref", e me mostre opções antes de mudar. Converse comigo em português; o texto do site é em inglês.
+> Quero continuar o redesenho do site mandarinmaxxing no Paper, no formato de ladrilhos que aprovei na seção 05. O repositório é `aveduardo-br/mandarinmaxxing-site`, o site está em https://mandarinmaxxing.vercel.app e o arquivo do Paper é https://app.paper.design/file/01M73ZX4CG7GXQAC76RFJZ8R94/p-2-0. Leia o `HANDOFF.md` e o `docs/ladrilhos.md`, olhe no Paper os quadros "05 Your course" e "ref", e me mostre opções antes de mudar. Converse comigo em português; o texto do site é em inglês.
