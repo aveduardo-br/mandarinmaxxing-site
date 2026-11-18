@@ -1,9 +1,12 @@
 ---
 // Section 02 — Paper "Topics — bar A v2".
-// Intro compares a textbook lesson with mandarinmaxxing's situations. Below, ten of the 22 situations
-// of the HSK 1 map, as an example of how the level goes (renumbered 01-10, so the numbers here are not
-// the map's): closed / hover (arrow head slides in, row turns light orange) / open (accordion with the
-// lesson's words). Under the list a bar sticks to the bottom of the screen while the list is in view
+// Intro compares a textbook lesson with mandarinmaxxing's situations. Below, ten situations of one HSK
+// level, as an example of how the level goes (renumbered 01-10, so the numbers here are not the map's):
+// closed / hover (arrow head slides in, row turns light orange) / open (accordion with the lesson's
+// words). Above the list, "HSK 1" in tiles switches the level: a click turns the number tile to the next
+// level (1 → 6, then back to 1) and the ten rows change in a wave. HSK 1 to 4 come from the skill's maps;
+// HSK 5 and 6 have no map (the skill builds it when you get there), so their ten are examples made the
+// same way, and a note under the selector says so. Data: situations.ts (HSK 1) and topics.ts (HSK 2-6). Under the list a bar sticks to the bottom of the screen while the list is in view
 // and stays attached under it afterwards. Its strip is the textbook series: HSK Standard Course 1 to 6,
 // one square per lesson, in six groups (one per book). A lesson lights up when it teaches a word of the
 // situation, so you can see the situation's words spread over lessons, and sometimes over later books.
@@ -12,13 +15,21 @@
 import Section from '../Section.astro';
 import { situations, bookLesson } from '../../data/situations';
 import { bookLessons, HSK1_HANZI } from '../../data/book';
+import { levelTopics } from '../../data/topics';
 
-// Ten examples, spread from the start of the level to the end. `num` is the map's number.
+// HSK 1: ten examples, spread from the start of the level to the end (the map's numbers).
+type Topic = { num: string; name: string; count: number; words: { hanzi: string; en: string }[]; rest: string[] };
 const SAMPLE = ['01', '02', '05', '07', '08', '12', '13', '16', '18', '22'];
-const topics = SAMPLE.map((num, i) => ({
-  ...situations.find((s) => s.num === num)!,
-  num: String(i + 1).padStart(2, '0'),
+const hsk1: Topic[] = SAMPLE.map((num, i) => {
+  const s = situations.find((x) => x.num === num)!;
+  return { num: String(i + 1).padStart(2, '0'), name: s.name, count: s.count, words: s.words, rest: s.rest.map((n) => HSK1_HANZI[n]) };
+});
+const LEVELS = [1, 2, 3, 4, 5, 6].map((level) => ({
+  level,
+  mapped: level === 1 || levelTopics[level].mapped,
+  topics: level === 1 ? hsk1 : (levelTopics[level].topics as Topic[]),
 }));
+const topics = LEVELS[0].topics; // the page opens on HSK 1
 const ROWS = 3;
 // On a phone the textbook lesson shows four words on one line: watch, milk, husband, red, the four
 // least related to each other (newspaper and room are left out).
@@ -58,9 +69,9 @@ const find = (h: string): { cell: number; via: string } => {
 };
 // For each situation: the lessons that teach any of its words, and those that teach its other words
 // (the ones behind "+N more").
-const stripData = topics.map((t) => {
+const stripOf = (t: Topic) => {
   const shown = t.words.map((w) => w.hanzi);
-  const rest = t.rest.map((n) => HSK1_HANZI[n]);
+  const rest = t.rest;
   const found = [...shown, ...rest].map((h) => find(h).cell).filter((c) => c >= 0);
   const restCells = [...new Set(rest.map((h) => find(h).cell).filter((c) => c >= 0))];
   const lessons = [...new Set(found)];
@@ -75,7 +86,14 @@ const stripData = topics.map((t) => {
       return { zh: w.hanzi, en: w.en, cell, where: at && via ? `taught as ${via} · ${at}` : at };
     }),
   };
-});
+};
+// everything the level switch needs, per level: the rows (name, preview, words) and the strip data
+const levelData = LEVELS.map((L) => ({
+  level: L.level,
+  mapped: L.mapped,
+  topics: L.topics.map((t) => ({ name: t.name, count: t.count, words: t.words, strip: stripOf(t) })),
+}));
+const stripData = levelData[0].topics.map((t) => t.strip);
 ---
 
 <Section id="topics" num="02" title="Situations, not chapters" tiled>
@@ -120,10 +138,21 @@ const stripData = topics.map((t) => {
     <p class="book-note">What ties them together is the chapter’s grammar, not a moment where you’d use them.</p>
   </div>
   <p class="prose">
-    Here the same words are grouped by the moment you’d use them. Ten situations from HSK 1:
+    Here the same words are grouped by the moment you’d use them.
   </p>
 
-  <div class="topics-wrap">
+  <div class="topics-wrap" data-levels={JSON.stringify(levelData)}>
+    <!-- the level switch: HSK in black tiles, the level in an orange one; a click shows the next level -->
+    <div class="lvl">
+      <button class="lvl-btn" type="button" data-lvl data-cuelume-select aria-label="HSK 1. Show the next level">
+        <span class="lt" aria-hidden="true">H</span><span class="lt" aria-hidden="true">S</span><span class="lt" aria-hidden="true">K</span><span class="lt lt-num" data-lvl-num aria-hidden="true">1</span>
+        <span class="lvl-hint" aria-hidden="true">Next level →</span>
+      </button>
+      <p class="lvl-note" data-lvl-note hidden>
+        <span class="lvl-i" aria-hidden="true">i</span> Examples. HSK 5 and 6 have no fixed map yet: the skill groups their words into situations when you start the level.
+      </p>
+      <p class="sr-only" aria-live="polite" data-lvl-live></p>
+    </div>
     <div class="list" data-topics>
       {
         topics.map((t, ti) => (
@@ -352,6 +381,92 @@ const stripData = topics.map((t) => {
     font-size: var(--fs-caption);
     line-height: var(--lh-caption);
     color: var(--muted);
+  }
+
+  /* ---------- level switch ---------- */
+  .lvl {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 8px;
+  }
+  .lvl-btn {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    padding: 8px 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .lvl-btn:focus-visible {
+    outline: 1px dashed var(--outline);
+    outline-offset: 4px;
+  }
+  /* a tile like the others (28px, 1px of air around the colour); HSK in black, the level in orange */
+  .lt {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    padding: var(--tile-gap, 1px);
+    background: #000;
+    background-clip: content-box;
+    font-family: var(--f-body);
+    font-weight: 600;
+    font-size: 15px;
+    line-height: 1;
+    color: var(--text);
+  }
+  .lt-num {
+    background-color: var(--accent);
+    color: #161616;
+  }
+  .lvl-hint {
+    margin-left: 12px;
+    font-size: var(--fs-caption);
+    line-height: var(--lh-caption);
+    color: var(--muted-2);
+    transition: color 0.15s ease;
+  }
+  @media (hover: hover) {
+    .lvl-btn:hover .lvl-hint {
+      color: var(--text-dim);
+    }
+  }
+  .lvl-note {
+    display: flex;
+    gap: 8px;
+    max-width: 560px;
+    font-size: var(--fs-caption);
+    line-height: var(--lh-caption);
+    color: var(--muted);
+  }
+  .lvl-note[hidden] {
+    display: none;
+  }
+  .lvl-i {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+    border: 1.2px solid var(--accent);
+    border-radius: 50%;
+    font-family: var(--f-body);
+    font-weight: 600;
+    font-size: 10px;
+    line-height: 13.6px;
+    text-align: center;
+    color: var(--accent);
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
 
   /* ---------- list ---------- */
@@ -804,6 +919,7 @@ const stripData = topics.map((t) => {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const items = [...document.querySelectorAll<HTMLElement>('[data-topic]')];
+  const pGen = new WeakMap<Element, number>(); // a generation per preview tile, so a newer flip wins
 
   function setOpen(item: HTMLElement, open: boolean) {
     const btn = item.querySelector<HTMLButtonElement>('.row')!;
@@ -857,10 +973,11 @@ const stripData = topics.map((t) => {
   const label = bar.querySelector<HTMLElement>('[data-bar-label]')!;
   type WordCell = { zh: string; en: string; cell: number; where: string };
   // lessons: every lesson that teaches a word of the situation; rest: those teaching its other words
-  const data: { count: number; inBook: number; lessons: number[]; rest: number[]; words: WordCell[] }[] = JSON.parse(bar.dataset.strip!);
+  type Strip = { count: number; inBook: number; lessons: number[]; rest: number[]; words: WordCell[] };
+  let data: Strip[] = JSON.parse(bar.dataset.strip!);
   const les = (n: number) => `${n} lesson${n === 1 ? '' : 's'}`;
   const rects = [...bar.querySelectorAll<SVGRectElement>('rect')].map((r, i) => ({ r, i }));
-  const sets = data.map((d) => new Set(d.lessons));
+  let sets = data.map((d) => new Set(d.lessons));
   let active = -1;
   let hover = -1;
   let wordFocus: number | 'more' | null = null; // a word (or "+N more") hovered in the open topic
@@ -964,20 +1081,20 @@ const stripData = topics.map((t) => {
       if (hover === i) hover = -1;
       render();
     };
-    // preview tiles: flip to light orange on hover, back to dim when the cursor leaves
-    const pts = [...item.querySelectorAll<HTMLElement>('.pt')];
-    const gens = pts.map(() => 0);
+    // preview tiles: flip to light orange on hover, back to dim when the cursor leaves. The tiles are
+    // looked up each time, since the level switch replaces them.
     const flipPreview = (on: boolean) =>
-      pts.forEach((el, k) => {
-        const g = ++gens[k];
+      [...item.querySelectorAll<HTMLElement>('.pt')].forEach((el, k) => {
+        const g = (pGen.get(el) ?? 0) + 1;
+        pGen.set(el, g);
         window.setTimeout(() => {
-          if (gens[k] !== g || el.classList.contains('on') === on) return;
+          if (pGen.get(el) !== g || el.classList.contains('on') === on) return;
           if (matchMedia('(prefers-reduced-motion: reduce)').matches) return void el.classList.toggle('on', on);
           playFlipSound(); // the preview only flips on hover, so it always comes from the person
           const a = el.animate([{ transform: 'scaleY(1)' }, { transform: 'scaleY(0)' }], { duration: DUR, easing: EASE_CLOSE, fill: 'forwards' });
           a.onfinish = () => {
             a.cancel();
-            if (gens[k] !== g) return;
+            if (pGen.get(el) !== g) return;
             el.classList.toggle('on', on);
             el.animate([{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }], { duration: DUR, easing: EASE_OPEN });
           };
@@ -990,18 +1107,116 @@ const stripData = topics.map((t) => {
     row.addEventListener('focus', enter);
     row.addEventListener('blur', leave);
 
-    // words of the open topic → their square on the strip
-    item.querySelectorAll<HTMLElement>('[data-w]').forEach((el) => {
-      const key = el.dataset.w === 'more' ? 'more' : Number(el.dataset.w);
-      el.addEventListener('mouseenter', () => {
-        if (active !== i) return;
-        wordFocus = key;
-        render();
-      });
-      el.addEventListener('mouseleave', () => {
-        if (wordFocus === key) wordFocus = null;
-        render();
-      });
+    // words of the open topic → their square on the strip (delegated: the level switch rebuilds them)
+    const words = item.querySelector<HTMLElement>('.words')!;
+    const keyOf = (t: EventTarget | null) => {
+      const el = (t as HTMLElement | null)?.closest<HTMLElement>('[data-w]');
+      return el ? (el.dataset.w === 'more' ? 'more' : Number(el.dataset.w)) : null;
+    };
+    words.addEventListener('mouseover', (e) => {
+      const key = keyOf(e.target);
+      if (key === null || active !== i || wordFocus === key) return;
+      wordFocus = key;
+      render();
     });
+    words.addEventListener('mouseout', (e) => {
+      const key = keyOf(e.target);
+      if (key === null || keyOf(e.relatedTarget) === key) return;
+      if (wordFocus === key) wordFocus = null;
+      render();
+    });
+  });
+
+  // ---- level switch: HSK 1 → 6 → 1. The number tile turns, then the ten rows change in a wave ----
+  type LevelTopic = { name: string; count: number; words: { hanzi: string; en: string }[]; strip: Strip };
+  const levels: { level: number; mapped: boolean; topics: LevelTopic[] }[] = JSON.parse(wrap.dataset.levels!);
+  const lvlBtn = document.querySelector<HTMLButtonElement>('[data-lvl]')!;
+  const lvlNum = lvlBtn.querySelector<HTMLElement>('[data-lvl-num]')!;
+  const lvlNote = document.querySelector<HTMLElement>('[data-lvl-note]')!;
+  const lvlLive = document.querySelector<HTMLElement>('[data-lvl-live]')!;
+  const OUT = [{ transform: 'scaleY(1)' }, { transform: 'scaleY(0)' }];
+  const IN = [{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }];
+  const ROW_STEP = 55; // ms between rows in the wave
+  let level = 1;
+  let lvlGen = 0;
+  const esc = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  const previewHtml = (t: LevelTopic) =>
+    t.words
+      .slice(0, 3)
+      .map((w, k) => `<span class="pw" style="--i:${k}">${[...w.hanzi].map((ch) => `<span class="pt"><span>${esc(ch)}</span></span>`).join('')}</span>`)
+      .join('');
+  const wordsHtml = (t: LevelTopic) =>
+    t.words.map((w, k) => `<div class="word" style="--i:${k}" data-w="${k}"><span class="hanzi">${esc(w.hanzi)}</span><span class="en">${esc(w.en)}</span></div>`).join('') +
+    (t.count > t.words.length
+      ? `<div class="word more" style="--i:${t.words.length}" data-w="more"><span class="hanzi">…</span><span class="en">+${t.count - t.words.length} more</span></div>`
+      : '');
+
+  // one row: the preview tiles turn away, the name is rewritten, the new preview turns in
+  function swapRow(item: HTMLElement, t: LevelTopic, delay: number, gen: number) {
+    const preview = item.querySelector<HTMLElement>('.preview')!;
+    const name = item.querySelector<HTMLElement>('.name')!;
+    window.setTimeout(() => {
+      if (gen !== lvlGen) return;
+      writeLine(name, esc(t.name), !reduce);
+      item.querySelector('.panel')!.setAttribute('aria-label', t.name);
+      item.querySelector<HTMLElement>('.words')!.innerHTML = wordsHtml(t);
+      const old = [...preview.querySelectorAll<HTMLElement>('.pt')];
+      const fill = () => {
+        if (gen !== lvlGen) return;
+        preview.innerHTML = previewHtml(t);
+        if (reduce) return;
+        preview.querySelectorAll<HTMLElement>('.pt').forEach((el, k) => {
+          el.style.visibility = 'hidden';
+          window.setTimeout(() => {
+            el.style.visibility = '';
+            el.animate(IN, { duration: DUR, easing: EASE_OPEN });
+          }, k * 28);
+        });
+      };
+      if (reduce || !old.length) return fill();
+      old.forEach((el, k) =>
+        window.setTimeout(() => {
+          playFlipSound();
+          el.animate(OUT, { duration: DUR, easing: EASE_CLOSE, fill: 'forwards' });
+        }, k * 28),
+      );
+      window.setTimeout(fill, (old.length - 1) * 28 + DUR);
+    }, delay);
+  }
+
+  function setLevel(next: number) {
+    const gen = ++lvlGen;
+    level = next;
+    const L = levels[level - 1];
+    // close the open situation and forget hovers: the rows are about to change
+    items.forEach((it) => setOpen(it, false));
+    active = -1;
+    hover = -1;
+    wordFocus = null;
+    data = L.topics.map((t) => t.strip);
+    sets = data.map((d) => new Set(d.lessons));
+    render();
+    // the number tile turns to the new level
+    if (reduce) lvlNum.textContent = String(level);
+    else {
+      playFlipSound();
+      const a = lvlNum.animate(OUT, { duration: DUR, easing: EASE_CLOSE, fill: 'forwards' });
+      a.onfinish = () => {
+        a.cancel();
+        if (gen !== lvlGen) return;
+        lvlNum.textContent = String(level);
+        lvlNum.animate(IN, { duration: DUR, easing: EASE_OPEN });
+      };
+    }
+    lvlBtn.setAttribute('aria-label', `HSK ${level}. Show the next level`);
+    lvlNote.hidden = L.mapped;
+    lvlLive.textContent = `HSK ${level}: ${L.topics.map((t) => t.name).join(', ')}.${L.mapped ? '' : ' Examples: the skill builds the map for this level when you start it.'}`;
+    items.forEach((it, i) => swapRow(it, L.topics[i], DUR + i * ROW_STEP, gen));
+  }
+  lvlBtn.addEventListener('click', () => setLevel((level % levels.length) + 1));
+  // the names start as rewritable lines, so the first switch already rewrites them word by word
+  items.forEach((it) => {
+    const n = it.querySelector<HTMLElement>('.name')!;
+    writeLine(n, esc((n.textContent ?? '').trim()), false);
   });
 </script>
