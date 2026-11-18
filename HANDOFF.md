@@ -55,6 +55,13 @@ Os títulos da side nav vêm de `sections` em `site.ts`. Se um título mudar, mu
 - **"How it's being built" virou pergunta do FAQ** (segunda, depois de "How did this start?"). A seção 07 saiu da página e da side nav. A lista do FAQ na side nav (`faq` em `site.ts`) agora tem as sete perguntas.
 - **Card Spaced review** (`SpacedReview.astro`): uma aula por vez. A palavra nova em cima, em laranja, e as antigas que voltam naquela aula embaixo de "Coming back" (+1, +3, +7, +14), cada uma com o significado e a aula de origem. Linhas vazias mostram ladrilhos tracejados; a aula 1 diz "Nothing yet". Setas em ladrilho (ou ← →) trocam a aula, e o card anda sozinho quando está na tela e sem o mouse em cima. Protótipo aprovado: versão B2 do artifact https://claude.ai/artifact/M9tu4VTVRgnQ4xhfhT5o69. O carrossel e o `embla-carousel` saíram.
 - `SKILL_VERSION` em v0.5.5.
+- **Versão para celular.** Três faixas: celular até 720px, tablet de 721 a 1180px (a coluna de 680px já cabe; só a navegação muda) e desktop acima de 1180px (side nav).
+  - `TopBar.astro` (abaixo de 1180px): ladrilho com o número e o título da seção atual (lê o `.is-active` que a SideNav põe nas seções) e um ladrilho de menu que abre a lista de seções, Questions, Download e GitHub. Escondida no hero; some ao rolar para baixo e volta ao rolar para cima. `--jump-offset` (global.css) dá espaço para ela ao pular para uma seção.
+  - `html, body { overflow-x: clip }`: a página nunca rola para o lado.
+  - Celular: bento em uma coluna na mesma ordem; card de áudio com o player em cima; card 03 com altura própria; faixa da seção 02 com a segunda linha em até duas linhas e nomes curtos dos livros; balão (i) abrindo para a esquerda; rodapé com as três lanternas reduzidas (transform no JS do Footer) e links em duas colunas.
+  - Toque: hover só com mouse (`@media (hover: hover)`); no Spaced review, toque numa palavra antiga liga e desliga o destaque; áreas de toque maiores nos ladrilhos de seletor, setas e (i).
+  - A esteira da seção 01 para quando sai da tela.
+  - Conferido no navegador do app em 375, 430, 768 e 1440 px (script de overflow + capturas).
 
 ## Hero em ladrilhos (14/11/2026)
 

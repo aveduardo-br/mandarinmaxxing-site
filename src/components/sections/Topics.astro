@@ -267,6 +267,29 @@ const book2At = (bookStart[1] / COLS) * 100;
     translate: -50% 0;
     pointer-events: auto;
   }
+  /* a bigger area to tap than the 16px icon */
+  .info-btn {
+    position: relative;
+  }
+  .info-btn::after {
+    content: '';
+    position: absolute;
+    inset: -14px;
+  }
+  /* phones: the (i) sits at the right edge, so the pop-up opens leftwards from it instead of centred */
+  @media (max-width: 720px) {
+    .info-pop {
+      left: auto;
+      right: -6px;
+      width: min(280px, calc(100vw - 32px));
+      translate: 0 4px;
+    }
+    .info:hover .info-pop,
+    .info:focus-within .info-pop,
+    .info.open .info-pop {
+      translate: 0 0;
+    }
+  }
   .info-intro {
     color: var(--text-dim);
   }
