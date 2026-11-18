@@ -143,7 +143,7 @@ const stripData = levelData[0].topics.map((t) => t.strip);
 
   <!-- outside .topics-wrap, whose overflow clip would cut the examples tag. The level switch: HSK in black tiles, the level in an orange one; a click shows the next level -->
   <div class="lvl">
-    <span class="label lvl-tag" data-lvl-note data-text="Examples · mapped by the skill when you start" hidden aria-hidden="true"></span>
+    <span class="label lvl-tag" data-lvl-note data-text="HSK 5 and 6: mapped by the skill as you start" hidden aria-hidden="true"></span>
     <button class="lvl-btn" type="button" data-lvl data-cuelume-select aria-label="HSK 1. Show the next level">
       <span class="lt" aria-hidden="true">H</span><span class="lt" aria-hidden="true">S</span><span class="lt" aria-hidden="true">K</span><span class="lt lt-num" data-lvl-num aria-hidden="true">1</span>
       <span class="lvl-hint" aria-hidden="true">Next level →</span>
@@ -1131,15 +1131,20 @@ const stripData = levelData[0].topics.map((t) => t.strip);
   let level = 1;
   let lvlGen = 0;
   const esc = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  // Astro scopes this component's CSS with a data-astro-cid-* attribute on the elements it renders.
+  // The rows rebuilt here are new elements, so they get the same attribute, or the styles (the words'
+  // grid, the preview tiles, the hover colour) would not reach them.
+  const scopeAttr = items[0].getAttributeNames().find((a) => a.startsWith('data-astro-cid')) ?? '';
+  const sc = scopeAttr ? ` ${scopeAttr}` : '';
   const previewHtml = (t: LevelTopic) =>
     t.words
       .slice(0, 3)
-      .map((w, k) => `<span class="pw" style="--i:${k}">${[...w.hanzi].map((ch) => `<span class="pt"><span>${esc(ch)}</span></span>`).join('')}</span>`)
+      .map((w, k) => `<span class="pw"${sc} style="--i:${k}">${[...w.hanzi].map((ch) => `<span class="pt"${sc}><span${sc}>${esc(ch)}</span></span>`).join('')}</span>`)
       .join('');
   const wordsHtml = (t: LevelTopic) =>
-    t.words.map((w, k) => `<div class="word" style="--i:${k}" data-w="${k}"><span class="hanzi">${esc(w.hanzi)}</span><span class="en">${esc(w.en)}</span></div>`).join('') +
+    t.words.map((w, k) => `<div class="word"${sc} style="--i:${k}" data-w="${k}"><span class="hanzi"${sc}>${esc(w.hanzi)}</span><span class="en"${sc}>${esc(w.en)}</span></div>`).join('') +
     (t.count > t.words.length
-      ? `<div class="word more" style="--i:${t.words.length}" data-w="more"><span class="hanzi">…</span><span class="en">+${t.count - t.words.length} more</span></div>`
+      ? `<div class="word more"${sc} style="--i:${t.words.length}" data-w="more"><span class="hanzi"${sc}>…</span><span class="en"${sc}>+${t.count - t.words.length} more</span></div>`
       : '');
 
   // One row: its text and its preview tiles leave together. The name is rewritten word by word while
@@ -1198,10 +1203,10 @@ const stripData = levelData[0].topics.map((t) => t.strip);
       if (g !== noteGen) return;
       n += on ? 1 : -2;
       lvlNote.textContent = chars.slice(0, Math.max(0, n)).join('');
-      if (on ? n < chars.length : n > 0) window.setTimeout(step, on ? 18 : 8);
+      if (on ? n < chars.length : n > 0) window.setTimeout(step, on ? 9 : 6);
       else if (!on) lvlNote.hidden = true;
     };
-    window.setTimeout(step, on ? DUR * 2 : 0);
+    window.setTimeout(step, on ? DUR : 0);
   }
 
   function setLevel(next: number) {
