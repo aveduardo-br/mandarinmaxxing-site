@@ -88,14 +88,14 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
       <div class="mod">
         <div class="tile-label">HSK</div>
         <div class="tiles" role="group" aria-label="HSK level" data-level-group>
-          {levelZh.map((zh, i) => <button class="st" type="button" data-level={i + 1} data-zh={zh} aria-pressed={i === 0 ? 'true' : 'false'} aria-label={`HSK ${i + 1}`} />)}
+          {levelZh.map((zh, i) => <button class="st" type="button" data-cuelume-select data-level={i + 1} data-zh={zh} aria-pressed={i === 0 ? 'true' : 'false'} aria-label={`HSK ${i + 1}`} />)}
         </div>
         <p>Start at 1, or at the level you already reached.</p>
       </div>
       <div class="mod">
         <div class="tile-label">Words / lesson</div>
         <div class="tiles" role="group" aria-label="New words a lesson" data-pace-group>
-          {paces.map((p) => <button class="st" type="button" data-pace={p.key} data-zh={p.zh} aria-pressed={p.key === START ? 'true' : 'false'} aria-label={`${p.words} new words a lesson`} />)}
+          {paces.map((p) => <button class="st" type="button" data-cuelume-select data-pace={p.key} data-zh={p.zh} aria-pressed={p.key === START ? 'true' : 'false'} aria-label={`${p.words} new words a lesson`} />)}
         </div>
         <p>Three is light, seven is intense. Or ask for any number.</p>
       </div>
@@ -104,7 +104,7 @@ const data = { digits: DIGITS, levels, info, muted: MUTED };
           <div class="tile-label">At this pace</div>
           <!-- HSK 5 and 6 only: their situations aren't mapped yet, so the count is an estimate -->
           <span class="pinfo" data-pinfo hidden>
-            <button class="pinfo-btn" type="button" aria-label="About HSK 5 and 6" aria-describedby="pace-info" aria-expanded="false">
+            <button class="pinfo-btn" type="button" data-cuelume-tap data-cuelume-emphasis="subtle" aria-label="About HSK 5 and 6" aria-describedby="pace-info" aria-expanded="false">
               <svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="6.25"></circle><path d="M7 6.2v3.6M7 4.2v.01"></path></svg>
             </button>
             <span class="pinfo-pop" id="pace-info" role="tooltip">

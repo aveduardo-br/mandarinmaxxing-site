@@ -87,7 +87,7 @@ const stripData = topics.map((t) => {
     <div class="book-head">
       <p class="label book-label">{bookLesson.label}</p>
       <span class="info" data-info>
-        <button class="info-btn" type="button" aria-label="About this lesson" aria-describedby="book-info" aria-expanded="false">
+        <button class="info-btn" type="button" data-cuelume-tap data-cuelume-emphasis="subtle" aria-label="About this lesson" aria-describedby="book-info" aria-expanded="false">
           <svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="6.25"></circle><path d="M7 6.2v3.6M7 4.2v.01"></path></svg>
         </button>
         <span class="info-pop" id="book-info" role="tooltip">
@@ -795,6 +795,7 @@ const stripData = topics.map((t) => {
   import { gsap } from 'gsap';
   import { DUR, EASE_CLOSE, EASE_OPEN } from '../../scripts/tiles';
   import { writeLine } from '../../scripts/write';
+  import { cue } from '../../scripts/sound';
 
   // Accordion: click a topic to open it, click again to close. One open at a time.
   // The header grows from h4 to h3 in place (FLIP): record where the arrow, number and title are, let
@@ -948,6 +949,7 @@ const stripData = topics.map((t) => {
     const row = item.querySelector<HTMLElement>('.row')!;
     row.addEventListener('click', () => {
       const willOpen = !item.classList.contains('open');
+      cue(willOpen ? 'open' : 'close');
       for (const other of items) if (other !== item) setOpen(other, false);
       setOpen(item, willOpen);
       active = willOpen ? i : -1;

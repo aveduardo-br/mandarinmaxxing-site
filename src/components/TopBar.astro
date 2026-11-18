@@ -28,7 +28,7 @@ import { sections, SKILL_REPO, SKILL_ZIP } from '../data/site';
       {
         sections.map((s) => (
           <li>
-            <a href={`#${s.id}`} data-go data-num={Number(s.num)}>
+            <a href={`#${s.id}`} data-go data-num={Number(s.num)} data-cuelume-navigate>
               <span class="mnum" aria-hidden="true">{Number(s.num)}</span>
               <span>{s.title}</span>
             </a>
@@ -36,15 +36,16 @@ import { sections, SKILL_REPO, SKILL_ZIP } from '../data/site';
         ))
       }
       <li>
-        <a href="#faq" data-go>
+        <a href="#faq" data-go data-cuelume-navigate>
           <span class="mnum" aria-hidden="true">?</span>
           <span>Questions</span>
         </a>
       </li>
     </ul>
     <div class="actions">
-      <a class="dl" href={SKILL_ZIP}>Download for Claude</a>
+      <a class="dl" href={SKILL_ZIP} data-cuelume-tap>Download for Claude</a>
       <a class="gh" href={SKILL_REPO} target="_blank" rel="noopener">GitHub ↗</a>
+      <button class="gh sound" type="button" data-sound-toggle data-cuelume-toggle aria-pressed="true"><span data-sound-label>Sound on</span></button>
     </div>
   </nav>
 </div>
@@ -261,6 +262,17 @@ import { sections, SKILL_REPO, SKILL_ZIP } from '../data/site';
     line-height: 44px;
     color: var(--text-dim);
   }
+  .sound {
+    padding: 0;
+    border: 0;
+    background: none;
+    font-family: inherit;
+    font-weight: 300;
+    cursor: pointer;
+  }
+  .sound[aria-pressed='false'] {
+    color: var(--muted-2);
+  }
   @media (prefers-reduced-motion: reduce) {
     .bar,
     .menu {
@@ -271,6 +283,7 @@ import { sections, SKILL_REPO, SKILL_ZIP } from '../data/site';
 
 <script>
   import { makeSlot, applyTile, flipTile, ORANGE } from '../scripts/tiles';
+  import { cue } from '../scripts/sound';
   import type { Slot } from '../scripts/tiles';
 
   const root = document.querySelector<HTMLElement>('[data-topbar]');
@@ -358,7 +371,10 @@ import { sections, SKILL_REPO, SKILL_ZIP } from '../data/site';
         if (focusBack) btn.focus({ preventScroll: true });
       }
     }
-    btn.addEventListener('click', () => setOpen(!open));
+    btn.addEventListener('click', () => {
+      cue(open ? 'close' : 'open');
+      setOpen(!open);
+    });
     menu.querySelectorAll('a').forEach((a) =>
       a.addEventListener('click', () => {
         setOpen(false, false);

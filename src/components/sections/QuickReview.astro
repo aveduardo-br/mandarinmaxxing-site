@@ -397,6 +397,8 @@ const rounds: Round[] = [
 
     function nextButton(tags: HTMLElement, animate: boolean) {
       next = el('button', `qr-next${animate ? ' in' : ''}`, 'Next ↓') as HTMLButtonElement;
+      next.dataset.cuelumeTap = '';
+      next.dataset.cuelumeEmphasis = 'subtle';
       next.type = 'button';
       next.addEventListener('click', advance);
       tags.append(next);

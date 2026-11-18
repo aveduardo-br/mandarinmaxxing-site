@@ -210,6 +210,7 @@ const items = [
 
 <script>
   import { DUR, EASE_CLOSE, EASE_OPEN, reduceMotion } from '../../scripts/tiles';
+  import { cue } from '../../scripts/sound';
 
   const items = [...document.querySelectorAll<HTMLElement>('[data-faq]')];
   const set = (item: HTMLElement, open: boolean) => {
@@ -226,7 +227,12 @@ const items = [
       tile.animate([{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }], { duration: DUR, easing: EASE_OPEN });
     };
   };
-  for (const item of items) item.querySelector('button')!.addEventListener('click', () => set(item, !item.classList.contains('open')));
+  for (const item of items)
+    item.querySelector('button')!.addEventListener('click', () => {
+      const open = !item.classList.contains('open');
+      cue(open ? 'open' : 'close');
+      set(item, open);
+    });
   // a link to a question (the side nav, or a shared address) opens it
   const fromHash = () => {
     const item = items.find((i) => `#${i.id}` === location.hash);

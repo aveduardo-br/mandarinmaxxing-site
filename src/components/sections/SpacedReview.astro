@@ -24,10 +24,10 @@ const START = 8;
 <div class="sr" data-sr data-words={JSON.stringify(words)} data-gaps={JSON.stringify(GAPS)} data-start={START} tabindex="0" aria-label="Spaced review: lessons and the words that come back in them. Use the arrow keys to change the lesson.">
   <div class="stage" data-stage>
     <span class="tile-tag head" data-head>Lesson {START}</span>
-    <button class="atile prev" type="button" data-step="-1" aria-label="Previous lesson">
+    <button class="atile prev" type="button" data-step="-1" data-cuelume-navigate data-cuelume-emphasis="subtle" aria-label="Previous lesson">
       <svg viewBox="0 0 7 7" shape-rendering="crispEdges"><path d="M1 3h6v1h-6zM0 3h1v1h-1zM1 2h1v1h-1zM1 4h1v1h-1zM2 1h1v1h-1zM2 5h1v1h-1z" /></svg>
     </button>
-    <button class="atile next" type="button" data-step="1" aria-label="Next lesson">
+    <button class="atile next" type="button" data-step="1" data-cuelume-navigate data-cuelume-emphasis="subtle" aria-label="Next lesson">
       <svg viewBox="0 0 7 7" shape-rendering="crispEdges"><path d="M1 3h6v1h-6zM0 3h1v1h-1zM1 2h1v1h-1zM1 4h1v1h-1zM2 1h1v1h-1zM2 5h1v1h-1z" /></svg>
     </button>
     <span class="tile-label back-label">Coming back</span>

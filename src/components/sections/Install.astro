@@ -18,7 +18,7 @@ const START = 'start mandarinmaxxing';
       <div class="body">
         <h3 class="display">Download the skill</h3>
         <p>One ZIP file. You don’t need to open it.</p>
-        <a class="btn" href={SKILL_ZIP}>Download for Claude</a>
+        <a class="btn" href={SKILL_ZIP} data-cuelume-tap>Download for Claude</a>
       </div>
     </li>
     <li class="step">
@@ -38,7 +38,7 @@ const START = 'start mandarinmaxxing';
         <p>Name it whatever you like, for example “Mandarin”. In the project’s instructions, paste this line:</p>
         <div class="copy" data-copy-box>
           <code>{INSTRUCTIONS}</code>
-          <button type="button" data-copy={INSTRUCTIONS}>Copy</button>
+          <button type="button" data-cuelume-tap data-copy={INSTRUCTIONS}>Copy</button>
         </div>
         <p>The project is where your course is saved. Keep all your lessons in it.</p>
       </div>
@@ -50,7 +50,7 @@ const START = 'start mandarinmaxxing';
         <p>Open a chat inside the project and write:</p>
         <div class="copy" data-copy-box>
           <code>{START}</code>
-          <button type="button" data-copy={START}>Copy</button>
+          <button type="button" data-cuelume-tap data-copy={START}>Copy</button>
         </div>
       </div>
     </li>
@@ -76,12 +76,14 @@ const START = 'start mandarinmaxxing';
 </Section>
 
 <script>
+  import { cue } from '../../scripts/sound';
   document.querySelectorAll<HTMLButtonElement>('#install [data-copy]').forEach((btn) => {
     const label = btn.textContent;
     btn.addEventListener('click', async () => {
       try {
         await navigator.clipboard.writeText(btn.dataset.copy ?? '');
         btn.textContent = 'Copied';
+        cue('success');
       } catch {
         btn.textContent = 'Copy failed';
       }

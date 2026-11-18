@@ -261,6 +261,8 @@ const exercises: Exercise[] = [
       const prompt = bubble('ai', [el('span', 'tr-label', `Translate · ${i + 1} / ${n}`), el('p', 'tr-q', e.prompt)]);
       const user = bubble('user', [zhLine(e.answer, e.mistake, 'bad')]);
       const next = el('button', 'tr-next', 'Next one ↓') as HTMLButtonElement;
+      next.dataset.cuelumeTap = '';
+      next.dataset.cuelumeEmphasis = 'subtle';
       next.type = 'button';
       const note = el('p', 'tr-note', e.note + ' ');
       note.append(next);

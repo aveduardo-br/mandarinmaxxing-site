@@ -65,7 +65,7 @@ const leads = chunks.map((c) => lead(c.ex));
 
   <div class="viz" data-chunks={JSON.stringify(chunks)} data-leads={JSON.stringify(leads)}>
     <div class="fit" data-fit>
-      <div class="stage" data-stage role="button" tabindex="0" aria-label="Show the next chunk"></div>
+      <div class="stage" data-stage role="button" tabindex="0" data-cuelume-tap" aria-label="Show the next chunk"></div>
     </div>
     <p class="sr-only" aria-live="polite" data-live>
       {chunks[0].label} {chunks[0].words.map((w) => `${chunks[0].pre}${w[0]}${chunks[0].post} (${w[1]})`).join(', ')}

@@ -2,13 +2,13 @@
 import { sections, faq, SKILL_REPO } from '../data/site';
 ---
 
-<nav class="sidenav" aria-label="Sections">
+<nav class="sidenav" aria-label="Sections" data-cuelume-emphasis="subtle">
   <div class="block">
   <p class="group">How it works</p>
   <ul>
     {sections.map((s) => (
       <li>
-        <a class="numbered" href={`#${s.id}`} data-nav={s.id} data-num={Number(s.num)}>
+        <a class="numbered" href={`#${s.id}`} data-nav={s.id} data-num={Number(s.num)} data-cuelume-navigate>
           <span class="ntile" aria-hidden="true"></span><span>{s.title}</span>
         </a>
       </li>
@@ -21,7 +21,7 @@ import { sections, faq, SKILL_REPO } from '../data/site';
   <ul>
     {faq.map((q) => (
       <li>
-        <a href={`#${q.id}`} data-nav={q.id}>{q.title}</a>
+        <a href={`#${q.id}`} data-nav={q.id} data-cuelume-navigate>{q.title}</a>
       </li>
     ))}
   </ul>
@@ -30,6 +30,7 @@ import { sections, faq, SKILL_REPO } from '../data/site';
   <ul class="end">
     <li><a href="#install">Install ↓</a></li>
     <li><a href={SKILL_REPO} target="_blank" rel="noopener">GitHub ↗</a></li>
+    <li><button class="sound" type="button" data-sound-toggle data-cuelume-toggle aria-pressed="true"><span data-sound-label>Sound on</span></button></li>
   </ul>
 </nav>
 
@@ -104,6 +105,24 @@ import { sections, faq, SKILL_REPO } from '../data/site';
   a:hover,
   a.active {
     color: var(--text);
+  }
+  /* sound on/off: looks like the links around it */
+  .sound {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: var(--fs-small);
+    line-height: var(--lh-small);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: color 0.15s ease;
+  }
+  .sound:hover {
+    color: var(--text);
+  }
+  .sound[aria-pressed='false'] {
+    color: var(--muted-2);
   }
 
   /* Numbered sections: the number is a small tile (docs/ladrilhos.md). Grey with the number in
