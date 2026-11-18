@@ -21,7 +21,7 @@ type Round = {
 const rounds: Round[] = [
   { old: '明天', oldEn: 'tomorrow', now: '牛奶', nowEn: 'milk', q: ['Say you’ll drink ', 'milk', ' ', 'tomorrow', '.'] },
   { old: '喜欢', oldEn: 'like', now: '米饭', nowEn: 'rice', q: ['Say you eat ', 'rice', ' and you ', 'like', ' it.'] },
-  { old: '朋友', oldEn: 'friend', now: '好吃', nowEn: 'tasty', q: ['Say it’s ', 'tasty', ' and your ', 'friend', ' made it.'] },
+  { old: '朋友', oldEn: 'friend', now: '好吃', nowEn: 'tasty', q: ['Say it’s ', 'tasty', ' to your ', 'friend', '.'] },
 ];
 ---
 
@@ -220,6 +220,8 @@ const rounds: Round[] = [
     border-radius: 6px;
     background: #1a1a1a;
     transform-origin: 0% 50%;
+    white-space: nowrap; /* a tag never breaks: its word and its label stay on one line */
+    flex: none;
   }
   .qr-tag .zh {
     font-size: 17px;
@@ -285,6 +287,47 @@ const rounds: Round[] = [
     clip: rect(0 0 0 0);
   }
 
+  /* phones: smaller tags, closer together, so the two of them and "Next" fit on one line */
+  @media (max-width: 720px) {
+    .qr-tags {
+      gap: 6px;
+      padding-left: 0;
+    }
+    .qr-tag {
+      gap: 5px;
+      padding: 4px 7px;
+    }
+    .qr-tag .zh {
+      font-size: 15px;
+      line-height: 18px;
+    }
+    .qr-tag .lb {
+      font-size: 10px;
+      letter-spacing: 0.03em;
+    }
+    .qr-next {
+      margin-left: 2px;
+      font-size: 14px;
+    }
+  }
+  /* the narrowest phones (320px) */
+  @media (max-width: 350px) {
+    .qr-tags {
+      gap: 4px;
+    }
+    .qr-tag {
+      gap: 4px;
+      padding: 4px 6px;
+    }
+    .qr-tag .lb {
+      font-size: 9px;
+      letter-spacing: 0;
+    }
+    .qr-next {
+      margin-left: 0;
+      font-size: 13px;
+    }
+  }
   @media (prefers-reduced-motion: reduce) {
     .qr-dots i,
     .qr-status-text,
