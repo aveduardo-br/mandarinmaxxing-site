@@ -6,7 +6,8 @@
 // words). Above the list, "HSK 1" in tiles switches the level: a click turns the number tile to the next
 // level (1 → 6, then back to 1) and the ten rows change in a wave. HSK 1 to 4 come from the skill's maps;
 // HSK 5 and 6 have no map (the skill builds it when you get there), so their ten are examples made the
-// same way, and a note under the selector says so. Data: situations.ts (HSK 1) and topics.ts (HSK 2-6). Under the list a bar sticks to the bottom of the screen while the list is in view
+// same way, and a note under the selector says so. The ten of a level are chosen to be comparable with
+// the books (scripts/build-topics.py): mostly words the books also teach, and the five shown always are. Data: situations.ts (HSK 1) and topics.ts (HSK 2-6). Under the list a bar sticks to the bottom of the screen while the list is in view
 // and stays attached under it afterwards. Its strip is the textbook series: HSK Standard Course 1 to 6,
 // one square per lesson, in six groups (one per book). A lesson lights up when it teaches a word of the
 // situation, so you can see the situation's words spread over lessons, and sometimes over later books.
@@ -15,6 +16,7 @@
 import Section from '../Section.astro';
 import { situations, bookLesson } from '../../data/situations';
 import { bookLessons, HSK1_HANZI } from '../../data/book';
+import fixes from '../../data/book-fixes.json';
 import { levelTopics } from '../../data/topics';
 
 // HSK 1: ten examples, spread from the start of the level to the end (the map's numbers).
@@ -30,7 +32,9 @@ const LEVELS = [1, 2, 3, 4, 5, 6].map((level) => ({
   topics: level === 1 ? hsk1 : (levelTopics[level].topics as Topic[]),
 }));
 const topics = LEVELS[0].topics; // the page opens on HSK 1
-const ROWS = 3;
+// four rows: books 3 to 6 (20, 20, 36 and 40 lessons) make full rectangles and books 1 and 2 (15 lessons)
+// lack one corner square. No number of rows closes all six.
+const ROWS = 4;
 // On a phone the textbook lesson shows four words on one line: watch, milk, husband, red, the four
 // least related to each other (newspaper and room are left out).
 const PHONE_HIDE = ['报纸', '房间'];
@@ -53,27 +57,40 @@ const COLS = col + Math.ceil(k / ROWS);
 // lessonOf: the first lesson that teaches a word
 const lessonOf = new Map<string, number>();
 bookLessons.forEach((l, li) => l.words.forEach((w) => lessonOf.has(w) || lessonOf.set(w, li)));
-// The books list some of today's HSK 1 words only inside another entry, or as their parts:
+// The books follow the earlier HSK, so they list some of today's words only inside another entry, or as
+// their parts:
 // - 你好: lesson 1 is titled 你好 and lists 你 and 好 as its first two words;
 // - 他们, 她们: the books list 他 and 她 (and 我们, 你们), never the plural on its own;
-// - a word that is part of a longer entry: 电话 is taught as 打电话, 火车 as 火车站.
+// - a word that is part of a longer entry: 电话 is taught as 打电话, 火车 as 火车站;
+// - a one-character word the books teach inside a longer one (打 in 打篮球, 忘 in 忘记): only the pairs
+//   listed by hand in book-fixes.json, because one character is inside too many unrelated entries;
+// - 面条儿, 聊天儿: the books write them without the 儿.
+// book-fixes.json also lists the matches to refuse: a word whose only match is another word (出租 inside
+// 出租车), or that means something else at that level than in the books (HSK 2 点, "order", not "o'clock").
 // find() returns the textbook cell for a word and, when it is not the word itself, the entry it is in.
+// scripts/build-topics.py has the same rules, to choose the situations and the five words shown.
 const PART: Record<string, string> = { 你好: '你', 他们: '他', 她们: '她' };
+const TAUGHT_AS: Record<string, string> = fixes.taughtAs;
+const SKIP: Record<string, string[]> = fixes.skip;
 const entries = bookLessons.flatMap((l) => l.words);
-const find = (h: string): { cell: number; via: string } => {
+const find = (h: string, level: number): { cell: number; via: string } => {
+  if (SKIP.all.includes(h) || SKIP[level]?.includes(h)) return { cell: -1, via: '' };
   if (lessonOf.has(h)) return { cell: lessonOf.get(h)!, via: '' };
   if (PART[h]) return { cell: lessonOf.get(PART[h])!, via: h === '你好' ? '' : PART[h] };
+  if (TAUGHT_AS[h]) return { cell: lessonOf.get(TAUGHT_AS[h])!, via: TAUGHT_AS[h] };
+  const plain = [...h].length > 2 && h.endsWith('儿') ? h.slice(0, -1) : '';
+  if (plain && lessonOf.has(plain)) return { cell: lessonOf.get(plain)!, via: plain };
   // only for words of two characters or more: one character is inside too many unrelated entries
   const e = [...h].length > 1 ? entries.find((w) => w.includes(h)) : undefined;
   return e ? { cell: lessonOf.get(e)!, via: e } : { cell: -1, via: '' };
 };
 // For each situation: the lessons that teach any of its words, and those that teach its other words
 // (the ones behind "+N more").
-const stripOf = (t: Topic) => {
+const stripOf = (t: Topic, level: number) => {
   const shown = t.words.map((w) => w.hanzi);
   const rest = t.rest;
-  const found = [...shown, ...rest].map((h) => find(h).cell).filter((c) => c >= 0);
-  const restCells = [...new Set(rest.map((h) => find(h).cell).filter((c) => c >= 0))];
+  const found = [...shown, ...rest].map((h) => find(h, level).cell).filter((c) => c >= 0);
+  const restCells = [...new Set(rest.map((h) => find(h, level).cell).filter((c) => c >= 0))];
   const lessons = [...new Set(found)];
   return {
     count: t.count,
@@ -81,7 +98,7 @@ const stripOf = (t: Topic) => {
     lessons,
     rest: restCells,
     words: t.words.map((w) => {
-      const { cell, via } = find(w.hanzi);
+      const { cell, via } = find(w.hanzi, level);
       const at = cell < 0 ? '' : `HSK Standard Course ${cells[cell].book}, lesson ${cells[cell].lesson}`;
       return { zh: w.hanzi, en: w.en, cell, where: at && via ? `taught as ${via} · ${at}` : at };
     }),
@@ -91,7 +108,7 @@ const stripOf = (t: Topic) => {
 const levelData = LEVELS.map((L) => ({
   level: L.level,
   mapped: L.mapped,
-  topics: L.topics.map((t) => ({ name: t.name, count: t.count, words: t.words, strip: stripOf(t) })),
+  topics: L.topics.map((t) => ({ name: t.name, count: t.count, words: t.words, strip: stripOf(t, L.level) })),
 }));
 const stripData = levelData[0].topics.map((t) => t.strip);
 ---
@@ -1005,7 +1022,7 @@ const stripData = levelData[0].topics.map((t) => t.strip);
         lines(head(d, 'w'), `${span('o', String(d.count - d.words.length))} more words ` + span('dim', '· lit where the textbooks teach them'), true);
       } else {
         const w = d.words[wordFocus];
-        lines(head(d, 'w'), `${span('o', w.zh)} ${w.en} ` + span('dim', w.where ? `· ${w.where}` : '· not in any of the textbooks'), true);
+        lines(head(d, 'w'), `${span('o', w.zh)} ${w.en} ` + span('dim', w.where ? `· ${w.where}` : '· new in today’s HSK, not in the textbooks'), true);
       }
       return;
     }

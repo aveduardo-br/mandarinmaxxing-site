@@ -1,0 +1,56 @@
+{
+  "about": "Hand-kept fixes for matching today's HSK words to the HSK Standard Course lessons (src/data/book.ts). Read by Topics.astro and scripts/build-topics.py. taughtAs: a word the books teach inside a longer entry that a plain search would not find (one-character words are never searched inside other entries, because one character is inside too many unrelated words). skip: words whose only match in the books is another word. 'all' holds for every level (出租 'let out' inside 出租车 'taxi', 不见 inside 不见得, and 中介 in book 3 lesson 10, which looks like a typo in the source deck); a level number holds for that level's situations only, where the word has another meaning than in the books (HSK 2 点 'order food' vs 'o'clock', HSK 3 会 'meeting' vs 'can', HSK 4 种 'to plant' vs 'kind').",
+  "taughtAs": {
+    "饭": "吃饭",
+    "们": "你们",
+    "店": "商店",
+    "忘": "忘记",
+    "肉": "羊肉",
+    "左": "左边",
+    "右": "右边",
+    "考": "考试",
+    "词": "词典",
+    "打": "打篮球",
+    "球": "打篮球",
+    "踢": "踢足球",
+    "跑": "跑步",
+    "游": "游泳",
+    "动": "运动",
+    "聊": "聊天",
+    "变": "变化",
+    "急": "着急",
+    "怕": "害怕",
+    "酒": "啤酒",
+    "爬": "爬山",
+    "山": "爬山",
+    "河": "黄河",
+    "海": "海洋",
+    "仍": "仍然",
+    "烦": "烦恼",
+    "气": "生气",
+    "味": "味道",
+    "鲜": "新鲜",
+    "窗": "窗户",
+    "修": "修理",
+    "减": "减肥",
+    "江": "长江",
+    "熊": "熊猫",
+    "改": "改变"
+  },
+  "skip": {
+    "all": [
+      "出租",
+      "不见",
+      "中介"
+    ],
+    "2": [
+      "点"
+    ],
+    "3": [
+      "会"
+    ],
+    "4": [
+      "种"
+    ]
+  }
+}

@@ -4,44 +4,80 @@
 # HSK 2 to 4 come from the skill's own maps (maps/hsk-N.md): ten lessons per level, the first of the jump
 # start and nine spread over the level. HSK 5 and 6 have no map (the skill builds it when the learner
 # gets there), so their ten situations are examples written here with the same method, using only words
-# from that level's official list (checked below). Each situation lists its words in teaching order;
-# the site shows the first five with a meaning (MEANINGS) and counts the rest.
-import csv, json, re, sys
+# from that level's official list (checked below).
+# Section 02 compares each situation with the HSK Standard Course books, which follow the earlier HSK
+# and teach only 54% to 72% of each of today's lists. So the examples are chosen to be comparable:
+# - HSK 2 to 4: PICK takes lessons most of whose words the books also teach;
+# - HSK 5 and 6: EXAMPLES use words that are in the level's list and in the books;
+# - the five words shown with a meaning are the first five, in teaching order, that the books teach
+#   (SHOWN overrides the choice for a lesson where that rule picks an odd five).
+# The matching is the same as the site's (Topics.astro) and uses src/data/book.ts and book-fixes.json.
+# The script prints the coverage per level and stops if a shown word is not in the books.
+import csv, json, os, re, sys
 
 skill, out = sys.argv[1:3]
 strip = lambda w: re.sub(r'\d+$', '', w)
 syllabus = {lv: {strip(r['word']) for r in csv.DictReader(open(f'{skill}/syllabus/hsk-{lv}.csv', encoding='utf-8'))} for lv in range(1, 7)}
 
+# ---- the textbooks, and where they teach a word (mirrors find() in Topics.astro) ----
+DATA = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src', 'data')
+_b = open(os.path.join(DATA, 'book.ts'), encoding='utf-8').read()
+book = json.loads(re.sub(r',\s*\]$', ']', re.search(r'bookLessons[^=]*= (\[.*?\n\]);', _b, re.S).group(1).strip()))
+FIX = json.load(open(os.path.join(DATA, 'book-fixes.json'), encoding='utf-8'))
+lesson_of = {}
+for i, l in enumerate(book):
+    for w in l['words']: lesson_of.setdefault(w, i)
+entries = [w for l in book for w in l['words']]
+PART = {'你好': '你', '他们': '他', '她们': '她'}
+def find(h, lv):
+    """Index of the textbook lesson that teaches h (-1 if none) and, if not h itself, the entry it is in."""
+    if h in FIX['skip']['all'] or h in FIX['skip'].get(str(lv), []): return -1, ''
+    if h in lesson_of: return lesson_of[h], ''
+    if h in PART: return lesson_of[PART[h]], PART[h]
+    if h in FIX['taughtAs']: return lesson_of[FIX['taughtAs'][h]], FIX['taughtAs'][h]
+    if len(h) > 2 and h.endswith('儿') and h[:-1] in lesson_of: return lesson_of[h[:-1]], h[:-1]  # 面条儿 → 面条
+    if len(h) > 1:
+        for e in entries:
+            if h in e: return lesson_of[e], e
+    return -1, ''
+in_book = lambda h, lv: find(h, lv)[0] >= 0
+
 PICK = {
-    2: ['01', '05', '07', '08', '09', '11', '13', '16', '18', '19'],
-    3: ['01', '05', '08', '11', '15', '18', '22', '25', '30', '36'],
-    4: ['02', '08', '10', '18', '23', '26', '31', '39', '42', '54'],
+    2: ['01', '05', '07', '08', '09', '15', '16', '17', '18', '19'],
+    3: ['01', '05', '08', '11', '17', '21', '25', '26', '30', '33'],
+    4: ['02', '08', '10', '18', '26', '28', '36', '39', '42', '54'],
+}
+# the five shown words of a lesson, where "the first five the books teach" reads oddly
+SHOWN = {
+    (2, '07'): '咖啡 鱼 肉 不错 洗手间',
+    (2, '17'): '爱好 跳舞 有意思 上网 画',
+    (3, '33'): '办公室 同事 经理 会议 请假',
 }
 
 EXAMPLES = {
     5: [
         ('Say what you expected', '果然 居然 毕竟 的确 似乎 说不定 反而 万一 哪怕 依然 显然 难得'),
-        ('Changing jobs', '辞职 简历 待遇 聘请 培训 职场 学历 员工 老板 就业 失业 离职 实习 录取'),
-        ('Money and accounts', '账户 存款 人民币 汇率 信用 押金 充值 话费 税 账号 亏 成本'),
-        ('In the hospital', '急诊 挂号 门诊 诊断 手术 病房 治疗 药物 病情 恢复 救护车 抢救 过敏 流感'),
-        ('Love and marriage', '恋爱 交往 分手 失恋 婚礼 新郎 新娘 恭喜 嘉宾 纪念日 离婚 老公 老婆'),
-        ('New Year at home', '除夕 年夜饭 压岁钱 生肖 亲朋好友 福 好运 元旦 传统 龙 亲情 团'),
-        ('Renting and renovating', '公寓 租金 中介 物业 装修 社区 居民 吵 住房 卧室 阳台 舒适'),
-        ('Behind the wheel', '驾照 驾驶 汽油 行驶 超速 罚款 违反 车祸 事故 保险 车库 维修 堵'),
-        ('Online orders', '包裹 配送 运费 客服 好评 退还 优惠 折扣 促销 二维码 售价 涨价'),
-        ('When the weather turns', '暴雨 雾 降水 升温 地震 预报 紧急 躲 避免 损失 救 报警'),
+        ('Changing jobs', '辞职 简历 待遇 培训 学历 员工 老板 就业 失业 实习 录取 退休'),
+        ('Money and accounts', '账户 汇率 押金 欠 税 利润 成本 资金 交易 合同 消费 黄金'),
+        ('In the hospital', '急诊 挂号 诊断 手术 治疗 恢复 救护车 抢救 过敏 疾病 胃 着凉'),
+        ('Love and marriage', '恋爱 交往 分手 婚礼 新郎 新娘 恭喜 嘉宾 拥抱 老公 老婆 离婚'),
+        ('New Year at home', '除夕 压岁钱 生肖 传统 风俗 元旦 龙 团 迎接 故乡 姥姥 外公'),
+        ('Renting and renovating', '公寓 装修 物业 社区 居民 卧室 阳台 舒适 墙 玻璃 锁 吵'),
+        ('Behind the wheel', '驾驶 汽油 车库 违反 罚款 车祸 事故 保险 维修 撞 行人 绕'),
+        ('Parcels and bargains', '包裹 包装 优惠 名牌 品质 预订 赠送 过期 退 产品 销售 客户'),
+        ('When the weather turns', '暴雨 雾 预报 地震 紧急 报警 救 损失 避免 预防 冻 滑'),
     ],
     6: [
-        ('Make your case', '与其 即便 除非 无疑 未必 就算 难免 以免 不至于 恰好 毫无 总算'),
-        ('Careers and companies', '求职 录用 岗位 职位 薪水 兼职 主管 总裁 创办 倒闭 破产 职责'),
-        ('Deals and money', '谈判 成交 订单 定价 收购 合并 投资 股票 贷款 利息 理财 金融'),
-        ('An outbreak', '病毒 传染 感染 症状 患者 传染病 发炎 肺炎 免疫 防治 康复 疲劳'),
-        ('Engaged and married', '求婚 戒指 订婚 婚姻 嫁 娶 祝福 宴会 喜事 怀孕 婴儿 媳妇'),
-        ('History and heritage', '文物 古迹 遗址 考古 朝代 皇帝 瓷器 书画 遗产 传承 民俗 修复'),
-        ('Farming and harvest', '庄稼 种地 播种 水稻 小麦 农田 土壤 肥沃 干旱 旱灾 丰收 农产品'),
-        ('Natural disasters', '台风 打雷 闪电 洪水 火灾 灾害 灾难 受灾 灾区 救援 救灾 伤亡'),
-        ('At the games', '金牌 银牌 铜牌 亚军 季军 田径 体操 跳水 战胜 淘汰 夺取 赛事'),
-        ('Working online', '文档 附件 链接 粘贴 点击 浏览器 论坛 隐私 联网 流量 新媒体 下线'),
+        ('Make your case', '与其 即便 除非 未必 难免 以免 以便 明明 干脆 至于 毫无 总算'),
+        ('Careers and companies', '岗位 职位 薪水 福利 兼职 主管 上级 助理 总裁 创办 倒闭 破产'),
+        ('Deals and money', '谈判 成交 投资 股票 贷款 利息 收益 亏损 资产 储蓄 合并 金融'),
+        ('An outbreak', '病毒 传染 感染 症状 患者 细菌 消毒 发炎 肺 免疫 防治 疲劳'),
+        ('Engaged and married', '戒指 嫁 娶 婚姻 典礼 仪式 宴会 祝福 长辈 媳妇 怀孕 婴儿'),
+        ('History and heritage', '文物 考古 朝代 皇帝 大臣 将军 祖先 起源 文明 遗产 收藏 修复'),
+        ('Farming and harvest', '庄稼 播种 小麦 花生 辣椒 土壤 肥沃 干旱 井 割 丰收 勤劳'),
+        ('Natural disasters', '台风 雷 闪电 洪水 淹没 灾害 灾难 遭受 损坏 死亡 警告 消防'),
+        ('At the games', '竞赛 田径 射击 选拔 淘汰 争夺 亚军 季军 终点 突破 荣誉 俱乐部'),
+        ('Working online', '附件 粘贴 编辑 压缩 版本 目录 查询 档案 论坛 隐私 反馈 通讯'),
     ],
 }
 
@@ -99,49 +135,88 @@ MEANINGS = {
         '文档': 'document', '附件': 'attachment', '链接': 'link', '粘贴': 'paste', '点击': 'click'},
 }
 
+# meanings added when the shown five changed to words the books teach
+MORE = {
+    2: {'所以': 'so', '鱼': 'fish', '肉': 'meat', '洗手间': 'restroom', '长': 'long', '教': 'teach', '班': 'class',
+        '教室': 'classroom', '考': 'take a test', '题': 'question', '爱好': 'hobby', '跳舞': 'dance',
+        '有意思': 'fun, interesting', '上网': 'go online', '画': 'draw', '疼': 'hurt', '药': 'medicine', '希望': 'hope'},
+    3: {'结婚': 'get married', '遇到': 'run into', '变': 'change', '为': 'for', '担心': 'worry', '渴': 'thirsty',
+        '感冒': 'a cold', '发烧': 'have a fever', '注意': 'watch out', '检查': 'check-up', '腿': 'leg',
+        '公园': 'park', '环境': 'surroundings', '骑': 'ride', '自行车': 'bicycle', '爬': 'climb',
+        '马上': 'right away', '行李': 'luggage', '接': 'pick up (someone)', '宾馆': 'hotel', '层': 'floor',
+        '卫生间': 'bathroom', '干净': 'clean', '电梯': 'elevator', '办公室': 'office', '同事': 'coworker',
+        '经理': 'manager', '会议': 'meeting', '请假': 'ask for leave'},
+    4: {'烦': 'annoyed', '家具': 'furniture', '窗': 'window', '健身': 'work out', '教练': 'coach', '力气': 'strength',
+        '汗': 'sweat', '减': 'lose, reduce', '自然': 'nature', '森林': 'forest', '保护': 'protect', '植物': 'plant',
+        '棵': '(word for trees)', '语法': 'grammar', '词语': 'words', '能力': 'ability'},
+    5: {'学历': 'qualifications', '押金': 'deposit', '欠': 'owe', '税': 'tax', '治疗': 'treatment', '新郎': 'groom',
+        '传统': 'tradition', '风俗': 'custom', '社区': 'community', '居民': 'resident', '车库': 'garage',
+        '违反': 'break (a rule)', '罚款': 'fine', '包装': 'packaging', '优惠': 'discount', '名牌': 'famous brand',
+        '品质': 'quality', '预报': 'forecast', '紧急': 'urgent'},
+    6: {'难免': 'hard to avoid', '福利': 'benefits', '兼职': 'part-time job', '投资': 'invest', '股票': 'stocks',
+        '贷款': 'loan', '娶': 'marry (a woman)', '典礼': 'ceremony', '皇帝': 'emperor', '大臣': 'minister',
+        '花生': 'peanut', '辣椒': 'chili', '雷': 'thunder', '淹没': 'submerge', '竞赛': 'competition',
+        '田径': 'track and field', '射击': 'shooting', '选拔': 'select', '淘汰': 'knock out', '编辑': 'edit',
+        '压缩': 'compress', '版本': 'version'},
+}
+for lv, m in MORE.items(): MEANINGS[lv].update(m)
+
 def lessons(lv):
     text = open(f'{skill}/maps/hsk-{lv}.md', encoding='utf-8').read()
     found = {}
     for m in re.finditer(r'^## (\d+) \| ([\w-]+) \| (.+)\n((?:.*\n)*?)(?=^## |\Z)', text, re.M):
         num, kind, name, body = m.groups()
         words = [strip(w) for line in body.splitlines() if line.startswith('- ') for w in line[2:].split()]
-        found[num] = {'name': name.strip(), 'jumpStart': kind == 'jump-start', 'words': words, 'total': None}
+        found[num] = {'num': num, 'name': name.strip(), 'jumpStart': kind == 'jump-start', 'words': words}
     return found
 
 levels = {}
+report = []
 for lv in range(2, 7):
     if lv in PICK:
         all_ = lessons(lv)
         items = [all_[n] for n in PICK[lv]]
         total = len(all_)
     else:
-        items = [{'name': n, 'jumpStart': i == 0, 'words': ws.split()} for i, (n, ws) in enumerate(EXAMPLES[lv])]
+        items = [{'num': '', 'name': n, 'jumpStart': i == 0, 'words': ws.split()} for i, (n, ws) in enumerate(EXAMPLES[lv])]
         total = None
-        for it in items:  # examples use only that level's own words
+        for it in items:  # examples use only that level's own words, each once
             bad = [w for w in it['words'] if w not in syllabus[lv]]
-            assert not bad, (lv, it['name'], bad)
+            assert not bad, (lv, it['name'], 'not in the level list', bad)
+            assert len(set(it['words'])) == len(it['words']), (lv, it['name'], 'repeated word')
     topics = []
     for i, it in enumerate(items):
-        shown = it['words'][:5]
+        words = it['words']
+        if (lv, it['num']) in SHOWN:
+            shown = SHOWN[(lv, it['num'])].split()
+            assert all(w in words for w in shown), (lv, it['name'], shown)
+        else:  # the first five the books teach; words they don't teach only if there aren't five
+            shown = ([w for w in words if in_book(w, lv)] + [w for w in words if not in_book(w, lv)])[:5]
+        out_shown = [w for w in shown if not in_book(w, lv)]
+        assert not out_shown, (lv, it['name'], 'shown but not in the books', out_shown)
         missing = [w for w in shown if w not in MEANINGS[lv]]
-        assert not missing, (lv, it['name'], missing)
+        assert not missing, (lv, it['name'], 'no meaning', missing)
         topics.append({
             'num': str(i + 1).zfill(2),
             'name': it['name'],
             'jumpStart': it['jumpStart'],
-            'count': len(it['words']),
+            'count': len(words),
             'words': [{'hanzi': w, 'en': MEANINGS[lv][w]} for w in shown],
-            'rest': it['words'][5:],
+            'rest': [w for w in words if w not in shown],
         })
+    n = sum(len(it['words']) for it in items)
+    hit = sum(in_book(w, lv) for it in items for w in it['words'])
+    report.append(f'HSK {lv}: {hit} of {n} words in the books ({hit * 100 // n}%)')
+    assert hit / n >= 0.75, report[-1]  # the ten examples of a level must be comparable with the books
     levels[lv] = {'mapped': lv in PICK, 'lessons': total, 'topics': topics}
 
 ts = '''// Ten example situations for each of HSK 2 to 6, for the level switch of section 02 (HSK 1 comes from
 // situations.ts). HSK 2 to 4 are lessons of the skill's maps (maps/hsk-N.md); HSK 5 and 6 have no map
 // (the skill builds it when the learner gets there), so theirs are examples made with the same method
-// from each level's official word list. `words` are the five shown with a meaning; `rest` are the
-// situation's other words. Generated by scripts/build-topics.py; do not edit by hand.
+// from each level's official word list. `words` are the five shown with a meaning (words the HSK
+// Standard Course books also teach); `rest` are the situation's other words. Generated by scripts/build-topics.py; do not edit by hand.
 export type LevelTopic = { num: string; name: string; jumpStart: boolean; count: number; words: { hanzi: string; en: string }[]; rest: string[] };
 export const levelTopics: Record<number, { mapped: boolean; lessons: number | null; topics: LevelTopic[] }> = %s;
 ''' % json.dumps(levels, ensure_ascii=False, indent=1)
 open(out, 'w', encoding='utf-8').write(ts)
-print({lv: (len(v['topics']), v['lessons']) for lv, v in levels.items()})
+print('\n'.join(report))
