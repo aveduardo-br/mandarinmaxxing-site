@@ -4,8 +4,9 @@
 // of the HSK 1 map, as an example of how the level goes (renumbered 01-10, so the numbers here are not
 // the map's): closed / hover (arrow head slides in, row turns light orange) / open (accordion with the
 // lesson's words). Under the list a bar sticks to the bottom of the screen while the list is in view
-// and stays attached under it afterwards. Its strip is the textbook: HSK Standard Course 1 and 2, one
-// square per word, lesson after lesson (a small gap between lessons, a wider one between the books).
+// and stays attached under it afterwards. Its strip is the textbook series: HSK Standard Course 1 to 6,
+// one square per lesson, in six groups (one per book). A lesson lights up when it teaches a word of the
+// situation, so you can see the situation's words spread over lessons, and sometimes over later books.
 // The open situation's words show white, the hovered one's light orange, where the books teach them.
 // Only words the books also teach can light up; the label says how many. Data: src/data/book.ts.
 import Section from '../Section.astro';
@@ -22,22 +23,25 @@ const ROWS = 3;
 // On a phone the textbook lesson shows four words on one line: watch, milk, husband, red, the four
 // least related to each other (newspaper and room are left out).
 const PHONE_HIDE = ['报纸', '房间'];
-// one cell per textbook word; lessons are laid out in columns of ROWS, with a gap between them
-type Cell = { x: number; y: number; book: number; lesson: number; li: number };
+// one cell per textbook lesson, in six groups (one per book). Each book fills columns of ROWS lessons,
+// and a gap of GAP columns separates the books.
+const GAP = 2;
+type Cell = { x: number; y: number; book: number; lesson: number };
 const cells: Cell[] = [];
-const cellOf = new Map<string, number>();
-const bookStart: number[] = []; // first column of each book
 let col = 0;
+let k = 0;
 bookLessons.forEach((l, li) => {
-  if (li > 0) col += l.book !== bookLessons[li - 1].book ? 3 : 1;
-  if (li === 0 || l.book !== bookLessons[li - 1].book) bookStart.push(col);
-  l.words.forEach((w, k) => {
-    if (!cellOf.has(w)) cellOf.set(w, cells.length);
-    cells.push({ x: col + Math.floor(k / ROWS), y: k % ROWS, book: l.book, lesson: l.lesson, li });
-  });
-  col += Math.ceil(l.words.length / ROWS);
+  if (li > 0 && l.book !== bookLessons[li - 1].book) {
+    col += Math.ceil(k / ROWS) + GAP;
+    k = 0;
+  }
+  cells.push({ x: col + Math.floor(k / ROWS), y: k % ROWS, book: l.book, lesson: l.lesson });
+  k++;
 });
-const COLS = col;
+const COLS = col + Math.ceil(k / ROWS);
+// lessonOf: the first lesson that teaches a word
+const lessonOf = new Map<string, number>();
+bookLessons.forEach((l, li) => l.words.forEach((w) => lessonOf.has(w) || lessonOf.set(w, li)));
 // The books list some of today's HSK 1 words only inside another entry, or as their parts:
 // - 你好: lesson 1 is titled 你好 and lists 你 and 好 as its first two words;
 // - 他们, 她们: the books list 他 and 她 (and 我们, 你们), never the plural on its own;
@@ -46,23 +50,25 @@ const COLS = col;
 const PART: Record<string, string> = { 你好: '你', 他们: '他', 她们: '她' };
 const entries = bookLessons.flatMap((l) => l.words);
 const find = (h: string): { cell: number; via: string } => {
-  if (cellOf.has(h)) return { cell: cellOf.get(h)!, via: '' };
-  if (PART[h]) return { cell: cellOf.get(PART[h])!, via: h === '你好' ? '' : PART[h] };
+  if (lessonOf.has(h)) return { cell: lessonOf.get(h)!, via: '' };
+  if (PART[h]) return { cell: lessonOf.get(PART[h])!, via: h === '你好' ? '' : PART[h] };
   // only for words of two characters or more: one character is inside too many unrelated entries
   const e = [...h].length > 1 ? entries.find((w) => w.includes(h)) : undefined;
-  return e ? { cell: cellOf.get(e)!, via: e } : { cell: -1, via: '' };
+  return e ? { cell: lessonOf.get(e)!, via: e } : { cell: -1, via: '' };
 };
-// owner[i] = the example situation that teaches textbook word i; NONE for every other word
-const NONE = -9;
-const owner: number[] = Array(cells.length).fill(NONE);
-const stripData = topics.map((t, ti) => {
-  const all = [...t.words.map((w) => w.hanzi), ...t.rest.map((n) => HSK1_HANZI[n])];
-  const mine = [...new Set(all.map((h) => find(h).cell).filter((c) => c >= 0))];
-  for (const c of mine) if (owner[c] === NONE) owner[c] = ti;
+// For each situation: the lessons that teach any of its words, and those that teach its other words
+// (the ones behind "+N more").
+const stripData = topics.map((t) => {
+  const shown = t.words.map((w) => w.hanzi);
+  const rest = t.rest.map((n) => HSK1_HANZI[n]);
+  const found = [...shown, ...rest].map((h) => find(h).cell).filter((c) => c >= 0);
+  const restCells = [...new Set(rest.map((h) => find(h).cell).filter((c) => c >= 0))];
+  const lessons = [...new Set(found)];
   return {
     count: t.count,
-    inBook: mine.length,
-    lessons: new Set(mine.map((c) => cells[c].li)).size,
+    inBook: found.length,
+    lessons,
+    rest: restCells,
     words: t.words.map((w) => {
       const { cell, via } = find(w.hanzi);
       const at = cell < 0 ? '' : `HSK Standard Course ${cells[cell].book}, lesson ${cells[cell].lesson}`;
@@ -70,7 +76,6 @@ const stripData = topics.map((t, ti) => {
     }),
   };
 });
-const book2At = (bookStart[1] / COLS) * 100;
 ---
 
 <Section id="topics" num="02" title="Situations, not chapters" tiled>
@@ -166,18 +171,14 @@ const book2At = (bookStart[1] / COLS) * 100;
 
     <div class="bar" data-bar data-strip={JSON.stringify(stripData)}>
       <p class="bar-label" data-bar-label aria-live="polite">
-        <span class="l1" data-l1>HSK Standard Course 1 and 2: 30 lessons.</span>
-        <span class="l2" data-l2><span class="dim">One square per word, in the order the books teach them.</span></span>
+        <span class="l1" data-l1>HSK Standard Course 1 to 6: {cells.length} lessons.</span>
+        <span class="l2" data-l2><span class="dim">One square per lesson, in the order the six books teach them.</span></span>
       </p>
-      <svg class="strip" viewBox={`0 0 ${COLS * 4 - 1} ${ROWS * 4 - 1}`} preserveAspectRatio="none" aria-hidden="true">
+      <svg class="strip" viewBox={`0 0 ${COLS * 4 - 1} ${ROWS * 4 - 1}`} aria-hidden="true">
         {
-          owner.map((o, i) => <rect x={cells[i].x * 4} y={cells[i].y * 4} width="3" height="3" data-t={o} />)
+          cells.map((c) => <rect x={c.x * 4} y={c.y * 4} width="3" height="3" />)
         }
       </svg>
-      <p class="books" aria-hidden="true">
-        <span style={`width:${book2At}%`}><span class="long">HSK Standard Course 1 · lessons 1–15</span><span class="short">Course 1 · 15 lessons</span></span>
-        <span class="b2"><span class="long">HSK Standard Course 2 · lessons 1–15</span><span class="short">Course 2 · 15 lessons</span></span>
-      </p>
     </div>
   </div>
 </Section>
@@ -728,29 +729,11 @@ const book2At = (bookStart[1] / COLS) * 100;
   .bar-label :global(.dim) {
     color: var(--muted-2);
   }
+  /* square lessons: the strip keeps the viewBox's proportions */
   .strip {
     display: block;
     width: 100%;
-    height: 11px;
-  }
-  .books {
-    display: flex;
-    margin-top: -6px;
-    font-size: var(--fs-label);
-    line-height: 14px;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--muted-2);
-    white-space: nowrap;
-  }
-  .books span {
-    flex: none;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .books .b2 {
-    flex: 1 1 0;
-    min-width: 0;
+    height: auto;
   }
   .strip rect {
     fill: #2e2e2e;
@@ -773,11 +756,7 @@ const book2At = (bookStart[1] / COLS) * 100;
     fill: var(--accent-light);
   }
 
-  .books .short {
-    display: none;
-  }
-  /* phones: the second line of the label may take two lines, the strip is a little taller and the
-     book names are short enough to read */
+  /* phones: the second line of the label may take two lines */
   @media (max-width: 720px) {
     .bar-label {
       font-size: var(--fs-caption);
@@ -789,15 +768,6 @@ const book2At = (bookStart[1] / COLS) * 100;
     .bar-label > .l2 {
       height: 36px;
       white-space: normal;
-    }
-    .strip {
-      height: 14px;
-    }
-    .books .long {
-      display: none;
-    }
-    .books .short {
-      display: inline;
     }
   }
 
@@ -885,9 +855,11 @@ const book2At = (bookStart[1] / COLS) * 100;
   const bar = document.querySelector<HTMLElement>('[data-bar]')!;
   const label = bar.querySelector<HTMLElement>('[data-bar-label]')!;
   type WordCell = { zh: string; en: string; cell: number; where: string };
-  const data: { count: number; inBook: number; lessons: number; words: WordCell[] }[] = JSON.parse(bar.dataset.strip!);
+  // lessons: every lesson that teaches a word of the situation; rest: those teaching its other words
+  const data: { count: number; inBook: number; lessons: number[]; rest: number[]; words: WordCell[] }[] = JSON.parse(bar.dataset.strip!);
   const les = (n: number) => `${n} lesson${n === 1 ? '' : 's'}`;
-  const rects = [...bar.querySelectorAll<SVGRectElement>('rect')].map((r, i) => ({ r, t: Number(r.dataset.t), i }));
+  const rects = [...bar.querySelectorAll<SVGRectElement>('rect')].map((r, i) => ({ r, i }));
+  const sets = data.map((d) => new Set(d.lessons));
   let active = -1;
   let hover = -1;
   let wordFocus: number | 'more' | null = null; // a word (or "+N more") hovered in the open topic
@@ -906,43 +878,42 @@ const book2At = (bookStart[1] / COLS) * 100;
     const h = hover === active ? -1 : hover;
     const span = (cls: string, text: string) => `<span class="${cls}">${text}</span>`;
     const head = (d: (typeof data)[number], cls: string) =>
-      `${span(cls, String(d.inBook))} of this situation’s ${d.count} words are in the two HSK textbooks.`;
+      `${span(cls, String(d.inBook))} of this situation’s ${d.count} words are in the textbooks.`;
 
     // a word of the open topic: its square lights up, the rest of the topic dims. The first line
     // stays; only the second one changes to the word.
     if (active >= 0 && wordFocus !== null) {
       const d = data[active];
-      const wordCells = d.words.map((w) => w.cell);
-      const lit = (i: number) => (wordFocus === 'more' ? !wordCells.includes(i) : i === d.words[wordFocus as number].cell);
-      for (const { r, t, i } of rects) {
-        const mine = t === active;
+      const lit = (i: number) => (wordFocus === 'more' ? d.rest.includes(i) : i === d.words[wordFocus as number].cell);
+      for (const { r, i } of rects) {
+        const mine = sets[active].has(i);
         r.classList.toggle('hov', mine && lit(i));
         r.classList.toggle('dim', mine && !lit(i));
         r.classList.toggle('on', false);
       }
       wordMode = true;
       if (wordFocus === 'more') {
-        lines(head(d, 'w'), `${span('o', String(d.count - d.words.length))} more words ` + span('dim', '· the lit ones are in the two textbooks too'), true);
+        lines(head(d, 'w'), `${span('o', String(d.count - d.words.length))} more words ` + span('dim', '· lit where the textbooks teach them'), true);
       } else {
         const w = d.words[wordFocus];
-        lines(head(d, 'w'), `${span('o', w.zh)} ${w.en} ` + span('dim', w.where ? `· ${w.where}` : '· not in either textbook'), true);
+        lines(head(d, 'w'), `${span('o', w.zh)} ${w.en} ` + span('dim', w.where ? `· ${w.where}` : '· not in any of the textbooks'), true);
       }
       return;
     }
     // leaving a word for the open situation's own line rewrites back; anything else is instant
     const back = wordMode && active >= 0 && h < 0;
     wordMode = false;
-    for (const { r, t } of rects) {
-      r.classList.toggle('on', t === active);
-      r.classList.toggle('hov', t === h);
+    for (const { r, i } of rects) {
+      r.classList.toggle('on', active >= 0 && sets[active].has(i));
+      r.classList.toggle('hov', h >= 0 && sets[h].has(i));
       r.classList.remove('dim');
     }
     if (active < 0 && h < 0) {
-      lines('HSK Standard Course 1 and 2: 30 lessons.', span('dim', 'One square per word, in the order the books teach them.'));
+      lines(`HSK Standard Course 1 to 6: ${rects.length} lessons.`, span('dim', 'One square per lesson, in the order the six books teach them.'));
     } else {
       // the hovered situation if there is one, otherwise the open one
       const d = data[h < 0 ? active : h];
-      lines(head(d, h < 0 ? 'w' : 'o'), span('dim', `Spread over ${les(d.lessons)} in the books. Here they’re one situation.`), back);
+      lines(head(d, h < 0 ? 'w' : 'o'), span('dim', `Spread over ${les(d.lessons.length)} in the books. Here they’re one situation.`), back);
     }
   }
   render();
