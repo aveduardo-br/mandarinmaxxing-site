@@ -1,5 +1,5 @@
 ---
-import { sections, faq, SKILL_REPO } from '../data/site';
+import { sections, faq, research, SKILL_REPO } from '../data/site';
 import SoundToggle from './SoundToggle.astro';
 ---
 
@@ -25,6 +25,13 @@ import SoundToggle from './SoundToggle.astro';
         <a href={`#${q.id}`} data-nav={q.id} data-cuelume-navigate>{q.title}</a>
       </li>
     ))}
+  </ul>
+  </div>
+
+  <div class="block">
+  <p class="group">Sources</p>
+  <ul>
+    <li><a href={`#${research.id}`} data-nav={research.id} data-cuelume-navigate>{research.title}</a></li>
   </ul>
   </div>
 

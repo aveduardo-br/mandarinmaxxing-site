@@ -17,11 +17,16 @@ export const sections = [
   { id: 'install', num: '06', title: 'Install' },
 ] as const;
 
+// the block after the questions: the studies behind the method
+export const research = { id: 'research', title: 'What the research says' } as const;
+
 export const faq = [
   { id: 'faq-why', title: 'How it started' },
   { id: 'faq-built', title: 'How it’s being built' },
   { id: 'faq-saved', title: 'Where your course lives' },
   { id: 'faq-levels', title: 'Which levels?' },
+  { id: 'faq-start', title: 'Starting in the middle' },
+  { id: 'faq-language', title: 'Which language?' },
   { id: 'faq-length', title: 'How long a lesson is' },
   { id: 'faq-not', title: 'What it doesn’t do' },
   { id: 'faq-free', title: 'Free? Official?' },

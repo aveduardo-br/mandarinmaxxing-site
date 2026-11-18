@@ -1,0 +1,151 @@
+---
+// "What the research says": the block after the questions. One entry per choice the skill makes: what
+// a study found, how the skill uses it, and where the evidence is thin or mixed. Each claim was checked
+// against the source it links to (notes and more sources in docs/research.md). The studies support the
+// ideas, not this skill, and the closing line says so.
+import { SKILL_REPO, research } from '../../data/site';
+
+const items = [
+  {
+    choice: 'Situations, not categories',
+    found:
+      'Words that belong to one scene, like frog, pond, green and hop, were easier to learn together than unrelated words. Words of one category, like apple, orange and pear, were harder: similar meanings get mixed up.',
+    here: 'So a situation here mixes verbs, nouns and connectors, and words that look or mean alike are taught in separate groups. Later studies don’t all agree, so read this one as a lean, not a law.',
+    cite: 'Tinkham (1997), Second Language Research 13(2), 138–163',
+    href: 'https://boch.sciencegate.app/works/W2038339147',
+  },
+  {
+    choice: 'Chunks, not single words',
+    found:
+      'In a small experiment, 32 students had 22 hours of class. Those taught to notice ready-made phrases were judged the more proficient speakers, by judges who didn’t know which group was which.',
+    here: 'So every lesson teaches phrases you can reuse with one word swapped, and the first round of practice is only that. It is one small study; how best to teach chunks is still an open question.',
+    cite: 'Boers, Eyckmans, Kappel, Stengers & Demecheleer (2006), Language Teaching Research 10(3), 245–261',
+    href: 'https://doi.org/10.1191/1362168806lr195oa',
+  },
+  {
+    choice: 'Old words come back, further and further apart',
+    found:
+      'A review of 317 experiments found that practice spread over time is remembered better than the same practice done at once, and that the longer you want to remember, the wider the gap should be.',
+    here: 'So words return 3, 7, 14, 30 and 60 lessons after you learn them, inside new sentences. The skill doesn’t track each word for you, which is why flashcards still help.',
+    cite: 'Cepeda, Pashler, Vul, Wixted & Rohrer (2006), Psychological Bulletin 132(3), 354–380',
+    href: 'https://pubmed.ncbi.nlm.nih.gov/16719566/',
+  },
+  {
+    choice: 'You write the Mandarin yourself',
+    found:
+      'Students learned 40 Swahili words. Once they knew a word, being tested on it again improved what they recalled a week later. Studying it again did not.',
+    here: 'So a lesson is mostly you pulling words out of memory: you translate from your language into Mandarin, and the review asks before it shows.',
+    cite: 'Karpicke & Roediger (2008), Science 319(5865), 966–968',
+    href: 'https://pubmed.ncbi.nlm.nih.gov/18276894/',
+  },
+];
+---
+
+<section id={research.id} class="research">
+  <p class="kicker">Sources</p>
+  <h2 class="title display">{research.title}</h2>
+  <p class="prose">
+    The skill came out of studying, not out of a paper. But each choice it makes has research behind it. Here is
+    what the studies found, and where the evidence is thinner than it sounds.
+  </p>
+  <ol class="list">
+    {
+      items.map((it, i) => (
+        <li class="item">
+          <span class="num display" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+          <div class="text">
+            <h3 class="choice display">{it.choice}</h3>
+            <p class="prose">{it.found}</p>
+            <p class="prose">{it.here}</p>
+            <a class="cite" href={it.href} target="_blank" rel="noopener">{it.cite} ↗</a>
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+  <p class="prose note">
+    These studies back the ideas, not this skill: nobody has tested mandarinmaxxing in a study. What it has are its
+    own checks, which are <a href={`${SKILL_REPO}#how-its-made`} target="_blank" rel="noopener">on GitHub ↗</a>,
+    and the people who study with it.
+  </p>
+</section>
+
+<style>
+  .research {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-top: 48px;
+    scroll-margin-top: var(--jump-offset, 48px);
+  }
+  .kicker {
+    font-size: var(--fs-caption);
+    line-height: var(--lh-caption);
+    color: var(--muted);
+  }
+  .title {
+    font-size: var(--fs-h2);
+    line-height: var(--lh-h2);
+    color: var(--text);
+  }
+  .list {
+    display: flex;
+    flex-direction: column;
+    margin: 8px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .item {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    padding: 20px 0;
+    border-top: 1px solid var(--card-border);
+  }
+  /* the number sits in the column of the FAQ's arrow tile (28px), so both lists line up */
+  .num {
+    flex: none;
+    width: 28px;
+    font-size: var(--fs-h4);
+    line-height: var(--lh-h4);
+    color: var(--muted-2);
+  }
+  .text {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+  .choice {
+    font-size: var(--fs-h4);
+    line-height: var(--lh-h4);
+    color: var(--text);
+  }
+  .cite {
+    align-self: flex-start;
+    margin-top: 4px;
+    font-size: var(--fs-caption);
+    line-height: var(--lh-caption);
+    color: var(--muted);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .cite:hover {
+    color: var(--accent-light);
+  }
+  .note {
+    padding-top: 20px;
+    border-top: 1px solid var(--card-border);
+  }
+  .note a {
+    color: var(--text);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  @media (max-width: 720px) {
+    .item {
+      flex-direction: column;
+      gap: 4px;
+    }
+  }
+</style>

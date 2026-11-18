@@ -1,7 +1,7 @@
 ---
 // Bento card "01 Quick review" — visual part.
 // Shows what the review does. The first example is already finished: the line of thought (last
-// lesson's word, today's word, mixing them), the question, and two tags saying where each word came
+// an earlier word, the last lesson's word, mixing them), the question, and two tags saying where each word came
 // from, with a light-orange "Next ↓". Clicking it plays the next example below and pushes the chat
 // up, like a normal chat: a single shimmering status line swaps its text in place (like Claude
 // thinking), then opens up into the line of thought, one step at a time, and the question lands.
@@ -9,17 +9,19 @@
 // builds, the one before it goes up bit by bit, and it is out of sight when the new one is done.
 
 type Round = {
-  old: string; // word brought back from an earlier lesson
+  old: string; // word from an earlier lesson
   oldEn: string;
-  now: string; // word from today's lesson
+  now: string; // word from the last lesson
   nowEn: string;
-  q: [string, string, string, string, string]; // plain, today's phrase, plain, yesterday's phrase, plain
+  q: [string, string, string, string, string]; // plain, the last lesson's word, plain, the earlier word, plain
 };
 
+// The review comes before the lesson's new words, so it only uses words already met: one from the
+// last lesson (here HSK 1, Lesson 12, "Eating and drinking") and one from an earlier lesson.
 const rounds: Round[] = [
-  { old: '茶', oldEn: 'tea', now: '买', nowEn: 'buy', q: ['Say you want to ', 'buy', ' some ', 'tea', '.'] },
-  { old: '明天', oldEn: 'tomorrow', now: '商店', nowEn: 'shop', q: ['Say you’re going to ', 'the shop', ' ', 'tomorrow', '.'] },
-  { old: '喜欢', oldEn: 'like', now: '贵', nowEn: 'expensive', q: ['Say it’s ', 'expensive', ', but you ', 'like', ' it.'] },
+  { old: '明天', oldEn: 'tomorrow', now: '牛奶', nowEn: 'milk', q: ['Say you’ll drink ', 'milk', ' ', 'tomorrow', '.'] },
+  { old: '喜欢', oldEn: 'like', now: '米饭', nowEn: 'rice', q: ['Say you eat ', 'rice', ' and you ', 'like', ' it.'] },
+  { old: '朋友', oldEn: 'friend', now: '好吃', nowEn: 'tasty', q: ['Say it’s ', 'tasty', ' and your ', 'friend', ' made it.'] },
 ];
 ---
 
@@ -326,16 +328,16 @@ const rounds: Round[] = [
     const zhNow = (s: string) => el('span', 'zh now', s);
     // what the status line says while thinking
     const status = (r: Round): (string | Node)[][] => [
-      ['Last lesson: ', zhOld(r.old), '…'],
-      ['Today: ', zhNow(r.now), '…'],
+      ['Earlier: ', zhOld(r.old), '…'],
+      ['Last lesson: ', zhNow(r.now), '…'],
       ['Mixing both into one sentence…'],
     ];
     // the line of thought once it's done
     function thought(r: Round, animate: boolean) {
       const box = el('div', 'qr-thought');
       const rows: (string | Node)[][] = [
-        [el('span', '', 'Last lesson:'), zhOld(r.old), el('span', 'en', r.oldEn)],
-        [el('span', '', 'Today:'), zhNow(r.now), el('span', 'en', r.nowEn)],
+        [el('span', '', 'Earlier:'), zhOld(r.old), el('span', 'en', r.oldEn)],
+        [el('span', '', 'Last lesson:'), zhNow(r.now), el('span', 'en', r.nowEn)],
         [el('span', '', 'Mixed both into one sentence')],
       ];
       rows.forEach((row, k) => {
@@ -349,7 +351,7 @@ const rounds: Round[] = [
     function bubble(r: Round) {
       const b = el('div', 'bubble ai');
       const p = el('p', 'qr-q');
-      // q = [plain, today's phrase, plain, yesterday's phrase, plain]
+      // q = [plain, the last lesson's word, plain, the earlier word, plain]
       r.q.forEach((s, i) =>
         p.append(i === 1 ? el('span', 'now', s) : i === 3 ? el('span', 'old', s) : document.createTextNode(s)),
       );
@@ -409,7 +411,7 @@ const rounds: Round[] = [
       const r = rounds[i];
       const block = el('div', 'qr-block');
       const tags = el('div', 'qr-tags');
-      tags.append(tag(r.old, 'YESTERDAY', false), tag(r.now, 'TODAY', true));
+      tags.append(tag(r.old, 'EARLIER', false), tag(r.now, 'LAST LESSON', true));
       nextButton(tags, false);
       block.append(thought(r, false), bubble(r), tags);
       track.append(block);
@@ -454,17 +456,17 @@ const rounds: Round[] = [
       const b = bubble(r);
       add(block, b);
       pop(b);
-      live.textContent = `${r.q.join('')} (${r.old} from yesterday, ${r.now} from today)`;
+      live.textContent = `${r.q.join('')} (${r.now} from the last lesson, ${r.old} from an earlier one)`;
       await wait(650);
 
       // 4. where the words came from, one after the other, then Next
       const tags = el('div', 'qr-tags');
       add(block, tags);
-      const t1 = tag(r.old, 'YESTERDAY', false);
+      const t1 = tag(r.old, 'EARLIER', false);
       tags.append(t1);
       pop(t1);
       await wait(450);
-      const t2 = tag(r.now, 'TODAY', true);
+      const t2 = tag(r.now, 'LAST LESSON', true);
       tags.append(t2);
       pop(t2);
       await wait(450);
