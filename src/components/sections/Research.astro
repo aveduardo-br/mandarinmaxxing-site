@@ -3,7 +3,8 @@
 // with a plus tile: its title and a short line; open, it says what the source is or what the study
 // found, how the skill uses it, where the evidence is thin, and links to it.
 // Each claim was checked against the source it links to (notes and more sources in docs/research.md).
-// The studies support the ideas, not this skill, and the last paragraph says so.
+// The studies are about the ideas; the last paragraph says the skill itself is still in development,
+// tested by the people who study with it (Eduardo's wording: never say it was not tested).
 import QA, { type Item } from '../QA.astro';
 import { SKILL_REPO, research } from '../../data/site';
 import { BOOK_SOURCE } from '../../data/book';
@@ -103,7 +104,7 @@ const items: Item[] = [
       },
     ],
     after: [
-      `These studies back the ideas, not this skill: nobody has tested mandarinmaxxing in a study. What it has are its own checks, which are <a href="${SKILL_REPO}#how-its-made" target="_blank" rel="noopener">on GitHub ↗</a>, and the people who study with it.`,
+      `These studies are about the ideas behind the skill. The skill itself is still in development: the people who study with it are testing it lesson by lesson, each version goes through its own checks, which are <a href="${SKILL_REPO}#how-its-made" target="_blank" rel="noopener">on GitHub ↗</a>, and what comes out of that shapes the next one.`,
     ],
   },
 ];
